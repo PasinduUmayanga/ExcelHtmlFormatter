@@ -52,7 +52,10 @@ export function buildSampleWorkbook(): ExcelJS.Workbook {
   ])
 
   const hidden = wb.addWorksheet('Lookup', { state: 'hidden' })
-  hidden.addRows([['Code', 'Label'], ['A', '<b>Active</b>']])
+  hidden.addRows([
+    ['Code', 'Label'],
+    ['A', '<b>Active</b>']
+  ])
 
   return wb
 }

@@ -1,6 +1,11 @@
 import { createContext, useContext, type ComponentType } from 'react'
 import {
-  createHashHistory, createRootRoute, createRoute, createRouter, redirect, type RouterHistory
+  createHashHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  redirect,
+  type RouterHistory
 } from '@tanstack/react-router'
 import type { ConvertOptions, FormatInfo } from '@hf/core'
 import { canVisit, useApp } from './store'
@@ -117,7 +122,14 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     component: TagStyles
   })
 
-  const routeTree = rootRoute.addChildren([indexRoute, openRoute, sectionsRoute, analysisRoute, previewRoute, settingsRoute])
+  const routeTree = rootRoute.addChildren([
+    indexRoute,
+    openRoute,
+    sectionsRoute,
+    analysisRoute,
+    previewRoute,
+    settingsRoute
+  ])
   return createRouter({ routeTree, history: options.history ?? createHashHistory() })
 }
 

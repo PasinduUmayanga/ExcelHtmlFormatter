@@ -2,9 +2,18 @@
 /// <reference path="./css.d.ts" />
 import { create } from 'zustand'
 import {
-  CANCELLED_MESSAGE, cleanStyle, defaultConfig,
-  type AppConfig, type AppInfo, type DocumentSummary, type ExportResult, type JobKind, type JobProgress,
-  type PickedFile, type TagStyle, type UnknownTagAction
+  CANCELLED_MESSAGE,
+  cleanStyle,
+  defaultConfig,
+  type AppConfig,
+  type AppInfo,
+  type DocumentSummary,
+  type ExportResult,
+  type JobKind,
+  type JobProgress,
+  type PickedFile,
+  type TagStyle,
+  type UnknownTagAction
 } from '@hf/core'
 
 /**
@@ -63,7 +72,10 @@ export interface AppState {
 }
 
 /** Which screens can be visited right now (used by route guards and the sidebar). */
-export function canVisit(state: Pick<AppState, 'doc' | 'loading' | 'selected'>, screen: 'sections' | 'analysis' | 'preview'): boolean {
+export function canVisit(
+  state: Pick<AppState, 'doc' | 'loading' | 'selected'>,
+  screen: 'sections' | 'analysis' | 'preview'
+): boolean {
   if (state.loading || !state.doc) return false
   return screen === 'sections' || state.selected.length > 0
 }

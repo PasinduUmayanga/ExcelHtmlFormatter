@@ -21,7 +21,22 @@ export interface ConvertResult {
 export type ConvertOptions = Pick<AppConfig, 'rules' | 'unknownTagAction'>
 
 /** Tags that never have a closing tag. */
-const VOID_TAGS = new Set(['br', 'hr', 'img', 'input', 'wbr', 'meta', 'link', 'col', 'area', 'base', 'embed', 'source', 'track', 'param'])
+const VOID_TAGS = new Set([
+  'br',
+  'hr',
+  'img',
+  'input',
+  'wbr',
+  'meta',
+  'link',
+  'col',
+  'area',
+  'base',
+  'embed',
+  'source',
+  'track',
+  'param'
+])
 
 /**
  * Converts the HTML in one cell into styled runs.

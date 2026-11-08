@@ -48,7 +48,11 @@ describe('progress reporting', () => {
     const updates: JobProgress[] = []
     summarizeWorkbook(buildSampleWorkbook(), { path: 'x', name: 'x', sizeBytes: 0 }, (p) => updates.push(p))
     expect(updates.map((u) => [u.done, u.total, u.unit])).toEqual([
-      [0, 5, 'sheets'], [1, 5, 'sheets'], [2, 5, 'sheets'], [3, 5, 'sheets'], [4, 5, 'sheets']
+      [0, 5, 'sheets'],
+      [1, 5, 'sheets'],
+      [2, 5, 'sheets'],
+      [3, 5, 'sheets'],
+      [4, 5, 'sheets']
     ])
   })
 })

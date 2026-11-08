@@ -27,7 +27,13 @@ export function mountFormatterApp(root: HTMLElement, config: FormatterAppConfig)
   )
 }
 
-export { createFormatterRouter, useFormatterApp, type FormatterAppConfig, type PreviewProps, type PreviewView } from './router'
+export {
+  createFormatterRouter,
+  useFormatterApp,
+  type FormatterAppConfig,
+  type PreviewProps,
+  type PreviewView
+} from './router'
 export { useApp, canVisit, cleanError } from './store'
 export { RichText } from './components/RichText'
 export { styleToCss } from './components/styleToCss'

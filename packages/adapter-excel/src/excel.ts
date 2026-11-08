@@ -1,8 +1,16 @@
 import ExcelJS from 'exceljs'
 import { rename, rm } from 'node:fs/promises'
 import {
-  hasHtml, htmlToRuns, scanCells, throttle,
-  type CellText, type ConvertOptions, type DocumentSummary, type ExportStats, type PickedFile, type ProgressCallback
+  hasHtml,
+  htmlToRuns,
+  scanCells,
+  throttle,
+  type CellText,
+  type ConvertOptions,
+  type DocumentSummary,
+  type ExportStats,
+  type PickedFile,
+  type ProgressCallback
 } from '@hf/core'
 import { toExcelRichText, type ExcelFont } from './excelRichText'
 import type { PreviewCell, SheetPreview } from './format'
@@ -85,7 +93,10 @@ export function baseFont(cell: ExcelJS.Cell): ExcelFont {
  * Replaces the HTML in one cell with rich text. Returns null if the cell was left alone,
  * otherwise whether it now needs "wrap text" and which tags had no rule.
  */
-export function convertCell(cell: ExcelJS.Cell, options: ConvertOptions): { wrapped: boolean; unknownTags: string[] } | null {
+export function convertCell(
+  cell: ExcelJS.Cell,
+  options: ConvertOptions
+): { wrapped: boolean; unknownTags: string[] } | null {
   const text = cellText(cell)
   if (text === null || !hasHtml(text)) return null
   const result = htmlToRuns(text, options)
@@ -143,9 +154,12 @@ export async function writeWorkbookSafely(workbook: ExcelJS.Workbook, path: stri
     await rm(tmp, { force: true }).catch(() => {})
     const code = (e as NodeJS.ErrnoException).code
     if (code === 'EBUSY' || code === 'EPERM' || code === 'EACCES') {
-      throw new Error('The file could not be saved. If it is open in Excel, close it and try again, or choose another name.')
+      throw new Error(
+        'The file could not be saved. If it is open in Excel, close it and try again, or choose another name.',
+        { cause: e }
+      )
     }
-    throw new Error('The file could not be saved: ' + (e as Error).message)
+    throw new Error('The file could not be saved: ' + (e as Error).message, { cause: e })
   }
 }
 
@@ -176,7 +190,11 @@ export function sheetCells(sheet: ExcelJS.Worksheet): CellText[] {
   return cells
 }
 
-export function summarizeWorkbook(workbook: ExcelJS.Workbook, file: PickedFile, onProgress?: ProgressCallback): DocumentSummary {
+export function summarizeWorkbook(
+  workbook: ExcelJS.Workbook,
+  file: PickedFile,
+  onProgress?: ProgressCallback
+): DocumentSummary {
   const total = workbook.worksheets.length
   return {
     file,
@@ -197,7 +215,7 @@ export async function readWorkbook(path: string): Promise<ExcelJS.Workbook> {
   try {
     await workbook.xlsx.readFile(path)
   } catch (e) {
-    throw new Error(friendlyReadError(e))
+    throw new Error(friendlyReadError(e), { cause: e })
   }
   return workbook
 }

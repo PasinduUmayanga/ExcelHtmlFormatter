@@ -8,7 +8,12 @@ import { canVisit, useApp } from '../src/store'
 
 const doc: DocumentSummary = {
   file: { path: 'C:/x.xlsx', name: 'x.xlsx', sizeBytes: 1 },
-  sections: ['Products', 'Team', 'Summary'].map((name) => ({ name, state: 'visible', sizeLabel: '1 × 1', scan: { htmlCells: 0, tags: {} } }))
+  sections: ['Products', 'Team', 'Summary'].map((name) => ({
+    name,
+    state: 'visible',
+    sizeLabel: '1 × 1',
+    scan: { htmlCells: 0, tags: {} }
+  }))
 }
 
 /** Loads `path` in a router with in-memory history and returns where the guards ended up. */
@@ -16,7 +21,10 @@ async function visit(path: string) {
   const router = createFormatterRouter({ history: createMemoryHistory({ initialEntries: [path] }) })
   await router.load()
   // `search` = what screens read with useSearch(): the values after validateSearch, not the raw address.
-  return { path: router.state.location.pathname, search: router.state.matches.at(-1)?.search as Record<string, unknown> }
+  return {
+    path: router.state.location.pathname,
+    search: router.state.matches.at(-1)?.search as Record<string, unknown>
+  }
 }
 
 afterEach(() => useApp.setState({ doc: null, selected: [], loading: false }))
@@ -62,7 +70,10 @@ describe('routes and guards (TanStack Router)', () => {
     useApp.setState({ doc, selected: ['Team'] })
     expect((await visit('/preview/Team?view=original')).search).toEqual({ view: 'original' })
     expect((await visit('/preview/Team?view=weird')).search).toEqual({})
-    expect((await visit('/settings?tag=mark&back=%2Fanalysis%2FTeam')).search).toEqual({ tag: 'mark', back: '/analysis/Team' })
+    expect((await visit('/settings?tag=mark&back=%2Fanalysis%2FTeam')).search).toEqual({
+      tag: 'mark',
+      back: '/analysis/Team'
+    })
     // "back" must stay inside the app
     expect((await visit('/settings?back=https%3A%2F%2Fexample.com')).search).toEqual({})
     expect((await visit('/settings?back=%2F%2Fexample.com')).search).toEqual({})

@@ -27,11 +27,32 @@ describe('normalizeColor', () => {
 
 describe('sanitizeStyle', () => {
   it('keeps valid options', () => {
-    expect(sanitizeStyle({ bold: true, italic: true, underline: true, strike: true, color: '#c00', size: 14, font: ' Arial ', vertAlign: 'subscript' }))
-      .toEqual({ bold: true, italic: true, underline: true, strike: true, color: '#CC0000', size: 14, font: 'Arial', vertAlign: 'subscript' })
+    expect(
+      sanitizeStyle({
+        bold: true,
+        italic: true,
+        underline: true,
+        strike: true,
+        color: '#c00',
+        size: 14,
+        font: ' Arial ',
+        vertAlign: 'subscript'
+      })
+    ).toEqual({
+      bold: true,
+      italic: true,
+      underline: true,
+      strike: true,
+      color: '#CC0000',
+      size: 14,
+      font: 'Arial',
+      vertAlign: 'subscript'
+    })
   })
   it('drops invalid or unknown options', () => {
-    expect(sanitizeStyle({ bold: 'yes', size: 0, font: '', vertAlign: 'middle', color: 'blue', evil: '<script>' })).toEqual({})
+    expect(
+      sanitizeStyle({ bold: 'yes', size: 0, font: '', vertAlign: 'middle', color: 'blue', evil: '<script>' })
+    ).toEqual({})
     expect(sanitizeStyle({ size: 1000 })).toEqual({})
     expect(sanitizeStyle({ font: 'x'.repeat(32) })).toEqual({})
     expect(sanitizeStyle(null)).toEqual({})
@@ -52,12 +73,21 @@ describe('validateConfig', () => {
   })
 
   it('fills in missing fields and fixes bad ones', () => {
-    expect(validateConfig({ rules: { B: { bold: true }, '1x': {}, br: { bold: true } }, unknownTagAction: 'explode', profileName: 5 }))
-      .toEqual({ profileName: 'Default', unknownTagAction: 'strip', rules: { b: { bold: true } } })
+    expect(
+      validateConfig({
+        rules: { B: { bold: true }, '1x': {}, br: { bold: true } },
+        unknownTagAction: 'explode',
+        profileName: 5
+      })
+    ).toEqual({ profileName: 'Default', unknownTagAction: 'strip', rules: { b: { bold: true } } })
   })
 
   it('reads the export format from the demo', () => {
-    const exported = { profileName: 'Office', unknownTagAction: 'keep', rules: { mark: { bold: true, color: '#C00000' } } }
+    const exported = {
+      profileName: 'Office',
+      unknownTagAction: 'keep',
+      rules: { mark: { bold: true, color: '#C00000' } }
+    }
     expect(validateConfig(exported)).toEqual(exported)
   })
 

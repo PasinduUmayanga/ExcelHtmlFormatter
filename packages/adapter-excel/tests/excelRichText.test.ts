@@ -18,13 +18,36 @@ describe('hexToArgb', () => {
 describe('toExcelFont', () => {
   it('maps every style option to the ExcelJS font shape', () => {
     expect(
-      toExcelFont({ bold: true, italic: true, underline: true, strike: true, color: '#C00000', size: 14, font: 'Arial', vertAlign: 'superscript' })
-    ).toEqual({ bold: true, italic: true, underline: true, strike: true, color: { argb: 'FFC00000' }, size: 14, name: 'Arial', vertAlign: 'superscript' })
+      toExcelFont({
+        bold: true,
+        italic: true,
+        underline: true,
+        strike: true,
+        color: '#C00000',
+        size: 14,
+        font: 'Arial',
+        vertAlign: 'superscript'
+      })
+    ).toEqual({
+      bold: true,
+      italic: true,
+      underline: true,
+      strike: true,
+      color: { argb: 'FFC00000' },
+      size: 14,
+      name: 'Arial',
+      vertAlign: 'superscript'
+    })
   })
 
   it('keeps the cell base font and lets the tag override it', () => {
     const base = { name: 'Calibri', size: 11, color: { argb: 'FF000000' } }
-    expect(toExcelFont({ bold: true, size: 16 }, base)).toEqual({ name: 'Calibri', size: 16, color: { argb: 'FF000000' }, bold: true })
+    expect(toExcelFont({ bold: true, size: 16 }, base)).toEqual({
+      name: 'Calibri',
+      size: 16,
+      color: { argb: 'FF000000' },
+      bold: true
+    })
     expect(base.size).toBe(11) // base is not changed
   })
 
