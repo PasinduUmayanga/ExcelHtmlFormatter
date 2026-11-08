@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm blocks install scripts by default. Electron needs its script to download its runtime.
+# electron-winstaller (pulled in by electron-builder) is only for Squirrel installers, which we don't build.
+allowBuilds:
+  electron: true
+  electron-winstaller: false

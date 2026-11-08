@@ -1,0 +1,37 @@
+{
+  "name": "excel-formatter",
+  "productName": "Excel HTML Formatter",
+  "version": "0.1.0",
+  "description": "Convert HTML tags inside Excel cells into real rich-text formatting",
+  "author": "Pasindu",
+  "private": true,
+  "main": "out/main/main.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dist": "electron-builder --publish never",
+    "icon": "electron scripts/make-icon.cjs"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "@hf/adapter-excel": "workspace:*",
+    "@hf/core": "workspace:*",
+    "@hf/desktop": "workspace:*",
+    "@hf/ui": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6"
+  }
+}

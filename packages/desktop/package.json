@@ -1,0 +1,29 @@
+{
+  "name": "@hf/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared Electron shell: main process, preload bridge and background worker for any format",
+  "type": "module",
+  "exports": {
+    "./main": "./src/main/index.ts",
+    "./preload": "./src/preload/index.ts",
+    "./worker": "./src/worker/index.ts",
+    "./protocol": "./src/protocol.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hf/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "electron": ">=45"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "electron": "^45.2.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

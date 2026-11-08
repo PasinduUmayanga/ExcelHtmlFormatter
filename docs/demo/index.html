@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel HTML Formatter</title>
+<style>
+:root{
+  --bg:#eef0f3; --win:#ffffff; --side:#f6f7f9; --line:#e2e5ea; --line2:#cfd4db;
+  --text:#1c2128; --muted:#5d6672; --faint:#8b939e;
+  --accent:#1f6feb; --accent-bg:#e8f0fe; --accent-text:#174ea6;
+  --ok:#1a7f37; --ok-bg:#e6f4ea; --warn:#9a6700; --warn-bg:#fff4d6; --bad:#cf222e;
+  --title:#16202d; --title-text:#e6edf3;
+  --radius:8px; --mono:Consolas,"Cascadia Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0d1117; --win:#161b22; --side:#11161d; --line:#2a313b; --line2:#3a434f;
+  --text:#e6edf3; --muted:#9aa5b1; --faint:#6e7681;
+  --accent:#4c8dff; --accent-bg:#152a4a; --accent-text:#a8c7ff;
+  --ok:#3fb950; --ok-bg:#12301c; --warn:#d29922; --warn-bg:#33270b; --bad:#f85149;
+  --title:#05080c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;padding:24px}
+.win{max-width:1180px;margin:0 auto;background:var(--win);border:1px solid var(--line2);border-radius:10px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+.titlebar{height:36px;background:var(--title);color:var(--title-text);display:flex;align-items:center;padding:0 12px;font-size:12.5px;gap:10px}
+.titlebar .dots{margin-left:auto;display:flex;gap:16px;opacity:.7}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:640px}
+aside{background:var(--side);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.navlabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:10px 10px 4px}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);cursor:pointer;color:var(--muted);border:0;background:none;font:inherit;text-align:left;width:100%}
+.nav:hover:not(:disabled){background:var(--line)}
+.nav.active{background:var(--accent-bg);color:var(--accent-text);font-weight:600}
+.nav:disabled{opacity:.45;cursor:not-allowed}
+.nav .num{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:11.5px;flex:none}
+.nav.done .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.side-foot{margin-top:auto;font-size:12px;color:var(--muted);padding:10px;border-top:1px solid var(--line)}
+main{padding:28px 32px;overflow:auto}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 22px}
+.btn{font:inherit;border:1px solid var(--line2);background:var(--win);color:var(--text);padding:7px 14px;border-radius:var(--radius);cursor:pointer}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{padding:3px 10px;font-size:12.5px}
+.btn.link{border:0;background:none;color:var(--accent);padding:0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.footer{display:flex;justify-content:space-between;margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+.drop{border:2px dashed var(--line2);border-radius:12px;padding:56px 20px;text-align:center;cursor:pointer;transition:.15s}
+.drop:hover{border-color:var(--accent);background:var(--accent-bg)}
+.drop .big{font-size:40px;line-height:1}
+.drop b{display:block;font-size:16px;margin:10px 0 4px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--side)}
+tr.sel td{background:color-mix(in srgb,var(--accent-bg) 60%,transparent)}
+.card{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat .v{font-size:22px;font-weight:600}
+.stat .l{font-size:12px;color:var(--muted)}
+.chip{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.info{background:var(--accent-bg);color:var(--accent-text)}
+.tag{font-family:var(--mono);font-size:12.5px;background:var(--side);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+.code{font-family:var(--mono);font-size:12px;color:var(--muted);word-break:break-word}
+.banner{display:flex;gap:10px;align-items:center;background:var(--warn-bg);color:var(--warn);padding:10px 14px;border-radius:var(--radius);margin-bottom:16px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tab{border:0;background:none;font:inherit;padding:8px 14px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.cfg{display:grid;grid-template-columns:240px 1fr;gap:20px}
+.taglist{border:1px solid var(--line);border-radius:10px;overflow:hidden;align-self:start}
+.taglist button{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;color:var(--text);padding:9px 12px;cursor:pointer;text-align:left}
+.taglist button:last-child{border-bottom:0}
+.taglist button.active{background:var(--accent-bg)}
+.editor{border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.field{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:12px}
+.field>label:first-child{color:var(--muted);font-size:13px}
+.toggles{display:flex;gap:6px;flex-wrap:wrap}
+.tg{border:1px solid var(--line2);background:var(--win);color:var(--text);min-width:38px;height:34px;border-radius:var(--radius);cursor:pointer;font:inherit;padding:0 10px}
+.tg.on{background:var(--accent);border-color:var(--accent);color:#fff}
+select,input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:var(--radius);background:var(--win);color:var(--text)}
+input[type=color]{width:44px;height:32px;border:1px solid var(--line2);border-radius:var(--radius);padding:2px;background:var(--win)}
+.preview{border:1px solid var(--line);background:var(--side);border-radius:var(--radius);padding:14px;font-family:Calibri,Carlito,"Segoe UI",sans-serif;font-size:11pt}
+.preview + .preview{margin-top:8px}
+.xl{font-family:Calibri,Carlito,"Segoe UI",sans-serif;font-size:11pt}
+.grid td{border-right:1px solid var(--line)}
+.grid td.hdr,.grid th.hdr{background:var(--side);color:var(--faint);font-size:12px;text-align:center;width:36px}
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line2);border-radius:var(--radius);overflow:hidden}
+.seg button{border:0;background:var(--win);color:var(--muted);font:inherit;padding:5px 12px;cursor:pointer}
+.seg button.on{background:var(--accent-bg);color:var(--accent-text);font-weight:600}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--title);color:#fff;padding:10px 18px;border-radius:var(--radius);opacity:0;transition:.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%)}
+.recent{margin-top:22px}
+.recent div{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--line);color:var(--muted)}
+@media (max-width:820px){body{padding:0}.win{border-radius:0}.app{grid-template-columns:1fr}aside{flex-direction:row;overflow-x:auto}.navlabel,.side-foot{display:none}.cfg{grid-template-columns:1fr}main{padding:20px 16px}}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="titlebar"><span>▦</span><span>Excel HTML Formatter</span><span id="tb-file" style="opacity:.6"></span><span class="dots"><span>—</span><span>☐</span><span>✕</span></span></div>
+  <div class="app">
+    <aside id="side"></aside>
+    <main id="main"></main>
+  </div>
+</div>
+<div id="toast"></div>
+<input type="file" id="importFile" accept=".json" style="display:none">
+
+<script>
+/* ---------- Sample workbook (stands in for a real .xlsx in the demo) ---------- */
+const SAMPLE = {
+  name: "product_catalog.xlsx",
+  sheets: [
+    { name: "Products", rows: [
+      ["SKU","Product","Description","Price"],
+      ["TEA-001","<b>Ceylon Black</b>","Strong <i>high-grown</i> tea from <b>Nuwara Eliya</b>","LKR 1,200"],
+      ["TEA-002","<b>Green Jasmine</b>","Light and <i>floral</i>.<br>Best served <u>without milk</u>","LKR 1,450"],
+      ["TEA-003","<b>Earl Grey</b>","Black tea with <i>bergamot</i> oil","LKR 1,350"],
+      ["TEA-004","<b>White Silver Tips</b>","<b><i>Rare</i></b> hand-rolled buds, <mark>limited stock</mark>","LKR 4,800"],
+      ["TEA-005","<b>Masala Chai</b>","Spiced blend: <i>cardamom</i>, <i>ginger</i>, <i>clove</i>","LKR 1,100"]
+    ]},
+    { name: "Team", rows: [
+      ["Name","Role","Note"],
+      ["<b>my name</b> is <i>pasindu</i>","<u>Developer</u>","Owns the <b>converter</b> module"],
+      ["<b>Nimal</b>","<u>Designer</u>","Works on <i>UI</i> screens"],
+      ["<b>Ayesha</b>","<u>QA</u>","Tests the <s>old</s> <b>new</b> build"]
+    ]},
+    { name: "Science", rows: [
+      ["Item","Formula","Note"],
+      ["Water","H<sub>2</sub>O","<i>Essential</i> for life"],
+      ["Circle area","π r<sup>2</sup>","Use <strong>metres</strong>"],
+      ["Energy","E = mc<sup>2</sup>","<span style=\"color:red\">Important</span> constant"]
+    ]},
+    { name: "Summary", rows: [
+      ["Metric","Value"],["Total products","5"],["Last updated","2026-11-08"]
+    ]}
+  ]
+};
+
+const DEFAULT_RULES = {
+  b:{bold:true}, strong:{bold:true}, i:{italic:true}, em:{italic:true},
+  u:{underline:true}, s:{strike:true}, sup:{vertAlign:"superscript"}, sub:{vertAlign:"subscript"}
+};
+const BUILTIN = { br:"Line break", p:"Paragraph break" };
+
+/* ---------- State ---------- */
+const S = {
+  screen:"open", wb:null, selected:new Set(), active:null,
+  rules: load("rules", structuredClone(DEFAULT_RULES)),
+  unknown: load("unknown", "strip"),
+  editTag:"b", view:"formatted"
+};
+function load(k, d){ try{ const v=localStorage.getItem("ehf."+k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function save(){ try{ localStorage.setItem("ehf.rules",JSON.stringify(S.rules)); localStorage.setItem("ehf.unknown",JSON.stringify(S.unknown)); }catch(e){} }
+
+/* ---------- Core: tag scanning ---------- */
+const colName = i => { let s=""; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26);} return s; };
+function scanSheet(sheet){
+  const tags = {}; let htmlCells = 0;
+  sheet.rows.forEach((row,r)=>row.forEach((v,c)=>{
+    const found = [...String(v).matchAll(/<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g)];
+    if(!found.length) return;
+    htmlCells++;
+    found.forEach(m=>{
+      const t=m[1].toLowerCase();
+      tags[t] ??= {count:0, cell:colName(c)+(r+1), sample:v};
+      tags[t].count++;
+    });
+  }));
+  return { tags, htmlCells, rows:sheet.rows.length, cols:Math.max(...sheet.rows.map(r=>r.length)) };
+}
+const isConfigured = t => !!BUILTIN[t] || !!S.rules[t];
+
+/* ---------- Core: HTML -> rich text runs (same shape ExcelJS uses) ---------- */
+function toRuns(html){
+  const doc = new DOMParser().parseFromString("<div>"+html+"</div>","text/html");
+  const runs = [], unknown = new Set();
+  (function walk(node, font){
+    node.childNodes.forEach(n=>{
+      if(n.nodeType===3){ if(n.textContent) runs.push({text:n.textContent, font}); return; }
+      if(n.nodeType!==1) return;
+      const t = n.tagName.toLowerCase();
+      if(t==="br"){ runs.push({text:"\n", font}); return; }
+      if(t==="p"){ walk(n, font); runs.push({text:"\n", font}); return; }
+      const rule = S.rules[t];
+      if(rule){ walk(n, {...font, ...rule}); return; }
+      unknown.add(t);
+      if(S.unknown==="keep"){ runs.push({text:"<"+t+">", font}); walk(n,font); runs.push({text:"</"+t+">", font}); }
+      else walk(n, font);
+    });
+  })(doc.body.firstChild, {});
+  return { runs, unknown:[...unknown] };
+}
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function fontCss(f){
+  const st=[]; const deco=[];
+  if(f.bold) st.push("font-weight:700");
+  if(f.italic) st.push("font-style:italic");
+  if(f.underline) deco.push("underline");
+  if(f.strike) deco.push("line-through");
+  if(deco.length) st.push("text-decoration:"+deco.join(" "));
+  if(f.color) st.push("color:"+f.color);
+  if(f.size) st.push("font-size:"+f.size+"pt");
+  if(f.font) st.push("font-family:'"+f.font+"'");
+  if(f.vertAlign) st.push("vertical-align:"+(f.vertAlign==="superscript"?"super":"sub")+";font-size:75%");
+  return st.join(";");
+}
+function renderRich(html){
+  if(!/<[a-z]/i.test(html)) return esc(html);
+  return toRuns(html).runs.map(r=> r.text==="\n" ? "<br>" : `<span style="${fontCss(r.font)}">${esc(r.text)}</span>`).join("");
+}
+function describe(t){
+  if(BUILTIN[t]) return BUILTIN[t]+" (built-in)";
+  const r=S.rules[t]; if(!r) return "";
+  const p=[];
+  if(r.bold)p.push("Bold"); if(r.italic)p.push("Italic"); if(r.underline)p.push("Underline"); if(r.strike)p.push("Strikethrough");
+  if(r.vertAlign)p.push(r.vertAlign==="superscript"?"Superscript":"Subscript");
+  if(r.size)p.push(r.size+" pt"); if(r.font)p.push(r.font);
+  if(r.color)p.push(`<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${r.color};vertical-align:middle"></span> ${r.color}`);
+  return p.join(" · ") || "No changes";
+}
+
+/* ---------- Navigation ---------- */
+const STEPS = [["open","Open file"],["sheets","Select sheets"],["analysis","Tag analysis"],["convert","Preview & export"]];
+function canGo(s){
+  if(s==="open"||s==="settings") return true;
+  if(!S.wb) return false;
+  if(s==="sheets") return true;
+  return S.selected.size>0;
+}
+function go(s){ if(!canGo(s)) return; S.screen=s; if((s==="analysis"||s==="convert") && !S.selected.has(S.active)) S.active=[...S.selected][0]; render(); }
+function renderSide(){
+  const idx = STEPS.findIndex(x=>x[0]===S.screen);
+  let h = `<div class="navlabel">Workflow</div>`;
+  STEPS.forEach(([id,label],i)=>{
+    const done = idx>i || (id==="open"&&S.wb&&S.screen!=="open");
+    h += `<button class="nav ${S.screen===id?"active":""} ${done?"done":""}" ${canGo(id)?"":"disabled"} onclick="go('${id}')"><span class="num">${done?"✓":i+1}</span>${label}</button>`;
+  });
+  h += `<div class="navlabel">Configuration</div>
+    <button class="nav ${S.screen==="settings"?"active":""}" onclick="go('settings')"><span class="num">⚙</span>Tag styles</button>
+    <div class="side-foot">Profile: <b>Default</b><br>${Object.keys(S.rules).length} tag rules</div>`;
+  document.getElementById("side").innerHTML = h;
+  document.getElementById("tb-file").textContent = S.wb ? "— "+S.wb.name : "";
+}
+
+/* ---------- Screens ---------- */
+function screenOpen(){
+  return `<h1>Open an Excel file</h1><p class="sub">Choose a workbook whose cells contain HTML tags such as &lt;b&gt; and &lt;i&gt;.</p>
+  <div class="drop" onclick="openSample()"><div class="big">📄</div><b>Drop an .xlsx file here, or click to browse</b><span style="color:var(--muted)">Demo: clicking loads a sample workbook</span></div>
+  <div class="row" style="margin-top:16px"><button class="btn primary" onclick="openSample()">Open sample workbook</button></div>
+  <div class="recent"><div style="color:var(--text);font-weight:600;border:0">Recent files</div>
+    <div><span>📄 product_catalog.xlsx</span><span>Today</span></div>
+    <div><span>📄 hr_letters_2026.xlsx</span><span>Yesterday</span></div></div>`;
+}
+function openSample(){
+  S.wb = structuredClone(SAMPLE);
+  S.wb.scan = S.wb.sheets.map(scanSheet);
+  S.selected = new Set(S.wb.sheets.filter((s,i)=>S.wb.scan[i].htmlCells>0).map(s=>s.name));
+  toast("Loaded "+S.wb.name+" · "+S.wb.sheets.length+" sheets found");
+  go("sheets");
+}
+function screenSheets(){
+  const all = S.wb.sheets.every(s=>S.selected.has(s.name));
+  let rows = S.wb.sheets.map((s,i)=>{
+    const sc=S.wb.scan[i], on=S.selected.has(s.name), tags=Object.keys(sc.tags);
+    return `<tr class="${on?"sel":""}"><td><input type="checkbox" ${on?"checked":""} onchange="toggleSheet('${s.name}')"></td>
+      <td><b>${esc(s.name)}</b></td><td>${sc.rows} × ${sc.cols}</td>
+      <td>${sc.htmlCells ? sc.htmlCells : '<span style="color:var(--faint)">0</span>'}</td>
+      <td>${tags.length ? tags.map(t=>`<span class="tag">&lt;${t}&gt;</span>`).join(" ") : '<span class="chip info">No HTML found</span>'}</td></tr>`;
+  }).join("");
+  return `<h1>Select sheets</h1><p class="sub"><b>${S.wb.sheets.length} sheets</b> found in ${esc(S.wb.name)}. Sheets that contain HTML are selected for you.</p>
+  <div class="card"><table><tr><th style="width:36px"><input type="checkbox" ${all?"checked":""} onchange="toggleAll(this.checked)"></th><th>Sheet name</th><th>Rows × cols</th><th>HTML cells</th><th>Tags found</th></tr>${rows}</table></div>
+  <div class="footer"><button class="btn" onclick="go('open')">← Back</button>
+  <div class="row"><span style="color:var(--muted)">${S.selected.size} selected</span><button class="btn primary" ${S.selected.size?"":"disabled"} onclick="go('analysis')">Analyse tags →</button></div></div>`;
+}
+function toggleSheet(n){ S.selected.has(n)?S.selected.delete(n):S.selected.add(n); render(); }
+function toggleAll(on){ S.selected = new Set(on?S.wb.sheets.map(s=>s.name):[]); render(); }
+function sheetTabs(){
+  return `<div class="tabs">${[...S.selected].map(n=>{
+    const sc=S.wb.scan[S.wb.sheets.findIndex(s=>s.name===n)];
+    const bad=Object.keys(sc.tags).filter(t=>!isConfigured(t)).length;
+    return `<button class="tab ${S.active===n?"active":""}" onclick="S.active='${n}';render()">${esc(n)} ${bad?`<span class="chip warn">${bad}</span>`:""}</button>`;}).join("")}</div>`;
+}
+function screenAnalysis(){
+  const i=S.wb.sheets.findIndex(s=>s.name===S.active), sc=S.wb.scan[i];
+  const tags=Object.entries(sc.tags).sort((a,b)=>b[1].count-a[1].count);
+  const bad=tags.filter(([t])=>!isConfigured(t));
+  const rows = tags.map(([t,info])=>{
+    const ok=isConfigured(t);
+    return `<tr><td><span class="tag">&lt;${t}&gt;</span></td><td>${info.count}</td><td>${info.cell}</td>
+      <td>${ok?`<span class="chip ok">Styled</span> <span style="color:var(--muted);font-size:12.5px">${describe(t)}</span>`:`<span class="chip warn">Not configured</span>`}</td>
+      <td class="xl">${renderRich(info.sample)}</td>
+      <td>${BUILTIN[t]?"":`<button class="btn small" onclick="editTag('${t}')">${ok?"Edit":"Set style"}</button>`}</td></tr>`;
+  }).join("");
+  return `<h1>Tag analysis</h1><p class="sub">Formatting tags found in each selected sheet, and the style each one will get.</p>
+  ${sheetTabs()}
+  <div class="stats"><div class="stat"><div class="v">${sc.htmlCells}</div><div class="l">Cells with HTML</div></div>
+  <div class="stat"><div class="v">${tags.length}</div><div class="l">Different tags</div></div>
+  <div class="stat"><div class="v">${tags.reduce((a,[,x])=>a+x.count,0)}</div><div class="l">Tag uses</div></div>
+  <div class="stat"><div class="v" style="color:${bad.length?"var(--warn)":"var(--ok)"}">${bad.length}</div><div class="l">Not configured</div></div></div>
+  ${bad.length?`<div class="banner">⚠ ${bad.map(([t])=>"&lt;"+t+"&gt;").join(", ")} ${bad.length>1?"have":"has"} no style yet. ${S.unknown==="strip"?"The tags will be removed and the text kept plain.":"The tags will be kept as visible text."} <button class="btn link" onclick="editTag('${bad[0][0]}')">Set a style →</button></div>`:""}
+  ${tags.length?`<div class="card"><table><tr><th>Tag</th><th>Uses</th><th>First cell</th><th>Style</th><th>Preview (first cell)</th><th></th></tr>${rows}</table></div>`:`<p style="color:var(--muted)">No HTML in this sheet. It will be copied unchanged.</p>`}
+  <div class="footer"><button class="btn" onclick="go('sheets')">← Back</button><button class="btn primary" onclick="go('convert')">Preview result →</button></div>`;
+}
+function editTag(t){ S.editTag=t; S.back=S.screen; go("settings"); }
+
+function allTags(){
+  const used={};
+  if(S.wb) S.wb.scan.forEach(sc=>Object.entries(sc.tags).forEach(([t,x])=>{ used[t]??={count:0,sample:x.sample}; used[t].count+=x.count; }));
+  const names=new Set([...Object.keys(S.rules),...Object.keys(used).filter(t=>!BUILTIN[t])]);
+  return {used, names:[...names].sort()};
+}
+function screenSettings(){
+  const {used,names}=allTags(); const t=S.editTag; const r=S.rules[t]||{};
+  const list = names.map(n=>`<button class="${n===t?"active":""}" onclick="S.editTag='${n}';render()"><span class="tag">&lt;${n}&gt;</span>
+     ${S.rules[n]?(used[n]?`<span style="color:var(--muted);font-size:12px">${used[n].count}×</span>`:""):`<span class="chip warn">set style</span>`}</button>`).join("");
+  const tg=(k,label,style)=>`<button class="tg ${r[k]?"on":""}" style="${style}" title="${k}" onclick="setRule('${k}',${!r[k]})">${label}</button>`;
+  const opt=(arr,v)=>arr.map(([val,l])=>`<option value="${val}" ${String(v??"")===String(val)?"selected":""}>${l}</option>`).join("");
+  const sampleHtml = `The <${t}>quick brown fox</${t}> jumps over the lazy dog.`;
+  return `<h1>Tag styles</h1><p class="sub">Choose the Excel formatting for each HTML tag. Saved automatically and used for every file.</p>
+  <div class="cfg"><div><div class="taglist">${list}</div>
+    <div class="row" style="margin-top:10px"><input type="text" id="newTag" placeholder="new tag, e.g. mark" style="flex:1;min-width:0"><button class="btn small" onclick="addTag()">Add</button></div></div>
+  <div class="editor">
+    <div class="row" style="justify-content:space-between;margin-bottom:16px"><div><span class="tag" style="font-size:15px">&lt;${t}&gt;</span>
+      ${S.rules[t]?"":` <span class="chip warn">No rule yet. Any change below creates one.</span>`}</div>
+      ${S.rules[t]?`<button class="btn small" onclick="removeTag()">Remove rule</button>`:""}</div>
+    <div class="field"><label>Text style</label><div class="toggles">${tg("bold","B","font-weight:700")}${tg("italic","I","font-style:italic")}${tg("underline","U","text-decoration:underline")}${tg("strike","S","text-decoration:line-through")}</div></div>
+    <div class="field"><label>Font color</label><div class="row"><label class="row" style="gap:6px"><input type="checkbox" ${r.color?"checked":""} onchange="setRule('color',this.checked?'#C00000':'')"> Set color</label>
+      ${r.color?`<input type="color" value="${r.color}" onchange="setRule('color',this.value)"><span class="code">${r.color}</span>`:""}</div></div>
+    <div class="field"><label>Font size</label><select onchange="setRule('size',this.value?+this.value:'')">${opt([["","Keep cell size"],...[8,9,10,11,12,14,16,18,20,24].map(n=>[n,n+" pt"])],r.size)}</select></div>
+    <div class="field"><label>Font</label><select onchange="setRule('font',this.value)">${opt([["","Keep cell font"],["Calibri","Calibri"],["Arial","Arial"],["Times New Roman","Times New Roman"],["Consolas","Consolas"]],r.font)}</select></div>
+    <div class="field"><label>Position</label><div class="seg">${[["","Normal"],["superscript","Superscript"],["subscript","Subscript"]].map(([v,l])=>`<button class="${(r.vertAlign||"")===v?"on":""}" onclick="setRule('vertAlign','${v}')">${l}</button>`).join("")}</div></div>
+    <div class="field" style="align-items:start"><label>Preview</label><div><div class="preview">${renderRich(sampleHtml)}</div>
+      ${used[t]?`<div class="preview"><span class="code" style="display:block;margin-bottom:4px">From your file:</span>${renderRich(used[t].sample)}</div>`:""}</div></div>
+  </div></div>
+  <div class="editor" style="margin-top:20px"><div class="field" style="margin:0"><label>Tags with no rule</label>
+    <select onchange="S.unknown=this.value;save();render()">${opt([["strip","Remove the tag, keep the text plain"],["keep","Keep the tag as visible text"]],S.unknown)}</select></div></div>
+  <div class="footer"><div class="row"><button class="btn" onclick="exportCfg()">Export JSON</button><button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button><button class="btn" onclick="resetCfg()">Reset to defaults</button></div>
+    ${S.back&&S.wb?`<button class="btn primary" onclick="go('${S.back}')">Done, back to ${S.back==="convert"?"preview":"analysis"} →</button>`:""}</div>`;
+}
+function setRule(k,v){
+  const r={...(S.rules[S.editTag]||{})};
+  if(v===""||v===false) delete r[k]; else r[k]=v;
+  S.rules[S.editTag]=r; save(); render();
+}
+function addTag(){
+  const v=document.getElementById("newTag").value.trim().toLowerCase().replace(/[<>\/\s]/g,"");
+  if(!/^[a-z][a-z0-9]*$/.test(v)){ toast("Enter a tag name like: mark"); return; }
+  if(BUILTIN[v]){ toast("<"+v+"> is built in"); return; }
+  S.rules[v] ??= {bold:true}; S.editTag=v; save(); render();
+}
+function removeTag(){ delete S.rules[S.editTag]; save(); render(); }
+function resetCfg(){ S.rules=structuredClone(DEFAULT_RULES); S.unknown="strip"; S.editTag="b"; save(); render(); toast("Tag styles reset to defaults"); }
+function exportCfg(){
+  const blob=new Blob([JSON.stringify({profileName:"Default",unknownTagAction:S.unknown,rules:S.rules},null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tag-styles.json"; a.click();
+}
+document.getElementById("importFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  f.text().then(txt=>{ try{ const j=JSON.parse(txt); if(!j.rules) throw 0; S.rules=j.rules; S.unknown=j.unknownTagAction||"strip"; save(); render(); toast("Imported "+Object.keys(j.rules).length+" tag rules"); }catch(err){ toast("That file is not a valid tag-style JSON"); } });
+  e.target.value="";
+};
+
+function screenConvert(){
+  const sh=S.wb.sheets.find(s=>s.name===S.active);
+  let cells=0, warn=new Set();
+  S.wb.sheets.filter(s=>S.selected.has(s.name)).forEach(s=>s.rows.forEach(r=>r.forEach(v=>{ if(/<[a-z]/i.test(v)){ cells++; toRuns(v).unknown.forEach(u=>warn.add(u)); } })));
+  const cols=Math.max(...sh.rows.map(r=>r.length));
+  const grid = `<tr><th class="hdr"></th>${Array.from({length:cols},(_,c)=>`<th class="hdr">${colName(c)}</th>`).join("")}</tr>` +
+    sh.rows.map((row,ri)=>`<tr><td class="hdr">${ri+1}</td>${row.map(v=> S.view==="formatted" ? `<td class="xl">${renderRich(v)}</td>` : `<td class="code">${esc(v)}</td>`).join("")}</tr>`).join("");
+  return `<h1>Preview & export</h1><p class="sub">This is how the cells will look in Excel. Each cell keeps its text and gets real rich-text formatting.</p>
+  <div class="stats"><div class="stat"><div class="v">${S.selected.size}</div><div class="l">Sheets to convert</div></div>
+  <div class="stat"><div class="v">${cells}</div><div class="l">Cells to format</div></div>
+  <div class="stat"><div class="v" style="color:${warn.size?"var(--warn)":"var(--ok)"}">${warn.size}</div><div class="l">Tags with no style</div></div></div>
+  ${warn.size?`<div class="banner">⚠ No style set for ${[...warn].map(t=>"&lt;"+t+"&gt;").join(", ")}. ${S.unknown==="strip"?"They will be removed.":"They will stay as text."} <button class="btn link" onclick="editTag('${[...warn][0]}')">Set a style →</button></div>`:""}
+  <div class="row" style="justify-content:space-between">${sheetTabs()}<div class="seg" style="margin-bottom:16px"><button class="${S.view==="formatted"?"on":""}" onclick="S.view='formatted';render()">Formatted</button><button class="${S.view==="raw"?"on":""}" onclick="S.view='raw';render()">Original HTML</button></div></div>
+  <div class="card"><table class="grid">${grid}</table></div>
+  <div class="footer"><button class="btn" onclick="go('analysis')">← Back</button>
+    <div class="row"><label class="row" style="gap:6px;color:var(--muted)"><input type="checkbox" checked> Keep sheets that weren't selected</label>
+    <button class="btn primary" onclick="toast('Demo: would save ${S.wb.name.replace(".xlsx","")}_formatted.xlsx')">💾 Save formatted file…</button></div></div>`;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  renderSide();
+  const m={open:screenOpen,sheets:screenSheets,analysis:screenAnalysis,settings:screenSettings,convert:screenConvert}[S.screen];
+  document.getElementById("main").innerHTML=m();
+}
+let tt; function toast(msg){ const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"),2600); }
+render();
+</script>
+</body>
+</html>

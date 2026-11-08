@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- App icon: a spreadsheet page with a "</>" tag turning into a bold "B". Rendered to icon.png by `npm run icon`. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f7cf6"/>
+      <stop offset="1" stop-color="#1a56c4"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <!-- sheet -->
+  <rect x="232" y="196" width="560" height="632" rx="48" fill="#ffffff"/>
+  <rect x="232" y="196" width="560" height="120" rx="48" fill="#e3ecfb"/>
+  <rect x="232" y="268" width="560" height="48" fill="#e3ecfb"/>
+  <g stroke="#c9d6ee" stroke-width="10">
+    <line x1="232" y1="316" x2="792" y2="316"/>
+    <line x1="232" y1="444" x2="792" y2="444"/>
+    <line x1="232" y1="572" x2="792" y2="572"/>
+    <line x1="232" y1="700" x2="792" y2="700"/>
+    <line x1="392" y1="196" x2="392" y2="828"/>
+  </g>
+  <!-- "</>" on the left row, bold "B" on the right -->
+  <g fill="none" stroke="#1a56c4" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="280,482 260,508 280,534"/>
+    <line x1="320" y1="476" x2="304" y2="540"/>
+    <polyline points="344,482 364,508 344,534"/>
+  </g>
+  <text x="590" y="560" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="800" font-size="230" fill="#16202d">B</text>
+  <rect x="470" y="594" width="240" height="22" rx="11" fill="#2f7cf6"/>
+</svg>

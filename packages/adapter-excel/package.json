@@ -1,0 +1,26 @@
+{
+  "name": "@hf/adapter-excel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FormatAdapter for .xlsx files (ExcelJS). Node only; the window imports './format'.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./format": "./src/format.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "sample": "node scripts/make-sample.mts",
+    "sample:large": "node scripts/make-large-sample.mts"
+  },
+  "dependencies": {
+    "@hf/core": "workspace:*",
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,51 @@
+# Packaging for Windows and macOS. From the repo root: pnpm dist:excel (on Windows -> .exe, on a Mac -> .dmg)
+appId: com.pasindu.excelhtmlformatter
+productName: Excel HTML Formatter
+copyright: Copyright © 2026 Pasindu
+
+directories:
+  output: dist
+  buildResources: build
+
+# Only the built app goes in the package (plus ExcelJS from node_modules, added automatically).
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+asar: true
+# No native modules, so nothing needs rebuilding for Electron.
+npmRebuild: false
+
+# ---------- Windows ----------
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis # normal installer with Start-menu and desktop shortcuts
+      arch: [x64]
+    - target: portable # single .exe, no install needed
+      arch: [x64]
+nsis:
+  oneClick: false
+  perMachine: false # installs for the current user: no admin rights needed
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Excel HTML Formatter
+  artifactName: Excel-HTML-Formatter-Setup-${version}.${ext}
+portable:
+  artifactName: Excel-HTML-Formatter-${version}-portable.${ext}
+
+# ---------- macOS ----------
+mac:
+  icon: build/icon.png
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [universal] # one app for Intel and Apple Silicon Macs
+  # No Apple Developer certificate yet: ad-hoc sign, so Apple Silicon Macs can run it
+  # (users confirm once in System Settings > Privacy & Security > Open Anyway).
+  # With a certificate: remove these two lines and set CSC_LINK / CSC_KEY_PASSWORD, plus notarization.
+  identity: '-'
+  hardenedRuntime: false
+dmg:
+  artifactName: Excel-HTML-Formatter-${version}-mac-universal.${ext}

@@ -1,0 +1,58 @@
+# Type-checks and tests every package, then builds the installers for every app on Windows and macOS.
+# Runs on every push to main, on version tags (v1.2.3), and on demand (Actions tab > Build > Run workflow).
+# The finished files appear under the run's "Artifacts".
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs the pnpm version from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check, test and build every package
+        run: pnpm turbo run typecheck test build
+
+      - name: Package apps (Windows)
+        if: runner.os == 'Windows' && github.event_name != 'pull_request'
+        run: pnpm turbo run dist
+
+      - name: Package apps (macOS)
+        if: runner.os == 'macOS' && github.event_name != 'pull_request'
+        run: pnpm turbo run dist
+        env:
+          # No Apple certificate yet: use the ad-hoc signing set in each app's electron-builder.yml.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: installers-${{ runner.os }}
+          path: |
+            apps/*/dist/*.exe
+            apps/*/dist/*.dmg
+          if-no-files-found: error
+          retention-days: 30
