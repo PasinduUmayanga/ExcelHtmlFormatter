@@ -18,13 +18,27 @@
       "outputs": ["out/**"]
     },
     "dist": {
-      "dependsOn": ["build", "typecheck", "test", "^typecheck", "^test"],
+      "dependsOn": ["build", "typecheck", "test", "^typecheck", "^test", "@hf/lint#lint"],
       "outputs": ["dist/**"],
       "cache": false
     },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "lint": {
+      "cache": false
+    },
+    "format:check": {
+      "cache": false
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "test:coverage": {
+      "dependsOn": ["transit"],
+      "outputs": ["coverage/**", "test-results/**"]
     }
   }
 }

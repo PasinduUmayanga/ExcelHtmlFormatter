@@ -4,9 +4,17 @@ import type { Worker, WorkerOptions } from 'node:worker_threads'
 import { join, basename, dirname, extname, parse, resolve } from 'node:path'
 import { readFile, writeFile, stat, mkdir, rename, rm } from 'node:fs/promises'
 import {
-  defaultConfig, validateConfig,
-  type AppConfig, type AppInfo, type DocumentSummary, type ExportResult, type ExportStats, type FormatInfo,
-  type JobKind, type JobProgress, type PickedFile
+  defaultConfig,
+  validateConfig,
+  type AppConfig,
+  type AppInfo,
+  type DocumentSummary,
+  type ExportResult,
+  type ExportStats,
+  type FormatInfo,
+  type JobKind,
+  type JobProgress,
+  type PickedFile
 } from '@hf/core'
 import { JobWorker } from './workerClient'
 
@@ -166,47 +174,54 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     if (kind === 'export' && exportJob) exportJob.worker.terminate()
   })
 
-  ipcMain.handle('document:export', async (event, path: unknown, sections: unknown, config: unknown): Promise<ExportResult | null> => {
-    const file = typeof path === 'string' ? pickedFiles.get(path) : undefined
-    if (!file) throw new Error('Please open the file again.')
-    if (!Array.isArray(sections) || !sections.every((s) => typeof s === 'string')) throw new Error(`No ${format.section.plural} were selected.`)
-    const settings = validateConfig(config)
+  ipcMain.handle(
+    'document:export',
+    async (event, path: unknown, sections: unknown, config: unknown): Promise<ExportResult | null> => {
+      const file = typeof path === 'string' ? pickedFiles.get(path) : undefined
+      if (!file) throw new Error('Please open the file again.')
+      if (!Array.isArray(sections) || !sections.every((s) => typeof s === 'string'))
+        throw new Error(`No ${format.section.plural} were selected.`)
+      const settings = validateConfig(config)
 
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const dialogOptions: Electron.SaveDialogOptions = {
-      title: 'Save formatted file',
-      defaultPath: join(dirname(file.path), `${parse(file.name).name}${format.outputSuffix}.${format.outputExtension}`),
-      filters: [{ name: format.fileTypes[0]?.name ?? 'File', extensions: [format.outputExtension] }]
-    }
-    const result = win ? await dialog.showSaveDialog(win, dialogOptions) : await dialog.showSaveDialog(dialogOptions)
-    if (result.canceled || !result.filePath) return null
+      const win = BrowserWindow.fromWebContents(event.sender)
+      const dialogOptions: Electron.SaveDialogOptions = {
+        title: 'Save formatted file',
+        defaultPath: join(
+          dirname(file.path),
+          `${parse(file.name).name}${format.outputSuffix}.${format.outputExtension}`
+        ),
+        filters: [{ name: format.fileTypes[0]?.name ?? 'File', extensions: [format.outputExtension] }]
+      }
+      const result = win ? await dialog.showSaveDialog(win, dialogOptions) : await dialog.showSaveDialog(dialogOptions)
+      if (result.canceled || !result.filePath) return null
 
-    let target = result.filePath
-    if (extname(target).toLowerCase() !== `.${format.outputExtension}`) target += `.${format.outputExtension}`
-    if (resolve(target).toLowerCase() === resolve(file.path).toLowerCase()) {
-      throw new Error('Choose a different file name. The original file is never overwritten.')
-    }
+      let target = result.filePath
+      if (extname(target).toLowerCase() !== `.${format.outputExtension}`) target += `.${format.outputExtension}`
+      if (resolve(target).toLowerCase() === resolve(file.path).toLowerCase()) {
+        throw new Error('Choose a different file name. The original file is never overwritten.')
+      }
 
-    if (exportJob) throw new Error('A file is already being saved.')
-    // A separate worker, so Cancel can stop it without closing the open file.
-    const worker = newWorker()
-    exportJob = { worker }
-    try {
-      const stats = await worker.request<ExportStats>(
-        { type: 'export', source: file.path, target, sections, config: settings },
-        progressTo(event.sender, 'export')
-      )
-      savedFiles.add(target)
-      return { path: target, fileName: basename(target), stats }
-    } catch (e) {
-      // A stopped worker cannot clean up after itself: remove its half-written temporary file.
-      await rm(`${target}.saving`, { force: true }).catch(() => {})
-      throw e
-    } finally {
-      worker.terminate('Finished.')
-      exportJob = null
+      if (exportJob) throw new Error('A file is already being saved.')
+      // A separate worker, so Cancel can stop it without closing the open file.
+      const worker = newWorker()
+      exportJob = { worker }
+      try {
+        const stats = await worker.request<ExportStats>(
+          { type: 'export', source: file.path, target, sections, config: settings },
+          progressTo(event.sender, 'export')
+        )
+        savedFiles.add(target)
+        return { path: target, fileName: basename(target), stats }
+      } catch (e) {
+        // A stopped worker cannot clean up after itself: remove its half-written temporary file.
+        await rm(`${target}.saving`, { force: true }).catch(() => {})
+        throw e
+      } finally {
+        worker.terminate('Finished.')
+        exportJob = null
+      }
     }
-  })
+  )
 
   ipcMain.handle('shell:showInFolder', (_e, path: unknown) => {
     if (typeof path === 'string' && savedFiles.has(path)) shell.showItemInFolder(path)

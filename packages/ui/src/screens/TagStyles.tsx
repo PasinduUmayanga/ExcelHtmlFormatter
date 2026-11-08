@@ -7,7 +7,19 @@ import { RichText } from '../components/RichText'
 const route = getRouteApi('/settings')
 
 const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36]
-const FONTS = ['Aptos', 'Arial', 'Calibri', 'Cambria', 'Consolas', 'Courier New', 'Georgia', 'Segoe UI', 'Tahoma', 'Times New Roman', 'Verdana']
+const FONTS = [
+  'Aptos',
+  'Arial',
+  'Calibri',
+  'Cambria',
+  'Consolas',
+  'Courier New',
+  'Georgia',
+  'Segoe UI',
+  'Tahoma',
+  'Times New Roman',
+  'Verdana'
+]
 const DEFAULT_COLOR = '#C00000'
 
 export function TagStyles() {
@@ -16,12 +28,16 @@ export function TagStyles() {
   const { tag: tagParam, back } = route.useSearch()
   const navigate = useNavigate()
   const router = useRouter()
-  const setSelected = (tag: string) => navigate({ to: '/settings', search: (prev) => ({ ...prev, tag }), replace: true })
+  const setSelected = (tag: string) =>
+    navigate({ to: '/settings', search: (prev) => ({ ...prev, tag }), replace: true })
 
   // Tags used anywhere in the open document (for counts, warnings and real previews).
   const used = useMemo(() => (doc ? mergeScans(doc.sections.map((s) => s.scan)).tags : {}), [doc])
   const tagNames = useMemo(() => {
-    const names = new Set([...Object.keys(config?.rules ?? {}), ...Object.keys(used).filter((t) => !(t in BUILTIN_TAGS))])
+    const names = new Set([
+      ...Object.keys(config?.rules ?? {}),
+      ...Object.keys(used).filter((t) => !(t in BUILTIN_TAGS))
+    ])
     return [...names].sort()
   }, [config, used])
 
@@ -32,7 +48,9 @@ export function TagStyles() {
   return (
     <>
       <h1>Tag styles</h1>
-      <p className="sub">Choose the formatting for each HTML tag. Changes are saved automatically and used for every file.</p>
+      <p className="sub">
+        Choose the formatting for each HTML tag. Changes are saved automatically and used for every file.
+      </p>
 
       <div className="cfg">
         <div>
@@ -51,7 +69,9 @@ export function TagStyles() {
                   {!hasRule ? (
                     <span className="chip warn">No style</span>
                   ) : used[name] ? (
-                    <span className="faint" title="Uses in the open file">{used[name].count}×</span>
+                    <span className="faint" title="Uses in the open file">
+                      {used[name].count}×
+                    </span>
                   ) : null}
                 </button>
               )
@@ -60,7 +80,11 @@ export function TagStyles() {
           <AddTag onAdded={setSelected} />
         </div>
 
-        {tag ? <StyleEditor tag={tag} sample={used[tag]?.sample} uses={used[tag]?.count} /> : <div className="editor faint">Add a tag to start.</div>}
+        {tag ? (
+          <StyleEditor tag={tag} sample={used[tag]?.sample} uses={used[tag]?.count} />
+        ) : (
+          <div className="editor faint">Add a tag to start.</div>
+        )}
       </div>
 
       <div className="editor" style={{ marginTop: 20 }}>
@@ -79,19 +103,30 @@ export function TagStyles() {
 
       <div className="footer">
         <div className="row">
-          <button className="btn" onClick={exportConfig}>Export JSON…</button>
-          <button className="btn" onClick={importConfig}>Import JSON…</button>
+          <button className="btn" onClick={exportConfig}>
+            Export JSON…
+          </button>
+          <button className="btn" onClick={importConfig}>
+            Import JSON…
+          </button>
           <button
             className="btn"
             onClick={() => {
-              if (window.confirm('Reset all tag styles to the defaults? Your current styles will be lost unless you export them first.')) resetConfig()
+              if (
+                window.confirm(
+                  'Reset all tag styles to the defaults? Your current styles will be lost unless you export them first.'
+                )
+              )
+                resetConfig()
             }}
           >
             Reset to defaults
           </button>
         </div>
         {back && backLabel && (
-          <button className="btn primary" onClick={() => router.history.push(back)}>Done, back to {backLabel} →</button>
+          <button className="btn primary" onClick={() => router.history.push(back)}>
+            Done, back to {backLabel} →
+          </button>
         )}
       </div>
     </>
@@ -128,7 +163,9 @@ function AddTag({ onAdded }: { onAdded: (tag: string) => void }) {
             setError(null)
           }}
         />
-        <button className="btn small" type="submit">Add</button>
+        <button className="btn small" type="submit">
+          Add
+        </button>
       </div>
       {error && <div className="field-error">{error}</div>}
     </form>
@@ -161,16 +198,24 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
     <div className="editor">
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
         <div className="row" style={{ gap: 8 }}>
-          <span className="tag" style={{ fontSize: 15 }}>&lt;{tag}&gt;</span>
+          <span className="tag" style={{ fontSize: 15 }}>
+            &lt;{tag}&gt;
+          </span>
           {uses ? <span className="faint">{uses} uses in this file</span> : null}
         </div>
-        {rule && <button className="btn small" onClick={() => removeRule(tag)}>Remove style</button>}
+        {rule && (
+          <button className="btn small" onClick={() => removeRule(tag)}>
+            Remove style
+          </button>
+        )}
       </div>
 
       {!rule && (
         <div className="banner" style={{ marginBottom: 16 }}>
           <span>No style yet. Any change below creates one, or keep the text without formatting.</span>
-          <button className="btn small" onClick={() => createPlainRule(tag)}>Keep text plain</button>
+          <button className="btn small" onClick={() => createPlainRule(tag)}>
+            Keep text plain
+          </button>
         </div>
       )}
 
@@ -188,12 +233,22 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
         <label htmlFor="color-on">Font color</label>
         <div className="row">
           <label className="row" style={{ gap: 6 }}>
-            <input id="color-on" type="checkbox" checked={Boolean(r.color)} onChange={(e) => set({ color: e.target.checked ? DEFAULT_COLOR : undefined })} />
+            <input
+              id="color-on"
+              type="checkbox"
+              checked={Boolean(r.color)}
+              onChange={(e) => set({ color: e.target.checked ? DEFAULT_COLOR : undefined })}
+            />
             Set color
           </label>
           {r.color && (
             <>
-              <input type="color" aria-label="Font color" value={r.color} onChange={(e) => set({ color: e.target.value.toUpperCase() })} />
+              <input
+                type="color"
+                aria-label="Font color"
+                value={r.color}
+                onChange={(e) => set({ color: e.target.value.toUpperCase() })}
+              />
               <span className="code">{r.color}</span>
             </>
           )}
@@ -202,9 +257,17 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
 
       <div className="field">
         <label htmlFor="font-size">Font size</label>
-        <select id="font-size" value={r.size ?? ''} onChange={(e) => set({ size: e.target.value ? Number(e.target.value) : undefined })}>
+        <select
+          id="font-size"
+          value={r.size ?? ''}
+          onChange={(e) => set({ size: e.target.value ? Number(e.target.value) : undefined })}
+        >
           <option value="">Keep the cell's size</option>
-          {sizes.map((s) => <option key={s} value={s}>{s} pt</option>)}
+          {sizes.map((s) => (
+            <option key={s} value={s}>
+              {s} pt
+            </option>
+          ))}
         </select>
       </div>
 
@@ -212,14 +275,24 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
         <label htmlFor="font-name">Font</label>
         <select id="font-name" value={r.font ?? ''} onChange={(e) => set({ font: e.target.value || undefined })}>
           <option value="">Keep the cell's font</option>
-          {fonts.map((f) => <option key={f} value={f}>{f}</option>)}
+          {fonts.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
         </select>
       </div>
 
       <div className="field">
         <label>Position</label>
         <div className="seg" role="radiogroup" aria-label="Position">
-          {([['', 'Normal'], ['superscript', 'Superscript'], ['subscript', 'Subscript']] as const).map(([value, label]) => (
+          {(
+            [
+              ['', 'Normal'],
+              ['superscript', 'Superscript'],
+              ['subscript', 'Subscript']
+            ] as const
+          ).map(([value, label]) => (
             <button
               key={label}
               role="radio"
@@ -241,11 +314,17 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
           </div>
           {sample && (
             <div className="preview">
-              <div className="code" style={{ marginBottom: 4 }}>From your file:</div>
+              <div className="code" style={{ marginBottom: 4 }}>
+                From your file:
+              </div>
               <RichText html={sample} options={config} />
             </div>
           )}
-          {description && <div className="faint" style={{ marginTop: 6, fontSize: 12.5 }}>{description.parts.join(' · ')}</div>}
+          {description && (
+            <div className="faint" style={{ marginTop: 6, fontSize: 12.5 }}>
+              {description.parts.join(' · ')}
+            </div>
+          )}
         </div>
       </div>
     </div>

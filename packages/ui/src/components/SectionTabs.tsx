@@ -6,7 +6,15 @@ import { useApp } from '../store'
  * One tab per selected section, as links to the same screen for another section.
  * A tab shows how many of its tags still have no style.
  */
-export function SectionTabs({ screen, current, view }: { screen: 'analysis' | 'preview'; current: string; view?: 'original' }) {
+export function SectionTabs({
+  screen,
+  current,
+  view
+}: {
+  screen: 'analysis' | 'preview'
+  current: string
+  view?: 'original'
+}) {
   const { doc, selected, config } = useApp()
   if (!doc) return null
   const rules = config?.rules ?? {}
@@ -28,11 +36,26 @@ export function SectionTabs({ screen, current, view }: { screen: 'analysis' | 'p
           </>
         )
         return screen === 'analysis' ? (
-          <Link key={name} role="tab" aria-selected={current === name} className={className} to="/analysis/$section" params={{ section: name }}>
+          <Link
+            key={name}
+            role="tab"
+            aria-selected={current === name}
+            className={className}
+            to="/analysis/$section"
+            params={{ section: name }}
+          >
             {content}
           </Link>
         ) : (
-          <Link key={name} role="tab" aria-selected={current === name} className={className} to="/preview/$section" params={{ section: name }} search={view ? { view } : {}}>
+          <Link
+            key={name}
+            role="tab"
+            aria-selected={current === name}
+            className={className}
+            to="/preview/$section"
+            params={{ section: name }}
+            search={view ? { view } : {}}
+          >
             {content}
           </Link>
         )

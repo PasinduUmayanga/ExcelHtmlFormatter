@@ -18,7 +18,11 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
           <thead>
             <tr>
               <th className="hdr" />
-              {Array.from({ length: cols }, (_, c) => <th key={c} className="hdr">{columnName(c)}</th>)}
+              {Array.from({ length: cols }, (_, c) => (
+                <th key={c} className="hdr">
+                  {columnName(c)}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -28,11 +32,20 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
                 {Array.from({ length: cols }, (_, c) => {
                   const cell = row[c]
                   if (!cell) return <td key={c} />
-                  if (!cell.html) return <td key={c} className="xl">{cell.text}</td>
+                  if (!cell.html)
+                    return (
+                      <td key={c} className="xl">
+                        {cell.text}
+                      </td>
+                    )
                   return view === 'formatted' ? (
-                    <td key={c} className="xl html"><RichText html={cell.text} options={options} /></td>
+                    <td key={c} className="xl html">
+                      <RichText html={cell.text} options={options} />
+                    </td>
                   ) : (
-                    <td key={c} className="code html">{cell.text}</td>
+                    <td key={c} className="code html">
+                      {cell.text}
+                    </td>
                   )
                 })}
               </tr>
@@ -42,7 +55,8 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
       </div>
       {preview.truncated && (
         <p className="faint" style={{ fontSize: 12.5, marginTop: 8 }}>
-          Showing the first {preview.rows.length} rows and {cols} columns of {preview.rowCount.toLocaleString()} × {preview.columnCount.toLocaleString()}. The whole sheet is converted when you save.
+          Showing the first {preview.rows.length} rows and {cols} columns of {preview.rowCount.toLocaleString()} ×{' '}
+          {preview.columnCount.toLocaleString()}. The whole sheet is converted when you save.
         </p>
       )}
     </>

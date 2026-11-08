@@ -43,13 +43,25 @@ export function Sidebar() {
     <aside>
       <div className="brand">{format.appName}</div>
       <div className="navlabel">Workflow</div>
-      {step('open', 0, 'Open file', (c, cls) => <Link key="open" to="/open" className={cls}>{c}</Link>)}
-      {step('sections', 1, `Select ${format.section.plural}`, (c, cls) => <Link key="sections" to="/sections" className={cls}>{c}</Link>)}
+      {step('open', 0, 'Open file', (c, cls) => (
+        <Link key="open" to="/open" className={cls}>
+          {c}
+        </Link>
+      ))}
+      {step('sections', 1, `Select ${format.section.plural}`, (c, cls) => (
+        <Link key="sections" to="/sections" className={cls}>
+          {c}
+        </Link>
+      ))}
       {step('analysis', 2, 'Tag analysis', (c, cls) => (
-        <Link key="analysis" to="/analysis/$section" params={{ section: section ?? '' }} className={cls}>{c}</Link>
+        <Link key="analysis" to="/analysis/$section" params={{ section: section ?? '' }} className={cls}>
+          {c}
+        </Link>
       ))}
       {step('preview', 3, 'Preview & export', (c, cls) => (
-        <Link key="preview" to="/preview/$section" params={{ section: section ?? '' }} className={cls}>{c}</Link>
+        <Link key="preview" to="/preview/$section" params={{ section: section ?? '' }} className={cls}>
+          {c}
+        </Link>
       ))}
 
       <div className="navlabel">Configuration</div>
@@ -59,7 +71,10 @@ export function Sidebar() {
 
       <div className="side-foot">
         {doc && (
-          <div title={doc.file.path} style={{ marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div
+            title={doc.file.path}
+            style={{ marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
             📄 <b>{doc.file.name}</b>
           </div>
         )}

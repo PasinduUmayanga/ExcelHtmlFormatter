@@ -5,3 +5,8 @@ dist/
 *.log
 *.tsbuildinfo
 packages/adapter-excel/samples/large_catalog.xlsx
+test-results/
+playwright-report/
+coverage/
+coverage-reports.zip
+e2e-results-*.zip

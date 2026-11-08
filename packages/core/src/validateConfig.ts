@@ -8,7 +8,11 @@ const MAX_FONT_SIZE = 409
 
 /** Normalises a tag name typed by the user ("<Mark>" -> "mark"). Returns null if it is not a valid tag name. */
 export function normalizeTagName(input: string): string | null {
-  const name = input.trim().replace(/^<\/?|\/?>$/g, '').trim().toLowerCase()
+  const name = input
+    .trim()
+    .replace(/^<\/?|\/?>$/g, '')
+    .trim()
+    .toLowerCase()
   return TAG_NAME_RE.test(name) ? name : null
 }
 
@@ -16,7 +20,11 @@ export function normalizeTagName(input: string): string | null {
 export function normalizeColor(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined
   let hex = value.trim().replace(/^#/, '')
-  if (/^[0-9a-fA-F]{3}$/.test(hex)) hex = hex.split('').map((c) => c + c).join('')
+  if (/^[0-9a-fA-F]{3}$/.test(hex))
+    hex = hex
+      .split('')
+      .map((c) => c + c)
+      .join('')
   return /^[0-9a-fA-F]{6}$/.test(hex) ? '#' + hex.toUpperCase() : undefined
 }
 
@@ -60,6 +68,8 @@ export function validateConfig(input: unknown): AppConfig {
   }
   const action: UnknownTagAction = raw.unknownTagAction === 'keep' ? 'keep' : 'strip'
   const profileName =
-    typeof raw.profileName === 'string' && raw.profileName.trim() ? raw.profileName.trim().slice(0, 60) : base.profileName
+    typeof raw.profileName === 'string' && raw.profileName.trim()
+      ? raw.profileName.trim().slice(0, 60)
+      : base.profileName
   return { profileName, unknownTagAction: action, rules }
 }

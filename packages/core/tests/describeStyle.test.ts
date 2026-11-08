@@ -13,7 +13,18 @@ describe('isConfigured', () => {
 
 describe('describeStyle', () => {
   it('lists every option in a fixed order', () => {
-    const rules = { mark: { color: '#c00000', size: 14, font: 'Arial', strike: true, underline: true, italic: true, bold: true, vertAlign: 'superscript' as const } }
+    const rules = {
+      mark: {
+        color: '#c00000',
+        size: 14,
+        font: 'Arial',
+        strike: true,
+        underline: true,
+        italic: true,
+        bold: true,
+        vertAlign: 'superscript' as const
+      }
+    }
     expect(describeStyle('mark', rules)).toEqual({
       parts: ['Bold', 'Italic', 'Underline', 'Strikethrough', 'Superscript', '14 pt', 'Arial', '#C00000'],
       color: '#c00000'

@@ -1,0 +1,23 @@
+{
+  "name": "@hf/lint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ESLint + Prettier for the whole repo. Kept in its own package because typescript-eslint needs TypeScript <6.1, while the code is compiled with TypeScript 7.",
+  "type": "module",
+  "scripts": {
+    "lint": "cd ../.. && eslint --cache --cache-location node_modules/.cache/eslint/ .",
+    "lint:fix": "cd ../.. && eslint --fix .",
+    "format": "cd ../.. && prettier --write .",
+    "format:check": "cd ../.. && prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

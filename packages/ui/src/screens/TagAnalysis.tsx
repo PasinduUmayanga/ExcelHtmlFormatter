@@ -29,7 +29,9 @@ export function TagAnalysis() {
   return (
     <>
       <h1>Tag analysis</h1>
-      <p className="sub">The formatting tags found in each selected {format.section.singular}, and the style each one will get.</p>
+      <p className="sub">
+        The formatting tags found in each selected {format.section.singular}, and the style each one will get.
+      </p>
 
       <SectionTabs screen="analysis" current={name} />
 
@@ -48,7 +50,9 @@ export function TagAnalysis() {
               ? `The tags will stay in the ${unit.singular} as visible text.`
               : 'The tags will be removed and their text left plain.'}
           </span>
-          <button className="btn link" onClick={() => editTag(missing[0])}>Set a style →</button>
+          <button className="btn link" onClick={() => editTag(missing[0])}>
+            Set a style →
+          </button>
         </div>
       )}
 
@@ -72,7 +76,9 @@ export function TagAnalysis() {
                 const description = describeStyle(tag, options.rules)
                 return (
                   <tr key={tag} className="static">
-                    <td><span className="tag">&lt;{tag}&gt;</span></td>
+                    <td>
+                      <span className="tag">&lt;{tag}&gt;</span>
+                    </td>
                     <td className="num">{usage.count.toLocaleString()}</td>
                     <td className="code">{usage.firstCell}</td>
                     <td>
@@ -105,8 +111,13 @@ export function TagAnalysis() {
       )}
 
       <div className="footer">
-        <button className="btn" onClick={() => navigate({ to: '/sections' })}>← Back</button>
-        <button className="btn primary" onClick={() => navigate({ to: '/preview/$section', params: { section: name } })}>
+        <button className="btn" onClick={() => navigate({ to: '/sections' })}>
+          ← Back
+        </button>
+        <button
+          className="btn primary"
+          onClick={() => navigate({ to: '/preview/$section', params: { section: name } })}
+        >
           Preview result →
         </button>
       </div>

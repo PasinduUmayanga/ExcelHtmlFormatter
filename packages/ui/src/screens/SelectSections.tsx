@@ -74,7 +74,13 @@ export function SelectSections() {
                       <b>{section.name}</b> {section.state !== 'visible' && <span className="chip muted">Hidden</span>}
                     </td>
                     <td>{section.sizeLabel}</td>
-                    <td>{section.scan.htmlCells ? section.scan.htmlCells.toLocaleString() : <span className="faint">0</span>}</td>
+                    <td>
+                      {section.scan.htmlCells ? (
+                        section.scan.htmlCells.toLocaleString()
+                      ) : (
+                        <span className="faint">0</span>
+                      )}
+                    </td>
                     <td>
                       {tags.length === 0 ? (
                         <span className="chip info">No HTML found</span>
@@ -85,7 +91,9 @@ export function SelectSections() {
                               &lt;{tag}&gt;
                             </span>
                           ))}
-                          {tags.length > MAX_TAGS_SHOWN && <span className="faint">+{tags.length - MAX_TAGS_SHOWN} more</span>}
+                          {tags.length > MAX_TAGS_SHOWN && (
+                            <span className="faint">+{tags.length - MAX_TAGS_SHOWN} more</span>
+                          )}
                         </span>
                       )}
                     </td>
@@ -98,7 +106,9 @@ export function SelectSections() {
       )}
 
       <div className="footer">
-        <button className="btn" onClick={() => navigate({ to: '/open' })}>← Open another file</button>
+        <button className="btn" onClick={() => navigate({ to: '/open' })}>
+          ← Open another file
+        </button>
         <div className="row">
           <span style={{ color: 'var(--muted)' }}>{selected.length} selected</span>
           <button

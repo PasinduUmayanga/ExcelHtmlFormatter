@@ -20,7 +20,12 @@ const fakeAdapter: FormatAdapter<FakeDoc, string> = {
     onProgress?.({ stage: 'scanning', done: 0, total: 1 })
     return {
       file,
-      sections: Object.keys(doc.sections).map((name) => ({ name, state: 'visible', sizeLabel: '1', scan: { htmlCells: 0, tags: {} } }))
+      sections: Object.keys(doc.sections).map((name) => ({
+        name,
+        state: 'visible',
+        sizeLabel: '1',
+        scan: { htmlCells: 0, tags: {} }
+      }))
     }
   },
   preview(doc, section) {
@@ -30,7 +35,12 @@ const fakeAdapter: FormatAdapter<FakeDoc, string> = {
   convert(doc, sections, _options, onProgress) {
     onProgress?.({ stage: 'converting', done: 1, total: 1 })
     sections.forEach((s) => (doc.sections[s] = doc.sections[s].replace(/<[^>]+>/g, '')))
-    return { sections: sections.map((name) => ({ name, converted: 1 })), converted: sections.length, withLineBreaks: 0, unknownTags: [] }
+    return {
+      sections: sections.map((name) => ({ name, converted: 1 })),
+      converted: sections.length,
+      withLineBreaks: 0,
+      unknownTags: []
+    }
   },
   async write(doc, path) {
     files[path] = { ...doc, written: path }
@@ -50,12 +60,17 @@ describe('handleRequest (worker logic, with any format adapter)', () => {
     expect(sent.map((m) => m.kind)).toEqual(['progress', 'progress', 'result'])
     expect((sent[0] as { progress: JobProgress }).progress).toEqual({ stage: 'reading' })
     expect(sent[2]).toMatchObject({ id: 1, result: { sections: [{ name: 'One' }, { name: 'Two' }] } })
-    expect(await run({ id: 2, type: 'preview', section: 'One' }, state)).toEqual([{ id: 2, kind: 'result', result: '<b>x</b>' }])
+    expect(await run({ id: 2, type: 'preview', section: 'One' }, state)).toEqual([
+      { id: 2, kind: 'result', result: '<b>x</b>' }
+    ])
   })
 
   it('exports a converted fresh copy, leaving the open document untouched', async () => {
     const state: WorkerState<FakeDoc> = { doc: structuredClone(files['a.fake']) }
-    const sent = await run({ id: 3, type: 'export', source: 'a.fake', target: 'out.fake', sections: ['One'], config: defaultConfig() }, state)
+    const sent = await run(
+      { id: 3, type: 'export', source: 'a.fake', target: 'out.fake', sections: ['One'], config: defaultConfig() },
+      state
+    )
     const stages = sent.filter((m) => m.kind === 'progress').map((m) => (m as { progress: JobProgress }).progress.stage)
     expect(stages).toEqual(['reading', 'converting', 'saving'])
     expect(sent[sent.length - 1]).toMatchObject({ id: 3, kind: 'result', result: { converted: 1 } })
@@ -67,7 +82,10 @@ describe('handleRequest (worker logic, with any format adapter)', () => {
     expect(await run({ id: 4, type: 'preview', section: 'One' }, { doc: null })).toEqual([
       { id: 4, kind: 'error', message: 'Please open the file again.' }
     ])
-    const missing = await run({ id: 5, type: 'load', file: { path: 'nope', name: 'nope', sizeBytes: 0 } }, { doc: null })
+    const missing = await run(
+      { id: 5, type: 'load', file: { path: 'nope', name: 'nope', sizeBytes: 0 } },
+      { doc: null }
+    )
     expect(missing[missing.length - 1]).toEqual({ id: 5, kind: 'error', message: 'The file could not be found.' })
   })
 })
@@ -88,7 +106,9 @@ describe('JobWorker (main-process side of a worker thread)', () => {
   it('sends requests and receives progress and results', async () => {
     const worker = new JobWorker(echoWorker)
     const progress: JobProgress[] = []
-    await expect(worker.request({ type: 'preview', section: 'A' }, (p) => progress.push(p))).resolves.toBe('preview of A')
+    await expect(worker.request({ type: 'preview', section: 'A' }, (p) => progress.push(p))).resolves.toBe(
+      'preview of A'
+    )
     expect(progress).toEqual([{ stage: 'reading' }])
     worker.terminate('done')
   })
@@ -104,7 +124,9 @@ describe('JobWorker (main-process side of a worker thread)', () => {
 
 describe('friendlyWorkerError', () => {
   it('explains running out of memory', () => {
-    expect(friendlyWorkerError(Object.assign(new Error('x'), { code: 'ERR_WORKER_OUT_OF_MEMORY' }))).toMatch(/too large/)
+    expect(friendlyWorkerError(Object.assign(new Error('x'), { code: 'ERR_WORKER_OUT_OF_MEMORY' }))).toMatch(
+      /too large/
+    )
     expect(friendlyWorkerError(new Error('boom'))).toBe('Something went wrong while processing the file: boom')
   })
 })

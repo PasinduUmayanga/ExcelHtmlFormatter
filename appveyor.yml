@@ -1,0 +1,119 @@
+# AppVeyor CI for the HTML Formatter monorepo (Windows).
+#
+# Runs the full test plan from docs/testing-strategy.md:
+#   lint -> format check -> type-check -> build -> unit tests + coverage -> end-to-end (real Electron app) -> installers
+# Results appear in AppVeyor's "Tests" tab (JUnit), and installers, coverage and failure screenshots in "Artifacts".
+# macOS installers are built by GitHub Actions (.github/workflows/build.yml).
+
+version: '{build}'
+image: Visual Studio 2022
+platform: x64
+clone_depth: 50
+skip_branch_with_pr: true # one build per pull request, not two
+
+environment:
+  NODE_MAJOR: '26' # keep in line with .nvmrc
+  # Fixed folders so the caches below can restore them.
+  PNPM_CONFIG_STORE_DIR: C:\cache\pnpm-store
+  electron_config_cache: C:\cache\electron # Electron's own download (postinstall)
+  ELECTRON_CACHE: C:\cache\electron # Electron download used by electron-builder
+  ELECTRON_BUILDER_CACHE: C:\cache\electron-builder # NSIS, 7-Zip, …
+  TURBO_TELEMETRY_DISABLED: '1'
+  CI: 'true'
+
+# Cache entries are invalidated when the file after "->" changes.
+cache:
+  - C:\cache\pnpm-store -> pnpm-lock.yaml
+  - C:\cache\electron -> pnpm-lock.yaml
+  - C:\cache\electron-builder -> apps\excel-formatter\electron-builder.yml
+  - C:\cache\node -> .nvmrc
+  - .turbo\cache # Turborepo task cache: unchanged packages skip lint-free tasks like typecheck/test
+
+install:
+  # Node.js: use the image's Node if it has this major version; otherwise download the official build
+  # (checksum-verified) into the cached C:\cache\node folder.
+  - ps: |
+      $ok = $false
+      try { Install-Product node $env:NODE_MAJOR x64 -ErrorAction Stop; $ok = ((node -v) -like "v$env:NODE_MAJOR.*") } catch { }
+      if (-not $ok) {
+        $ProgressPreference = 'SilentlyContinue' # the progress bar makes downloads very slow in Windows PowerShell
+        # Assign first, then pipe: piping Invoke-RestMethod directly passes the whole list as one object.
+        $releases = Invoke-RestMethod https://nodejs.org/dist/index.json
+        $release = ($releases | Where-Object { $_.version -like "v$env:NODE_MAJOR.*" } | Select-Object -First 1).version
+        if (-not $release) { throw "No Node.js $env:NODE_MAJOR release found" }
+        $dir = "C:\cache\node\node-$release-win-x64"
+        if (-not (Test-Path "$dir\node.exe")) {
+          New-Item -ItemType Directory -Force C:\cache\node | Out-Null
+          $zip = "C:\cache\node\node-$release-win-x64.zip"
+          Invoke-WebRequest "https://nodejs.org/dist/$release/node-$release-win-x64.zip" -OutFile $zip -UseBasicParsing
+          $sums = (Invoke-WebRequest "https://nodejs.org/dist/$release/SHASUMS256.txt" -UseBasicParsing).Content
+          $expected = ($sums -split "`n" | Where-Object { $_ -match "node-$release-win-x64\.zip$" }).Split(' ')[0]
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $expected.ToUpper()) { throw "Node.js download failed the checksum check" }
+          Expand-Archive $zip -DestinationPath C:\cache\node -Force
+          Remove-Item $zip
+        }
+        $env:Path = "$dir;$env:Path"
+      }
+      node -v
+  # pnpm: the exact version from package.json "packageManager".
+  - ps: |
+      $pnpm = ((Get-Content package.json -Raw | ConvertFrom-Json).packageManager -replace '^pnpm@', '')
+      npm install -g "pnpm@$pnpm" --no-fund --no-audit
+      pnpm --version
+  - pnpm install --frozen-lockfile
+
+build_script:
+  - pnpm lint
+  - pnpm format:check
+  - pnpm typecheck
+  - pnpm build
+
+test_script:
+  # Unit tests with coverage floors; writes packages\*\test-results\junit.xml
+  - pnpm test:ci
+  # End-to-end tests against the built Electron app; writes apps\*\test-results\e2e-junit.xml
+  - pnpm test:e2e
+
+after_test:
+  # Installers (skipped for pull requests to keep them fast).
+  - ps: |
+      if ($env:APPVEYOR_PULL_REQUEST_NUMBER) { 'Pull request: installers not built' } else { pnpm dist }
+
+on_finish:
+  # Always runs, also after a failure: publish test results and diagnostics.
+  - ps: |
+      $wc = New-Object System.Net.WebClient
+      $reports = Get-ChildItem -Path packages, apps -Recurse -Include junit.xml, e2e-junit.xml -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\node_modules\\' }
+      foreach ($r in $reports) {
+        Write-Host "Uploading test results: $($r.FullName)"
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", $r.FullName)
+      }
+      $coverage = Get-ChildItem -Path packages -Directory -Recurse -Filter coverage -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\node_modules\\' }
+      if ($coverage) {
+        Compress-Archive -Path $coverage.FullName -DestinationPath coverage-reports.zip -Force
+        Push-AppveyorArtifact coverage-reports.zip -FileName coverage-reports.zip -DeploymentName coverage
+      }
+      foreach ($d in Get-ChildItem -Path apps -Directory) {
+        $results = Join-Path $d.FullName 'test-results'
+        if (Test-Path $results) {
+          Compress-Archive -Path $results -DestinationPath "e2e-results-$($d.Name).zip" -Force
+          Push-AppveyorArtifact "e2e-results-$($d.Name).zip" -DeploymentName e2e-results
+        }
+      }
+
+artifacts:
+  - path: 'apps\*\dist\*.exe'
+    name: installers
+
+# Releases: uncomment after adding a GitHub token as an encrypted AppVeyor variable
+# (Settings > Environment, or https://ci.appveyor.com/tools/encrypt). Publishes installers for version tags only.
+# deploy:
+#   - provider: GitHub
+#     auth_token:
+#       secure: <encrypted token>
+#     artifact: installers
+#     draft: true
+#     on:
+#       APPVEYOR_REPO_TAG: true

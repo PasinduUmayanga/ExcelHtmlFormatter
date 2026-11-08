@@ -1,0 +1,10 @@
+# Keep LF line endings in the repository and working copy on every OS (matches .editorconfig and Prettier).
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.ico binary
+*.icns binary
+*.xlsx binary
+*.docx binary
+*.pdf binary

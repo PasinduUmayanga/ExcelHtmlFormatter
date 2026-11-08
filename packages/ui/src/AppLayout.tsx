@@ -18,12 +18,18 @@ export function AppLayout() {
         {error && (
           <div className="error" role="alert">
             <span>⚠ {error}</span>
-            <button onClick={() => setError(null)} aria-label="Dismiss">✕</button>
+            <button onClick={() => setError(null)} aria-label="Dismiss">
+              ✕
+            </button>
           </div>
         )}
         <Outlet />
       </main>
-      {notice && <div className="toast" role="status">{notice}</div>}
+      {notice && (
+        <div className="toast" role="status">
+          {notice}
+        </div>
+      )}
     </div>
   )
 }

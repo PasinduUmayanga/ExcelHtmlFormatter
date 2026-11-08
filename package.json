@@ -12,9 +12,16 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "check": "turbo run typecheck test",
+    "lint": "turbo run lint",
+    "lint:fix": "pnpm --filter @hf/lint lint:fix",
+    "format": "pnpm --filter @hf/lint format",
+    "format:check": "turbo run format:check",
+    "check": "turbo run lint format:check typecheck test",
     "dist": "turbo run dist",
-    "dist:excel": "turbo run dist --filter=excel-formatter"
+    "dist:excel": "turbo run dist --filter=excel-formatter",
+    "test:e2e": "turbo run test:e2e",
+    "test:coverage": "turbo run test:coverage",
+    "test:ci": "turbo run test:coverage -- --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml"
   },
   "devDependencies": {
     "turbo": "^2.11.10",

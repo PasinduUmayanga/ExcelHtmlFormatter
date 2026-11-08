@@ -4,7 +4,9 @@ import type { JobProgress as Progress } from '@hf/core'
 /** Plain-language description of where a long task is. */
 export function describeProgress(p: Progress, items = 'items'): string {
   const of = (unit: string) =>
-    p.done !== undefined && p.total ? ` ${Math.min(p.done, p.total).toLocaleString()} of ${p.total.toLocaleString()} ${unit}` : ''
+    p.done !== undefined && p.total
+      ? ` ${Math.min(p.done, p.total).toLocaleString()} of ${p.total.toLocaleString()} ${unit}`
+      : ''
   switch (p.stage) {
     case 'reading':
       return 'Reading the file…'
@@ -31,7 +33,9 @@ export function JobProgressPanel({ title, items }: { title: string; items?: stri
           <b>{title}</b>
           <div className="job-detail">{describeProgress(progress, items)}</div>
         </div>
-        <button className="btn small" onClick={cancelJob}>Cancel</button>
+        <button className="btn small" onClick={cancelJob}>
+          Cancel
+        </button>
       </div>
       <div
         className={`bar ${percent === null ? 'indeterminate' : ''}`}

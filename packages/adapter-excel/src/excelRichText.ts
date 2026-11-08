@@ -24,7 +24,11 @@ export interface ExcelRichText {
 /** "#c00000" or "#c00" -> "FFC00000". Returns undefined for anything that is not a hex color. */
 export function hexToArgb(hex: string): string | undefined {
   let h = hex.trim().replace(/^#/, '')
-  if (/^[0-9a-fA-F]{3}$/.test(h)) h = h.split('').map((c) => c + c).join('')
+  if (/^[0-9a-fA-F]{3}$/.test(h))
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('')
   return /^[0-9a-fA-F]{6}$/.test(h) ? 'FF' + h.toUpperCase() : undefined
 }
 

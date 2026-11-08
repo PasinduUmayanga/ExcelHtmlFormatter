@@ -65,7 +65,9 @@ describe('convertWorkbook (real .xlsx round trip)', async () => {
 
   it('turns on wrap text for cells with line breaks', () => {
     const c3 = cell('Products', 'C3')
-    expect((c3.value as ExcelJS.CellRichTextValue).richText.map((r) => r.text).join('')).toBe('Light and floral.\nBest served without milk')
+    expect((c3.value as ExcelJS.CellRichTextValue).richText.map((r) => r.text).join('')).toBe(
+      'Light and floral.\nBest served without milk'
+    )
     expect(c3.alignment?.wrapText).toBe(true)
     expect(cell('Products', 'C2').alignment?.wrapText).toBeFalsy()
   })
@@ -85,12 +87,16 @@ describe('convertWorkbook (real .xlsx round trip)', async () => {
   })
 
   it('converts the top-left cell of a merged range and keeps the merge', () => {
-    expect(cell('Team', 'A8').value).toEqual({ richText: [{ text: 'merged', font: { italic: true } }, { text: ' title' }] })
+    expect(cell('Team', 'A8').value).toEqual({
+      richText: [{ text: 'merged', font: { italic: true } }, { text: ' title' }]
+    })
     expect(cell('Team', 'B8').isMerged).toBe(true)
   })
 
   it('converts existing rich text from its plain text', () => {
-    expect(cell('Team', 'A6').value).toEqual({ richText: [{ text: 'Already ' }, { text: 'rich', font: { vertAlign: 'superscript' } }] })
+    expect(cell('Team', 'A6').value).toEqual({
+      richText: [{ text: 'Already ' }, { text: 'rich', font: { vertAlign: 'superscript' } }]
+    })
   })
 
   it('does not touch sheets that were not selected, and keeps hidden sheets hidden', () => {
@@ -115,7 +121,10 @@ describe('convertWorkbook options', () => {
     const rules = { ...config.rules, mark: { bold: true, color: '#C00000', size: 14, font: 'Georgia' } }
     const { out } = await convertAndReopen({ ...config, rules }, ['Products'])
     const rich = (out.getWorksheet('Products')!.getCell('C5').value as ExcelJS.CellRichTextValue).richText
-    expect(rich[rich.length - 1]).toEqual({ text: 'limited stock', font: { bold: true, color: { argb: 'FFC00000' }, size: 14, name: 'Georgia' } })
+    expect(rich[rich.length - 1]).toEqual({
+      text: 'limited stock',
+      font: { bold: true, color: { argb: 'FFC00000' }, size: 14, name: 'Georgia' }
+    })
   })
 })
 
@@ -142,7 +151,10 @@ describe('convertCell', () => {
   })
 
   it('drops the theme font scheme when a tag sets its own font', () => {
-    expect(toExcelFont({ font: 'Georgia' }, { name: 'Calibri', scheme: 'minor', family: 2, size: 11 })).toEqual({ name: 'Georgia', size: 11 })
+    expect(toExcelFont({ font: 'Georgia' }, { name: 'Calibri', scheme: 'minor', family: 2, size: 11 })).toEqual({
+      name: 'Georgia',
+      size: 11
+    })
   })
 
   it('empties a cell whose HTML has no text', () => {
@@ -164,7 +176,14 @@ describe('sheetPreview', () => {
   it('returns display values and marks HTML cells', () => {
     const wb = buildSampleWorkbook()
     const p = sheetPreview(wb.getWorksheet('Products')!)
-    expect(p.rows[0]).toEqual([{ text: 'SKU' }, { text: 'Product' }, { text: 'Description' }, { text: 'Price' }, null, null])
+    expect(p.rows[0]).toEqual([
+      { text: 'SKU' },
+      { text: 'Product' },
+      { text: 'Description' },
+      { text: 'Price' },
+      null,
+      null
+    ])
     expect(p.rows[1][1]).toEqual({ text: '<b>Ceylon Black</b>', html: true })
     expect(p.rows[1][3]).toEqual({ text: '1200' })
     expect(p.rows[1][4]).toEqual({ text: '<b>formula</b>' }) // formula result, not converted

@@ -1,0 +1,37 @@
+# Changelog
+
+All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and versions follow [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+
+- ESLint, Prettier, EditorConfig and `.gitattributes`. ESLint rules enforce the package boundaries (ADR 0007).
+- End-to-end tests with Playwright against the real built app (`pnpm test:e2e`, ADR 0008).
+- Coverage reports with per-package floors (`pnpm test:coverage`).
+- Documentation set in `docs/`: architecture (SAD), ADRs 0001–0008, technical design, contracts, settings schema,
+  requirements (SRS), functional design (FDS), user manual, developer guide, testing strategy, security, deployment,
+  troubleshooting and roadmap.
+- AppVeyor CI (`appveyor.yml`): lint, format, type-check, build, unit tests with coverage, e2e, installers; JUnit
+  results, caching of pnpm/Electron/Node downloads and the Turborepo cache. `pnpm test:ci` writes JUnit reports.
+- Agent instructions (`AGENTS.md`, `CLAUDE.md`) and project skills in `.claude/skills/`.
+
+### Changed
+
+- Read and write errors from the Excel adapter keep the original error as `cause`. Messages are unchanged.
+- The historical plan and demo moved to `docs/history/`.
+
+## [0.1.0] - 2026-11-09
+
+### Added
+
+- Excel HTML Formatter: open an `.xlsx` file, select sheets, analyse the tags, set tag styles, preview, and save a
+  formatted copy with real rich text.
+- Background worker with a progress bar and Cancel; Windows installer and portable `.exe`; macOS universal `.dmg`
+  configuration.
+- Monorepo with pnpm workspaces and Turborepo; TanStack Router with hash history and route guards.
+
+### Security
+
+- `?back=` in Tag styles only accepts in-app paths. Before this fix, an outside URL could have reached the Done button.

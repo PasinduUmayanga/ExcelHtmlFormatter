@@ -3,8 +3,15 @@ import { styleToCss } from '../src/components/styleToCss'
 
 describe('styleToCss', () => {
   it('maps styles to CSS for previews', () => {
-    expect(styleToCss({ bold: true, italic: true, underline: true, strike: true, color: '#FF0000', size: 14, font: 'Arial' })).toEqual({
-      fontWeight: 700, fontStyle: 'italic', textDecoration: 'underline line-through', color: '#FF0000', fontSize: '14pt', fontFamily: '"Arial"'
+    expect(
+      styleToCss({ bold: true, italic: true, underline: true, strike: true, color: '#FF0000', size: 14, font: 'Arial' })
+    ).toEqual({
+      fontWeight: 700,
+      fontStyle: 'italic',
+      textDecoration: 'underline line-through',
+      color: '#FF0000',
+      fontSize: '14pt',
+      fontFamily: '"Arial"'
     })
   })
 

@@ -30,7 +30,14 @@ describe('scanCells', () => {
   })
 
   it('returns nothing for a sheet without HTML', () => {
-    expect(scanCells(cellsFromRows([['a', 'b'], ['1 < 2', '']]))).toEqual({ htmlCells: 0, tags: {} })
+    expect(
+      scanCells(
+        cellsFromRows([
+          ['a', 'b'],
+          ['1 < 2', '']
+        ])
+      )
+    ).toEqual({ htmlCells: 0, tags: {} })
   })
 
   it('merges scans from several sheets', () => {
@@ -46,7 +53,17 @@ describe('scanCells', () => {
 
 describe('cells helpers', () => {
   it('names columns like Excel', () => {
-    expect([0, 1, 25, 26, 27, 51, 52, 701, 702].map(columnName)).toEqual(['A', 'B', 'Z', 'AA', 'AB', 'AZ', 'BA', 'ZZ', 'AAA'])
+    expect([0, 1, 25, 26, 27, 51, 52, 701, 702].map(columnName)).toEqual([
+      'A',
+      'B',
+      'Z',
+      'AA',
+      'AB',
+      'AZ',
+      'BA',
+      'ZZ',
+      'AAA'
+    ])
   })
 
   it('skips empty cells and numbers rows from 1', () => {
