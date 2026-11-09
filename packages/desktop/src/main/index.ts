@@ -4,10 +4,13 @@ import type { Worker, WorkerOptions } from 'node:worker_threads'
 import { join, basename, dirname, extname, parse, resolve } from 'node:path'
 import { readFile, writeFile, stat, mkdir, rename, rm } from 'node:fs/promises'
 import {
+  CANCELLED_MESSAGE,
   defaultConfig,
   validateConfig,
   type AppConfig,
   type AppInfo,
+  type ContentReport,
+  type SaveVerification,
   type DocumentSummary,
   type ExportResult,
   type ExportStats,
@@ -17,6 +20,7 @@ import {
   type PickedFile
 } from '@hf/core'
 import { JobWorker } from './workerClient'
+import { reportText, sectionList, unreadableSave } from './ipcChecks'
 
 export interface DesktopAppOptions {
   /** Names, file types and words for this format */
@@ -169,9 +173,37 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     return session.worker.request<unknown>({ type: 'preview', section })
   })
 
+  // 'check' is not cancellable: it runs in the open file's worker, and stopping that worker would close the file.
   ipcMain.handle('job:cancel', async (_e, kind: unknown) => {
     if (kind === 'load' && session?.loading) session.worker.terminate()
     if (kind === 'export' && exportJob) exportJob.worker.terminate()
+  })
+
+  ipcMain.handle(
+    'document:check',
+    (event, path: unknown, sections: unknown, config: unknown): Promise<ContentReport> => {
+      if (!session || session.loading || session.path !== path) throw new Error('Please open the file again.')
+      return session.worker.request<ContentReport>(
+        { type: 'check', sections: sectionList(sections, format.section.plural), config: validateConfig(config) },
+        progressTo(event.sender, 'check')
+      )
+    }
+  )
+
+  ipcMain.handle('report:export', async (event, csv: unknown): Promise<string | null> => {
+    const text = reportText(csv)
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const dialogOptions: Electron.SaveDialogOptions = {
+      title: 'Export content check',
+      defaultPath: 'content-check.csv',
+      filters: [{ name: 'CSV', extensions: ['csv'] }]
+    }
+    const result = win ? await dialog.showSaveDialog(win, dialogOptions) : await dialog.showSaveDialog(dialogOptions)
+    if (result.canceled || !result.filePath) return null
+    if (pickedFiles.has(result.filePath))
+      throw new Error('Choose a different file name. Opened files are never overwritten.')
+    await writeFile(result.filePath, text, 'utf8')
+    return basename(result.filePath)
   })
 
   ipcMain.handle(
@@ -179,8 +211,7 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     async (event, path: unknown, sections: unknown, config: unknown): Promise<ExportResult | null> => {
       const file = typeof path === 'string' ? pickedFiles.get(path) : undefined
       if (!file) throw new Error('Please open the file again.')
-      if (!Array.isArray(sections) || !sections.every((s) => typeof s === 'string'))
-        throw new Error(`No ${format.section.plural} were selected.`)
+      const chosen = sectionList(sections, format.section.plural)
       const settings = validateConfig(config)
 
       const win = BrowserWindow.fromWebContents(event.sender)
@@ -205,17 +236,32 @@ export function startDesktopApp(options: DesktopAppOptions): void {
       // A separate worker, so Cancel can stop it without closing the open file.
       const worker = newWorker()
       exportJob = { worker }
+      const progress = progressTo(event.sender, 'export')
       try {
-        const stats = await worker.request<ExportStats>(
-          { type: 'export', source: file.path, target, sections, config: settings },
-          progressTo(event.sender, 'export')
-        )
+        let stats: ExportStats
+        try {
+          stats = await worker.request<ExportStats>(
+            { type: 'export', source: file.path, target, sections: chosen, config: settings },
+            progress
+          )
+        } catch (e) {
+          // A stopped worker cannot clean up after itself: remove its half-written temporary file.
+          await rm(`${target}.saving`, { force: true }).catch(() => {})
+          throw e
+        }
         savedFiles.add(target)
-        return { path: target, fileName: basename(target), stats }
-      } catch (e) {
-        // A stopped worker cannot clean up after itself: remove its half-written temporary file.
-        await rm(`${target}.saving`, { force: true }).catch(() => {})
-        throw e
+        // The file is saved. From here, Cancel (or a failure) only skips the check, never the save.
+        let verification: SaveVerification | null
+        try {
+          verification = await worker.request<SaveVerification>(
+            { type: 'verify', target, sections: chosen, config: settings },
+            progress
+          )
+        } catch (e) {
+          const message = (e as Error).message
+          verification = message === CANCELLED_MESSAGE ? null : unreadableSave(message)
+        }
+        return { path: target, fileName: basename(target), stats, verification }
       } finally {
         worker.terminate('Finished.')
         exportJob = null

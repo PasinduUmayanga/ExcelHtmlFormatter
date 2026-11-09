@@ -35,6 +35,6 @@ export {
   type PreviewView
 } from './router'
 export { useApp, canVisit, cleanError } from './store'
-export { RichText } from './components/RichText'
+export { RichText, useConversion, linkTitle } from './components/RichText'
 export { styleToCss } from './components/styleToCss'
 export { JobProgressPanel, describeProgress } from './components/JobProgress'

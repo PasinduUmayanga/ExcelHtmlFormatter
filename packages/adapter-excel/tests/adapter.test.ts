@@ -14,7 +14,14 @@ describe('excelAdapter (the FormatAdapter for .xlsx)', () => {
 
     const doc = await excelAdapter.read(source)
     const summary = excelAdapter.summarize(doc, { path: source, name: 'in.xlsx', sizeBytes: 1 })
-    expect(summary.sections.map((s) => s.name)).toEqual(['Products', 'Team', 'Science', 'Summary', 'Lookup'])
+    expect(summary.sections.map((s) => s.name)).toEqual([
+      'Products',
+      'Team',
+      'Science',
+      'Formatting',
+      'Summary',
+      'Lookup'
+    ])
 
     const preview = excelAdapter.preview(doc, 'Team')
     expect(preview.sheet).toBe('Team')
@@ -48,11 +55,12 @@ describe('progress reporting', () => {
     const updates: JobProgress[] = []
     summarizeWorkbook(buildSampleWorkbook(), { path: 'x', name: 'x', sizeBytes: 0 }, (p) => updates.push(p))
     expect(updates.map((u) => [u.done, u.total, u.unit])).toEqual([
-      [0, 5, 'sheets'],
-      [1, 5, 'sheets'],
-      [2, 5, 'sheets'],
-      [3, 5, 'sheets'],
-      [4, 5, 'sheets']
+      [0, 6, 'sheets'],
+      [1, 6, 'sheets'],
+      [2, 6, 'sheets'],
+      [3, 6, 'sheets'],
+      [4, 6, 'sheets'],
+      [5, 6, 'sheets']
     ])
   })
 })

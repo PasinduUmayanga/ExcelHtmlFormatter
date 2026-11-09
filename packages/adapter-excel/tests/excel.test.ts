@@ -25,6 +25,7 @@ describe('summarizeWorkbook (real .xlsx round trip)', async () => {
       ['Products', 'visible'],
       ['Team', 'visible'],
       ['Science', 'visible'],
+      ['Formatting', 'visible'],
       ['Summary', 'visible'],
       ['Lookup', 'hidden']
     ])

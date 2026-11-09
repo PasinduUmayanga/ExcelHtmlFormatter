@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import { getRouteApi, useNavigate, useRouter } from '@tanstack/react-router'
-import { BUILTIN_TAGS, describeStyle, mergeScans, normalizeTagName, type TagStyle } from '@hf/core'
+import { BUILTIN_TAGS, builtinStyle, describeStyle, mergeScans, normalizeTagName, type TagStyle } from '@hf/core'
 import { useApp } from '../store'
 import { RichText } from '../components/RichText'
 
@@ -36,14 +36,20 @@ export function TagStyles() {
   const tagNames = useMemo(() => {
     const names = new Set([
       ...Object.keys(config?.rules ?? {}),
-      ...Object.keys(used).filter((t) => !(t in BUILTIN_TAGS))
+      ...Object.keys(used).filter((t) => !Object.hasOwn(BUILTIN_TAGS, t))
     ])
     return [...names].sort()
   }, [config, used])
 
   if (!config) return <p className="sub">Loading tag styles…</p>
   const tag = tagParam && tagNames.includes(tagParam) ? tagParam : (tagNames[0] ?? null)
-  const backLabel = back?.startsWith('/preview') ? 'preview' : back?.startsWith('/analysis') ? 'tag analysis' : null
+  const backLabel = back?.startsWith('/preview')
+    ? 'preview'
+    : back?.startsWith('/analysis')
+      ? 'tag analysis'
+      : back?.startsWith('/check')
+        ? 'the content check'
+        : null
 
   return (
     <>
@@ -56,7 +62,8 @@ export function TagStyles() {
         <div>
           <div className="taglist" role="listbox" aria-label="Tags">
             {tagNames.map((name) => {
-              const hasRule = Boolean(config.rules[name])
+              const hasRule = Object.hasOwn(config.rules, name)
+              const hasDefault = !hasRule && builtinStyle(name) !== undefined
               return (
                 <button
                   key={name}
@@ -66,7 +73,9 @@ export function TagStyles() {
                   onClick={() => setSelected(name)}
                 >
                   <span className="tag">&lt;{name}&gt;</span>
-                  {!hasRule ? (
+                  {hasDefault ? (
+                    <span className="chip ok">Default</span>
+                  ) : !hasRule ? (
                     <span className="chip warn">No style</span>
                   ) : used[name] ? (
                     <span className="faint" title="Uses in the open file">
@@ -142,9 +151,9 @@ function AddTag({ onAdded }: { onAdded: (tag: string) => void }) {
     e.preventDefault()
     const name = normalizeTagName(value)
     if (!name) return setError('Use letters and numbers, e.g. mark or h1')
-    if (name in BUILTIN_TAGS) return setError(`<${name}> is built in and can't be styled`)
-    // A new tag starts as bold so the change is visible; an existing one is just selected.
-    if (!config?.rules[name]) updateRule(name, { bold: true })
+    if (Object.hasOwn(BUILTIN_TAGS, name)) return setError(`<${name}> is built in and can't be styled`)
+    // A new tag starts as bold so the change is visible (or with its built-in look); an existing one is just selected.
+    if (config && !Object.hasOwn(config.rules, name)) updateRule(name, builtinStyle(name) ? {} : { bold: true })
     onAdded(name)
     setValue('')
     setError(null)
@@ -175,8 +184,10 @@ function AddTag({ onAdded }: { onAdded: (tag: string) => void }) {
 function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses?: number }) {
   const { config, updateRule, createPlainRule, removeRule } = useApp()
   if (!config) return null
-  const rule: TagStyle | undefined = config.rules[tag]
-  const r = rule ?? {}
+  const rule: TagStyle | undefined = Object.hasOwn(config.rules, tag) ? config.rules[tag] : undefined
+  const fallback = rule ? undefined : builtinStyle(tag)
+  // With no rule, the controls show the built-in look; the first change turns it into a rule.
+  const r = rule ?? fallback ?? {}
   const set = (patch: Partial<TagStyle>) => updateRule(tag, patch)
   const toggle = (key: 'bold' | 'italic' | 'underline' | 'strike', label: string, css: CSSProperties) => (
     <button
@@ -210,7 +221,13 @@ function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses
         )}
       </div>
 
-      {!rule && (
+      {!rule && fallback && (
+        <div className="banner" style={{ marginBottom: 16 }}>
+          <span>Uses the built-in look ({description?.parts.join(' · ')}). Any change below makes it your own.</span>
+        </div>
+      )}
+
+      {!rule && !fallback && (
         <div className="banner" style={{ marginBottom: 16 }}>
           <span>No style yet. Any change below creates one, or keep the text without formatting.</span>
           <button className="btn small" onClick={() => createPlainRule(tag)}>

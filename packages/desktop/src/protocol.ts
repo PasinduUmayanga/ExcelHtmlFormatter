@@ -5,6 +5,10 @@ export type WorkerRequest =
   | { id: number; type: 'load'; file: PickedFile }
   | { id: number; type: 'preview'; section: string }
   | { id: number; type: 'export'; source: string; target: string; sections: string[]; config: AppConfig }
+  /** Content proof of the open document's sections (nothing is changed or written) */
+  | { id: number; type: 'check'; sections: string[]; config: AppConfig }
+  /** After 'export' in the same worker: re-read the saved file and compare it with the original */
+  | { id: number; type: 'verify'; target: string; sections: string[]; config: AppConfig }
 
 /** Messages the worker sends back. Every request ends with exactly one 'result' or 'error'. */
 export type WorkerMessage =

@@ -1,4 +1,5 @@
 import type { TagScan } from './scanTags'
+import type { ContentReport, SaveVerification } from './verify/report'
 
 /** Formatting applied to the text inside one HTML tag. */
 export interface TagStyle {
@@ -19,6 +20,8 @@ export interface TagStyle {
 export type UnknownTagAction = 'strip' | 'keep'
 
 export interface AppConfig {
+  /** Settings format version (SETTINGS_VERSION). Missing means version 1 (before F2). */
+  version?: number
   profileName: string
   unknownTagAction: UnknownTagAction
   rules: Record<string, TagStyle>
@@ -58,19 +61,32 @@ export interface ExportStats {
   withLineBreaks: number
   /** Tags that had no style and were removed or kept as text */
   unknownTags: string[]
+  /** Items that became links (the first safe <a href> in each) */
+  linksAdded: number
+  /** Links not added: unsafe or invalid addresses, or a second link in the same item */
+  linksSkipped: number
+  /** Items highlighted as a whole (all their text was in <mark> or had a background colour) */
+  highlighted: number
+  /** The content proof of every converted item (checks A and D) */
+  check: ContentReport
 }
 
 export interface ExportResult {
   path: string
   fileName: string
   stats: ExportStats
+  /** The saved file re-read and compared (checks B and C); null if the user skipped it with Cancel */
+  verification: SaveVerification | null
 }
 
-/** Long-running work: opening a file ('load') or saving the formatted copy ('export'). */
-export type JobKind = 'load' | 'export'
+/**
+ * Long-running work: opening a file ('load'), checking the content before saving ('check'),
+ * or saving the formatted copy ('export', which ends with verifying the saved file).
+ */
+export type JobKind = 'load' | 'check' | 'export'
 
 export interface JobProgress {
-  stage: 'reading' | 'scanning' | 'converting' | 'saving'
+  stage: 'reading' | 'scanning' | 'checking' | 'converting' | 'saving' | 'verifying'
   /** Set when the amount of work is known (sections scanned, rows converted). */
   done?: number
   total?: number
@@ -104,9 +120,19 @@ export interface ElectronApi {
    * The original file is never changed. Resolves to null if the user cancels.
    */
   exportDocument(path: string, sections: string[], config: AppConfig): Promise<ExportResult | null>
+  /**
+   * Checks that converting the chosen sections loses no text and fits the format's limits
+   * (nothing is written). Uses the document already open; not cancellable (it is quick).
+   */
+  checkDocument(path: string, sections: string[], config: AppConfig): Promise<ContentReport>
+  /** Shows a Save dialog and writes the check report as CSV. Resolves to the file name, or null if cancelled. */
+  exportReport(csv: string): Promise<string | null>
   /** Opens the folder of a file this app just saved, with the file selected. */
   showInFolder(path: string): Promise<void>
-  /** Stops a running load or export. The pending call then rejects with CANCELLED_MESSAGE. */
+  /**
+   * Stops a running load or export. The pending call then rejects with CANCELLED_MESSAGE, except
+   * while an export is verifying the saved file: then the file stays saved and `verification` is null.
+   */
   cancelJob(kind: JobKind): Promise<void>
   /** Progress of running jobs. Returns a function that stops listening. */
   onJobProgress(listener: (kind: JobKind, progress: JobProgress) => void): () => void

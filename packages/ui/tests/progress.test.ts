@@ -12,5 +12,11 @@ describe('describeProgress', () => {
     ).toBe(`Formatting cells: ${(12000).toLocaleString()} of ${(15001).toLocaleString()} rows (Products)`)
     expect(describeProgress({ stage: 'converting' })).toBe('Formatting items:')
     expect(describeProgress({ stage: 'saving' })).toBe('Saving the new file…')
+    expect(describeProgress({ stage: 'checking', done: 2, total: 4, unit: 'rows' })).toBe(
+      'Checking that no text is lost: 2 of 4 rows'
+    )
+    expect(describeProgress({ stage: 'verifying', done: 1, total: 3, unit: 'cells', detail: 'Team' })).toBe(
+      'Checking the saved file: 1 of 3 cells (Team)'
+    )
   })
 })

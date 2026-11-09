@@ -15,6 +15,7 @@ import { SelectSections } from './screens/SelectSections'
 import { TagAnalysis } from './screens/TagAnalysis'
 import { PreviewExport } from './screens/PreviewExport'
 import { TagStyles } from './screens/TagStyles'
+import { CheckReview } from './screens/CheckReview'
 
 /* ---------- What each app plugs in ---------- */
 
@@ -52,6 +53,8 @@ export function useFormatterApp(): FormatterAppConfig {
  *   /sections              choose sections (sheets, …)
  *   /analysis/$section     tags found in one section
  *   /preview/$section      result preview (?view=original shows the raw HTML)
+ *   /check/$section        content check: issues side by side with the original (?cell=C7 selects one;
+ *                          ?saved=true shows the differences found in the saved file instead)
  *   /settings              tag styles (?tag=b opens one tag, ?back=/analysis/X adds a "Done" button)
  *
  * Guards send the user back to /open or /sections when there is nothing to show.
@@ -110,6 +113,28 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     component: PreviewExport
   })
 
+  const checkRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/check/$section',
+    // Always return every key: TanStack keeps the raw value of any key left out.
+    validateSearch: (search: { cell?: unknown; saved?: unknown }): { cell?: string; saved?: true } => ({
+      // A cell address or similar locator: short, letters, digits and a few separators only.
+      cell: typeof search.cell === 'string' && /^[A-Za-z0-9$:!._-]{1,40}$/.test(search.cell) ? search.cell : undefined,
+      saved: search.saved === true || search.saved === 'true' ? true : undefined
+    }),
+    beforeLoad: ({ params, search }) => {
+      const state = useApp.getState()
+      if (!canVisit(state, 'sections')) throw redirect({ to: '/open' })
+      if (!canVisit(state, 'preview')) throw redirect({ to: '/sections' })
+      const known = state.doc!.sections.some((s) => s.name === params.section)
+      // The saved-file view needs a saved file; the content check needs a selected section.
+      if (search.saved ? !state.exportResult?.verification || !known : !state.selected.includes(params.section)) {
+        throw redirect({ to: '/preview/$section', params: { section: state.selected[0] } })
+      }
+    },
+    component: CheckReview
+  })
+
   const settingsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/settings',
@@ -128,6 +153,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     sectionsRoute,
     analysisRoute,
     previewRoute,
+    checkRoute,
     settingsRoute
   ])
   return createRouter({ routeTree, history: options.history ?? createHashHistory() })

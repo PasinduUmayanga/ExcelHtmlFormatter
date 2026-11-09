@@ -86,8 +86,14 @@ on_finish:
       $reports = Get-ChildItem -Path packages, apps -Recurse -Include junit.xml, e2e-junit.xml -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -notmatch '\\node_modules\\' }
       foreach ($r in $reports) {
+        # A test run that was stopped part-way leaves an empty or unfinished report, which AppVeyor rejects.
+        try { if (-not ([xml](Get-Content -Raw $r.FullName)).DocumentElement) { throw 'empty' } } catch {
+          Write-Warning "Skipping incomplete test results (the test run did not finish): $($r.FullName)"
+          continue
+        }
         Write-Host "Uploading test results: $($r.FullName)"
-        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", $r.FullName)
+        try { $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", $r.FullName) | Out-Null }
+        catch { Write-Warning "Could not upload $($r.Name): $($_.Exception.Message)" }
       }
       $coverage = Get-ChildItem -Path packages -Directory -Recurse -Filter coverage -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -notmatch '\\node_modules\\' }

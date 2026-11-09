@@ -84,7 +84,9 @@ export function TagAnalysis() {
                     <td>
                       {description ? (
                         <span className="style-desc">
-                          <span className="chip ok">{description.builtin ? 'Built in' : 'Styled'}</span>{' '}
+                          <span className="chip ok">
+                            {description.builtin ? 'Built in' : description.fallback ? 'Default' : 'Styled'}
+                          </span>{' '}
                           {description.color && <span className="swatch" style={{ background: description.color }} />}
                           {description.parts.join(' · ')}
                         </span>

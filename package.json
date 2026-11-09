@@ -21,7 +21,7 @@
     "dist:excel": "turbo run dist --filter=excel-formatter",
     "test:e2e": "turbo run test:e2e",
     "test:coverage": "turbo run test:coverage",
-    "test:ci": "turbo run test:coverage -- --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml"
+    "test:ci": "turbo run test:coverage --continue -- --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml"
   },
   "devDependencies": {
     "turbo": "^2.11.10",

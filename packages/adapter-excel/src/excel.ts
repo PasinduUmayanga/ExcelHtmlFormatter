@@ -1,16 +1,24 @@
 import ExcelJS from 'exceljs'
 import { rename, rm } from 'node:fs/promises'
 import {
+  emptyReport,
   hasHtml,
   htmlToRuns,
+  MAX_REPORT_ITEMS,
+  proveContent,
+  ReportBuilder,
   scanCells,
   throttle,
   type CellText,
+  type CheckItem,
+  type ContentReport,
   type ConvertOptions,
+  type ConvertResult,
   type DocumentSummary,
   type ExportStats,
   type PickedFile,
-  type ProgressCallback
+  type ProgressCallback,
+  type SaveVerification
 } from '@hf/core'
 import { toExcelRichText, type ExcelFont } from './excelRichText'
 import type { PreviewCell, SheetPreview } from './format'
@@ -89,24 +97,70 @@ export function baseFont(cell: ExcelJS.Cell): ExcelFont {
   return base
 }
 
+/** Excel's fill for a cell whose whole text is highlighted (Excel can't highlight part of a cell). */
+export const HIGHLIGHT_FILL: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }
+
+export interface CellConversion {
+  /** The cell's text before conversion (the HTML) */
+  html: string
+  result: ConvertResult
+}
+
+/** Converts a cell's HTML without changing the cell. Null if the cell is not converted at all. */
+export function planCell(cell: ExcelJS.Cell, options: ConvertOptions): CellConversion | null {
+  const html = cellText(cell)
+  if (html === null || !hasHtml(html)) return null
+  return { html, result: htmlToRuns(html, options) }
+}
+
 /**
- * Replaces the HTML in one cell with rich text. Returns null if the cell was left alone,
- * otherwise whether it now needs "wrap text" and which tags had no rule.
+ * The value written for a converted cell: rich text, wrapped in a hyperlink when the cell has a
+ * safe link. ExcelJS's types say a hyperlink's text is a string, but it writes (and reads back)
+ * rich text there too; this cast is the only place that relies on it (checked by round-trip tests).
  */
-export function convertCell(
-  cell: ExcelJS.Cell,
-  options: ConvertOptions
-): { wrapped: boolean; unknownTags: string[] } | null {
-  const text = cellText(cell)
-  if (text === null || !hasHtml(text)) return null
-  const result = htmlToRuns(text, options)
-  if (result.plainText === '') {
-    cell.value = null // e.g. "<b></b>": nothing left to show
-  } else {
-    cell.value = toExcelRichText(result.runs, baseFont(cell)) as ExcelJS.CellRichTextValue
-  }
+export function convertedValue(result: ConvertResult, base: ExcelFont): ExcelJS.CellValue {
+  if (result.plainText === '') return null // e.g. "<b></b>": nothing left to show
+  const rich = toExcelRichText(result.runs, base)
+  if (!result.cellLink) return rich as ExcelJS.CellRichTextValue
+  return { text: rich, hyperlink: result.cellLink } as unknown as ExcelJS.CellHyperlinkValue
+}
+
+/**
+ * Replaces the HTML in one cell with rich text, plus the cell-level effects: a hyperlink, a
+ * highlight fill and "wrap text". Returns null if the cell was left alone.
+ */
+export function convertCell(cell: ExcelJS.Cell, options: ConvertOptions): CellConversion | null {
+  const plan = planCell(cell, options)
+  if (!plan) return null
+  const { result } = plan
+  cell.value = convertedValue(result, baseFont(cell))
   if (result.hasLineBreak) cell.alignment = { ...cell.alignment, wrapText: true }
-  return { wrapped: result.hasLineBreak, unknownTags: result.unknownTags }
+  if (result.fullyHighlighted) cell.fill = HIGHLIGHT_FILL
+  return plan
+}
+
+/** Calls `visit` for every cell of the chosen sheets, reporting progress by rows. */
+function eachCellOf(
+  workbook: ExcelJS.Workbook,
+  sheetNames: string[],
+  stage: 'checking' | 'converting',
+  onProgress: ProgressCallback | undefined,
+  visit: (sheet: ExcelJS.Worksheet, cell: ExcelJS.Cell) => void
+): ExcelJS.Worksheet[] {
+  const wanted = new Set(sheetNames)
+  const sheets = workbook.worksheets.filter((s) => wanted.has(s.name))
+  const totalRows = sheets.reduce((sum, s) => sum + s.rowCount, 0)
+  let rowsDone = 0
+  const report = throttle(onProgress)
+  for (const sheet of sheets) {
+    sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      report({ stage, done: rowsDone + rowNumber, total: totalRows, unit: 'rows', detail: sheet.name })
+      row.eachCell({ includeEmpty: false }, (cell) => visit(sheet, cell))
+    })
+    rowsDone += sheet.rowCount
+  }
+  report({ stage, done: totalRows, total: totalRows, unit: 'rows' }, true)
+  return sheets
 }
 
 /** Converts every HTML cell in the chosen sheets. Other sheets and non-text cells are not touched. */
@@ -116,32 +170,213 @@ export function convertWorkbook(
   options: ConvertOptions,
   onProgress?: ProgressCallback
 ): ExportStats {
-  const wanted = new Set(sheetNames)
   const unknown = new Set<string>()
-  const stats: ExportStats = { sections: [], converted: 0, withLineBreaks: 0, unknownTags: [] }
-  const sheets = workbook.worksheets.filter((s) => wanted.has(s.name))
-  const totalRows = sheets.reduce((sum, s) => sum + s.rowCount, 0)
-  let rowsDone = 0
-  const report = throttle(onProgress)
-  for (const sheet of sheets) {
-    let cells = 0
-    sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      report({ stage: 'converting', done: rowsDone + rowNumber, total: totalRows, unit: 'rows', detail: sheet.name })
-      row.eachCell({ includeEmpty: false }, (cell) => {
-        const done = convertCell(cell, options)
-        if (!done) return
-        cells++
-        if (done.wrapped) stats.withLineBreaks++
-        done.unknownTags.forEach((t) => unknown.add(t))
-      })
-    })
-    stats.sections.push({ name: sheet.name, converted: cells })
-    stats.converted += cells
-    rowsDone += sheet.rowCount
+  const counts = new Map<string, number>()
+  const proofs = new ReportBuilder()
+  const stats: ExportStats = {
+    sections: [],
+    converted: 0,
+    withLineBreaks: 0,
+    unknownTags: [],
+    linksAdded: 0,
+    linksSkipped: 0,
+    highlighted: 0,
+    check: emptyReport()
   }
-  report({ stage: 'converting', done: totalRows, total: totalRows, unit: 'rows' }, true)
+  const sheets = eachCellOf(workbook, sheetNames, 'converting', onProgress, (sheet, cell) => {
+    const done = convertCell(cell, options)
+    if (!done) return
+    const { result } = done
+    counts.set(sheet.name, (counts.get(sheet.name) ?? 0) + 1)
+    if (result.hasLineBreak) stats.withLineBreaks++
+    if (result.cellLink && result.plainText) stats.linksAdded++
+    stats.linksSkipped += result.skippedLinks.length
+    if (result.fullyHighlighted) stats.highlighted++
+    result.unknownTags.forEach((t) => unknown.add(t))
+    proofs.add(sheet.name, cell.address, done.html, result, proveContent(done.html, result, options))
+  })
+  for (const sheet of sheets) {
+    const converted = counts.get(sheet.name) ?? 0
+    stats.sections.push({ name: sheet.name, converted })
+    stats.converted += converted
+  }
   stats.unknownTags = [...unknown].sort()
+  stats.check = proofs.build()
   return stats
+}
+
+/** The content proof for the chosen sheets, without changing the workbook (checks A and D). */
+export function checkWorkbook(
+  workbook: ExcelJS.Workbook,
+  sheetNames: string[],
+  options: ConvertOptions,
+  onProgress?: ProgressCallback
+): ContentReport {
+  const proofs = new ReportBuilder()
+  eachCellOf(workbook, sheetNames, 'checking', onProgress, (sheet, cell) => {
+    const plan = planCell(cell, options)
+    if (plan)
+      proofs.add(sheet.name, cell.address, plan.html, plan.result, proveContent(plan.html, plan.result, options))
+  })
+  return proofs.build()
+}
+
+/* ---------- Checking the saved file ---------- */
+
+interface CellRecord {
+  /** The value, serialised so it can be compared after a save and re-read */
+  value: string
+  /** The cell's text if it could hold HTML (see cellText) */
+  text: string | null
+  sheet: string
+  address: string
+  row: number
+  col: number
+}
+
+/**
+ * What `verifyWorkbook` needs: every original cell value (keyed by sheet and address), and the
+ * workbook itself, which `convert` then changes in place, so it holds exactly what was written.
+ */
+export interface WorkbookSnapshot {
+  cells: Map<string, CellRecord>
+  workbook: ExcelJS.Workbook
+}
+
+/** A control character can't appear in a sheet name, so keys never collide. */
+const keyOf = (sheet: string, address: string) => `${sheet}\u0001${address}`
+
+/** A stable text form of a cell value. Merged cells record their master cell instead of the shared value. */
+export function serializeValue(cell: ExcelJS.Cell): string {
+  if (cell.type === ExcelJS.ValueType.Merge) return `merge:${cell.master.address}`
+  const value = cell.value
+  // Most cells are plain text: a marker character (never produced by JSON) keeps them apart from JSON forms.
+  if (typeof value === 'string') return `\u0002${value}`
+  return JSON.stringify(value ?? null)
+}
+
+export function snapshotWorkbook(workbook: ExcelJS.Workbook): WorkbookSnapshot {
+  const cells = new Map<string, CellRecord>()
+  for (const sheet of workbook.worksheets) {
+    sheet.eachRow({ includeEmpty: false }, (row, rowNumber) =>
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        if (cell.type === ExcelJS.ValueType.Null) return
+        cells.set(keyOf(sheet.name, cell.address), {
+          value: serializeValue(cell),
+          text: cellText(cell),
+          sheet: sheet.name,
+          address: cell.address,
+          row: rowNumber,
+          col: colNumber
+        })
+      })
+    )
+  }
+  return { cells, workbook }
+}
+
+/** The text and link of a cell as saved (plain text, rich text, or a hyperlink with either). */
+export function savedText(cell: ExcelJS.Cell): { text: string; link?: string } {
+  const value = cell.value as unknown
+  if (value === null || value === undefined) return { text: '' }
+  if (typeof value === 'string') return { text: value }
+  if (typeof value === 'object' && 'richText' in value) return { text: richTextOf(value) }
+  if (typeof value === 'object' && 'hyperlink' in value) {
+    const v = value as { text?: unknown; hyperlink: string }
+    const text = typeof v.text === 'string' ? v.text : v.text && typeof v.text === 'object' ? richTextOf(v.text) : ''
+    return { text, link: v.hyperlink }
+  }
+  return { text: displayValue(cell) }
+}
+
+function richTextOf(value: object): string {
+  const parts = (value as { richText?: unknown }).richText
+  return Array.isArray(parts) ? parts.map((p: { text?: unknown }) => String(p.text ?? '')).join('') : ''
+}
+
+/**
+ * Compares a saved workbook (read back from disk) with the snapshot of the original (checks B and C).
+ * Converted cells must hold exactly the text and link that were written (the converted workbook,
+ * still in memory); every other cell, in every sheet, must have the same value as before.
+ * (Whether the conversion itself lost text is check A, the content proof made while converting.)
+ */
+export function verifyWorkbook(
+  saved: ExcelJS.Workbook,
+  snapshot: WorkbookSnapshot,
+  sheetNames: string[],
+  _options: ConvertOptions,
+  onProgress?: ProgressCallback,
+  maxItems = MAX_REPORT_ITEMS
+): SaveVerification {
+  const wanted = new Set(sheetNames)
+  const result: SaveVerification = { compared: 0, differences: 0, items: [], truncated: false }
+  const seen = new Set<string>()
+  const report = throttle(onProgress)
+  const { cells } = snapshot
+  const total = cells.size
+  const add = (item: CheckItem) => {
+    result.differences++
+    if (result.items.length < maxItems) result.items.push(item)
+    else result.truncated = true
+  }
+  /** For a converted cell: the text and link that were written. Null for any other cell. */
+  const writtenOf = (record: CellRecord | undefined) => {
+    if (!record || !wanted.has(record.sheet) || record.text === null || !hasHtml(record.text)) return null
+    const cell = snapshot.workbook.getWorksheet(record.sheet)?.findCell(record.row, record.col)
+    return cell ? savedText(cell) : { text: '' }
+  }
+
+  const compare = (sheet: string, address: string, cell: ExcelJS.Cell | undefined) => {
+    const key = keyOf(sheet, address)
+    seen.add(key)
+    result.compared++
+    report({ stage: 'verifying', done: result.compared, total, unit: 'cells', detail: sheet })
+    const record = cells.get(key)
+    const written = writtenOf(record)
+    if (written && record?.text) {
+      const actual = cell ? savedText(cell) : { text: '' }
+      if (actual.text !== written.text || actual.link !== written.link) {
+        add({
+          section: sheet,
+          location: address,
+          severity: 'issue',
+          kind: 'saved',
+          source: record.text,
+          converted: written.text,
+          saved: actual.text
+        })
+      }
+      return
+    }
+    const now = cell && cell.type !== ExcelJS.ValueType.Null ? serializeValue(cell) : 'null'
+    const before = record?.value ?? 'null'
+    if (now !== before) {
+      const original = record ? (record.text ?? before) : ''
+      add({
+        section: sheet,
+        location: address,
+        severity: 'issue',
+        kind: 'untouched',
+        source: original,
+        converted: original,
+        saved: cell ? (cellText(cell) ?? now) : ''
+      })
+    }
+  }
+
+  for (const sheet of saved.worksheets) {
+    sheet.eachRow({ includeEmpty: false }, (row) =>
+      row.eachCell({ includeEmpty: false }, (cell) => {
+        if (cell.type !== ExcelJS.ValueType.Null || cells.has(keyOf(sheet.name, cell.address))) {
+          compare(sheet.name, cell.address, cell)
+        }
+      })
+    )
+  }
+  // Cells of the original that the saved file no longer has
+  for (const [key, record] of cells) if (!seen.has(key)) compare(record.sheet, record.address, undefined)
+  report({ stage: 'verifying', done: result.compared, total: result.compared, unit: 'cells' }, true)
+  return result
 }
 
 /** Writes to a temporary file, then renames it, so a failed save never leaves a broken .xlsx behind. */

@@ -11,6 +11,8 @@ export function exposeApi(): void {
     openDocument: (path) => ipcRenderer.invoke('document:open', path),
     getSectionPreview: (path, section) => ipcRenderer.invoke('document:preview', path, section),
     exportDocument: (path, sections, config) => ipcRenderer.invoke('document:export', path, sections, config),
+    checkDocument: (path, sections, config) => ipcRenderer.invoke('document:check', path, sections, config),
+    exportReport: (csv) => ipcRenderer.invoke('report:export', csv),
     showInFolder: (path) => ipcRenderer.invoke('shell:showInFolder', path),
     cancelJob: (kind) => ipcRenderer.invoke('job:cancel', kind),
     onJobProgress: (listener) => {

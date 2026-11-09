@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { columnName } from '@hf/core'
-import { RichText, type PreviewProps } from '@hf/ui'
+import { columnName, type ConvertOptions } from '@hf/core'
+import { RichText, useConversion, type PreviewProps } from '@hf/ui'
 import type { SheetPreview } from '@hf/adapter-excel/format'
 
 /**
@@ -39,9 +39,7 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
                       </td>
                     )
                   return view === 'formatted' ? (
-                    <td key={c} className="xl html">
-                      <RichText html={cell.text} options={options} />
-                    </td>
+                    <FormattedCell key={c} html={cell.text} options={options} />
                   ) : (
                     <td key={c} className="code html">
                       {cell.text}
@@ -62,3 +60,16 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
     </>
   )
 })
+
+/** A converted cell, with the cell-level effects Excel will show (the yellow fill of a fully marked cell). */
+function FormattedCell({ html, options }: { html: string; options: ConvertOptions }) {
+  const result = useConversion(html, options)
+  return (
+    <td
+      className={`xl html${result.fullyHighlighted ? ' filled' : ''}`}
+      title={result.fullyHighlighted ? 'The whole cell is highlighted' : undefined}
+    >
+      <RichText html={html} options={options} result={result} />
+    </td>
+  )
+}

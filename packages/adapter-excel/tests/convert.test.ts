@@ -36,7 +36,12 @@ describe('convertWorkbook (real .xlsx round trip)', async () => {
       ],
       converted: 27,
       withLineBreaks: 1,
-      unknownTags: ['mark', 'span']
+      // <mark> and <span> are built in since F2, so the sample has no tags without a style
+      unknownTags: [],
+      linksAdded: 0,
+      linksSkipped: 0,
+      highlighted: 0,
+      check: { checked: 27, complete: 27, issues: 0, notes: 0, items: [], truncated: false }
     })
   })
 
@@ -102,7 +107,14 @@ describe('convertWorkbook (real .xlsx round trip)', async () => {
   it('does not touch sheets that were not selected, and keeps hidden sheets hidden', () => {
     expect(cell('Lookup', 'B2').value).toBe('<b>Active</b>')
     expect(out.getWorksheet('Lookup')!.state).toBe('hidden')
-    expect(out.worksheets.map((s) => s.name)).toEqual(['Products', 'Team', 'Science', 'Summary', 'Lookup'])
+    expect(out.worksheets.map((s) => s.name)).toEqual([
+      'Products',
+      'Team',
+      'Science',
+      'Formatting',
+      'Summary',
+      'Lookup'
+    ])
   })
 
   it('leaves no temporary files behind', () => {
@@ -111,10 +123,13 @@ describe('convertWorkbook (real .xlsx round trip)', async () => {
 })
 
 describe('convertWorkbook options', () => {
-  it('keeps tags with no style as text when asked', async () => {
-    const { out } = await convertAndReopen({ ...config, unknownTagAction: 'keep' }, ['Products'])
-    const rich = (out.getWorksheet('Products')!.getCell('C5').value as ExcelJS.CellRichTextValue).richText
-    expect(rich.map((r) => r.text).join('')).toBe('Rare hand-rolled buds, <mark>limited stock</mark>')
+  it('keeps tags with no style as text when asked', () => {
+    const c = new ExcelJS.Workbook().addWorksheet('S').getCell('A1')
+    c.value = '<b>Rare</b> buds, <custom>limited stock</custom>'
+    expect(convertCell(c, { ...config, unknownTagAction: 'keep' })?.result.unknownTags).toEqual(['custom'])
+    // `unknown` first: TypeScript narrowed c.value to the string assigned above.
+    const rich = (c.value as unknown as ExcelJS.CellRichTextValue).richText
+    expect(rich.map((r) => r.text).join('')).toBe('Rare buds, <custom>limited stock</custom>')
   })
 
   it('applies custom colors, sizes and fonts', async () => {
@@ -160,7 +175,7 @@ describe('convertCell', () => {
   it('empties a cell whose HTML has no text', () => {
     const c = sheet().getCell('A1')
     c.value = '<b></b>'
-    expect(convertCell(c, config)).toEqual({ wrapped: false, unknownTags: [] })
+    expect(convertCell(c, config)?.result.plainText).toBe('')
     expect(c.value).toBeNull()
   })
 

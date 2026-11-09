@@ -27,7 +27,7 @@ async function visit(path: string) {
   }
 }
 
-afterEach(() => useApp.setState({ doc: null, selected: [], loading: false }))
+afterEach(() => useApp.setState({ doc: null, selected: [], loading: false, exportResult: null }))
 
 describe('routes and guards (TanStack Router)', () => {
   it('starts on /open', async () => {
@@ -88,5 +88,36 @@ describe('canVisit', () => {
     expect(canVisit({ doc, loading: false, selected: [] }, 'sections')).toBe(true)
     expect(canVisit({ doc, loading: false, selected: [] }, 'preview')).toBe(false)
     expect(canVisit({ doc, loading: false, selected: ['Team'] }, 'preview')).toBe(true)
+  })
+
+  it('opens the content check for a selected section, with a validated cell', async () => {
+    expect((await visit('/check/Team')).path).toBe('/open')
+    useApp.setState({ doc, selected: ['Team'] })
+    expect(await visit('/check/Team?cell=C7')).toEqual({ path: '/check/Team', search: { cell: 'C7' } })
+    expect((await visit('/check/Products')).path).toBe('/preview/Team')
+    // Anything that is not a short cell locator is dropped
+    expect((await visit('/check/Team?cell=%3Cscript%3E')).search).toEqual({})
+    expect((await visit(`/check/Team?cell=${'A'.repeat(41)}`)).search).toEqual({})
+  })
+
+  it('shows the saved-file check only after a save that was verified', async () => {
+    useApp.setState({ doc, selected: ['Team'] })
+    expect((await visit('/check/Summary?saved=true')).path).toBe('/preview/Team')
+    const verification = { compared: 3, differences: 1, items: [], truncated: false }
+    const stats = {
+      sections: [],
+      converted: 0,
+      withLineBreaks: 0,
+      unknownTags: [],
+      linksAdded: 0,
+      linksSkipped: 0,
+      highlighted: 0,
+      check: { checked: 0, complete: 0, issues: 0, notes: 0, items: [], truncated: false }
+    }
+    useApp.setState({ exportResult: { path: 'C:/y.xlsx', fileName: 'y.xlsx', stats, verification } })
+    // Unselected sections can have differences too (they must stay unchanged)
+    expect(await visit('/check/Summary?saved=true')).toEqual({ path: '/check/Summary', search: { saved: true } })
+    expect((await visit('/check/Nope?saved=true')).path).toBe('/preview/Team')
+    expect((await visit('/check/Team?saved=yes')).search).toEqual({})
   })
 })

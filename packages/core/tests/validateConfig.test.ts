@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeColor, normalizeTagName, sanitizeStyle, validateConfig } from '../src/validateConfig'
-import { defaultConfig } from '../src/defaultRules'
+import { builtinRules, DEFAULT_RULES, defaultConfig, SETTINGS_VERSION } from '../src/defaultRules'
 
 describe('normalizeTagName', () => {
   it('accepts tag names typed in different ways', () => {
@@ -69,7 +69,7 @@ describe('validateConfig', () => {
   })
 
   it('keeps empty rules (a tag set to "keep text plain")', () => {
-    expect(validateConfig({ rules: { span: {} } }).rules).toEqual({ span: {} })
+    expect(validateConfig({ version: 2, rules: { span: {} } }).rules).toEqual({ span: {} })
   })
 
   it('fills in missing fields and fixes bad ones', () => {
@@ -77,9 +77,10 @@ describe('validateConfig', () => {
       validateConfig({
         rules: { B: { bold: true }, '1x': {}, br: { bold: true } },
         unknownTagAction: 'explode',
-        profileName: 5
+        profileName: 5,
+        version: 2
       })
-    ).toEqual({ profileName: 'Default', unknownTagAction: 'strip', rules: { b: { bold: true } } })
+    ).toEqual({ version: 2, profileName: 'Default', unknownTagAction: 'strip', rules: { b: { bold: true } } })
   })
 
   it('reads the export format from the demo', () => {
@@ -88,7 +89,29 @@ describe('validateConfig', () => {
       unknownTagAction: 'keep',
       rules: { mark: { bold: true, color: '#C00000' } }
     }
-    expect(validateConfig(exported)).toEqual(exported)
+    // A version 1 file (no "version"): the built-in looks are added, the user's own mark rule is kept.
+    expect(validateConfig(exported)).toEqual({
+      ...exported,
+      version: SETTINGS_VERSION,
+      rules: { ...builtinRules(), mark: { bold: true, color: '#C00000' } }
+    })
+  })
+
+  it('adds the built-in looks to old settings once, never replacing a rule', () => {
+    const migrated = validateConfig({ rules: { b: { bold: true }, h1: { italic: true }, a: {} } })
+    expect(migrated.version).toBe(2)
+    expect(migrated.rules.h1).toEqual({ italic: true })
+    expect(migrated.rules.a).toEqual({})
+    expect(migrated.rules.h2).toEqual({ bold: true, size: 16 })
+    expect(migrated.rules.span).toBeUndefined()
+    // Saved again as version 2, a deleted rule stays deleted.
+    const { h2: _deleted, ...rest } = migrated.rules
+    expect(validateConfig({ ...migrated, rules: rest }).rules.h2).toBeUndefined()
+    expect(validateConfig({ version: 1.5, rules: {} }).rules.h2).toEqual({ bold: true, size: 16 })
+  })
+
+  it('starts new users with the same rules as migrated ones', () => {
+    expect(validateConfig({ rules: DEFAULT_RULES }).rules).toEqual(defaultConfig().rules)
   })
 
   it('rejects files that are not tag styles', () => {

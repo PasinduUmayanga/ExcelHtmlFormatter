@@ -16,7 +16,15 @@ export type Token =
 // (e.g. "x < 5") is left as normal text.
 const TAG_RE = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9-]*)((?:[^>"']|"[^"]*"|'[^']*')*?)(\/?)>/g
 
-export function tokenize(html: string): Token[] {
+/**
+ * The last input and its tokens. Converting a cell and then proving its content tokenize the same
+ * text back to back; this halves that work. Callers must treat the tokens as read-only.
+ */
+let lastHtml: string | null = null
+let lastTokens: readonly Token[] = []
+
+export function tokenize(html: string): readonly Token[] {
+  if (html === lastHtml) return lastTokens
   const tokens: Token[] = []
   let last = 0
   for (const m of html.matchAll(TAG_RE)) {
@@ -29,6 +37,8 @@ export function tokenize(html: string): Token[] {
     last = start + raw.length
   }
   if (last < html.length) tokens.push({ type: 'text', text: decodeEntities(html.slice(last)) })
+  lastHtml = html
+  lastTokens = tokens
   return tokens
 }
 

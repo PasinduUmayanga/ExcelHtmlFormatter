@@ -2,7 +2,17 @@
 // The window must import '@hf/adapter-excel/format' instead.
 import type ExcelJS from 'exceljs'
 import type { FormatAdapter } from '@hf/core'
-import { convertWorkbook, readWorkbook, sheetPreview, summarizeWorkbook, writeWorkbookSafely } from './excel'
+import {
+  checkWorkbook,
+  convertWorkbook,
+  readWorkbook,
+  sheetPreview,
+  snapshotWorkbook,
+  summarizeWorkbook,
+  verifyWorkbook,
+  writeWorkbookSafely,
+  type WorkbookSnapshot
+} from './excel'
 import type { SheetPreview } from './format'
 
 export const excelAdapter: FormatAdapter<ExcelJS.Workbook, SheetPreview> = {
@@ -14,7 +24,11 @@ export const excelAdapter: FormatAdapter<ExcelJS.Workbook, SheetPreview> = {
     return sheetPreview(sheet)
   },
   convert: convertWorkbook,
-  write: writeWorkbookSafely
+  write: writeWorkbookSafely,
+  check: checkWorkbook,
+  snapshot: snapshotWorkbook,
+  verify: (saved, snapshot, sections, options, onProgress) =>
+    verifyWorkbook(saved, snapshot as WorkbookSnapshot, sections, options, onProgress)
 }
 
 export * from './excel'
