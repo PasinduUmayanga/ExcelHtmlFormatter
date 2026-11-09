@@ -1,9 +1,0 @@
-/* The window's styles, one file per Atomic Design level. The order matters: later levels refine earlier ones. */
-@import './design/tokens.css';
-@import './design/base.css';
-@import './design/atoms/atoms.css';
-@import './design/molecules/molecules.css';
-@import './design/organisms/organisms.css';
-@import './design/templates/templates.css';
-@import './screens/screens.css';
-@import './design/utilities.css';

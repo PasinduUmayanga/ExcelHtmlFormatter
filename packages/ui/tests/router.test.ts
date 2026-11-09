@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createMemoryHistory } from '@tanstack/react-router'
 import type { DocumentSummary } from '@hf/core'
 import { createFormatterRouter } from '../src/router'
-import { canVisit, useApp } from '../src/store'
+import { canVisit, useApp } from '../src/state/store'
 
 const doc: DocumentSummary = {
   file: { path: 'C:/x.xlsx', name: 'x.xlsx', sizeBytes: 1 },

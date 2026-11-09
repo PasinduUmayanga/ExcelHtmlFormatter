@@ -100,7 +100,7 @@ sequenceDiagram
 | `#/preview/$section?view=original` | Preview & export         | same as analysis                                    |
 | `#/settings?tag=&back=`            | Tag styles               | — (`back` must be an in-app path)                   |
 
-- The router owns **where the user is**; the zustand store (`packages/ui/src/store.ts`) owns **data**: open document
+- The router owns **where the user is**; the zustand store (`packages/ui/src/state/store.ts`) owns **data**: open document
   summary, selection, settings, running job, previews, export result.
 - Each app supplies its `FormatInfo` (labels, file types) and a `Preview` component through React context
   (`mountFormatterApp(root, { format, Preview })`).

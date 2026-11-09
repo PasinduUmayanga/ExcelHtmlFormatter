@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { capitalize, count, sortedTags } from '@hf/core'
-import { useApp } from '../store'
+import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
 import { Badge, Button, TagName } from '../design/atoms'
 import { ScreenTemplate } from '../design/templates'

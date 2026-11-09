@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { linkTarget, parseInline, parseMarkdown, plainText, slug } from '../src/help/markdown'
-import { helpSections, helpTopic, highlight, searchHelp, searchWords } from '../src/help/search'
+import { linkTarget, parseInline, parseMarkdown, plainText, slug } from '../src/features/help/markdown'
+import { helpSections, helpTopic, highlight, searchHelp, searchWords } from '../src/features/help/search'
 import { Markdown, type RenderLink } from '../src/design/molecules/Markdown'
 
 const renderLink: RenderLink = (target, children) => (

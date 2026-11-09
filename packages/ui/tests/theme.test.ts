@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultConfig, type ElectronApi } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 
 let api: Partial<Record<keyof ElectronApi, ReturnType<typeof vi.fn>>>
 beforeEach(() => {

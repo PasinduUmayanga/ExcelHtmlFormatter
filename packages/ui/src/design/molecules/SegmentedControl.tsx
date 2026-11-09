@@ -1,4 +1,5 @@
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
+import { Icon, type IconName } from '../atoms'
 
 /** A choice of one option out of a few, shown as joined buttons (`.seg`, a radio group). */
 export function SegmentedControl<T extends string>({
@@ -11,13 +12,14 @@ export function SegmentedControl<T extends string>({
   /** What is being chosen, for screen readers */
   label: string
   value: T
-  options: readonly (readonly [value: T, text: string])[]
+  /** [value, text, optional icon shown before the text] */
+  options: readonly (readonly [value: T, text: string, icon?: IconName])[]
   onChange: (value: T) => void
   className?: string
 }) {
   return (
     <div className={cx('seg', className)} role="radiogroup" aria-label={label}>
-      {options.map(([option, text]) => (
+      {options.map(([option, text, icon]) => (
         <button
           key={option}
           role="radio"
@@ -26,6 +28,7 @@ export function SegmentedControl<T extends string>({
           className={option === value ? 'on' : ''}
           onClick={() => onChange(option)}
         >
+          {icon && <Icon name={icon} />}
           {text}
         </button>
       ))}

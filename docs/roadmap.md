@@ -72,6 +72,24 @@ Rebranding and UX work, one approval per phase. Decisions B1–B10 were approved
 | FF-8  | Pre-export review (always), Passed/Warnings/Failed, structure    | 📝                                                             |
 | FF-9  | Final testing, documentation and regression                      | 📝                                                             |
 
+## FormaFlow redesign (plan approved 2026-11-10) 🔄
+
+From the [redesign guide](design/FormaFlow-Claude-Redesign/CLAUDE_IMPLEMENTATION_GUIDE.md); audit, decisions R1–R9 and
+file plan in the [redesign audit](design/formaflow-audit.md). One approval per phase. It replaces FF-8 and FF-9 above.
+
+| Phase | Work                                                 | Status |
+| ----- | ---------------------------------------------------- | ------ |
+| RD-0  | Audit, baseline screenshots, plan                    | ✅     |
+| RD-1  | Theme tokens and app shell (sidebar, header, icons)  | ✅     |
+| RD-2  | Home: file type → action → Continue, recent activity | ✅     |
+| RD-3  | Workflow layout and Upload                           | 📝     |
+| RD-4  | Configure: Sheets and Tag styles                     | 📝     |
+| RD-5  | Process with real progress                           | 📝     |
+| RD-6  | Compare & Verify                                     | 📝     |
+| RD-7  | Export & Complete                                    | 📝     |
+| RD-8  | Recent Files, Formatting Profiles, Settings, Help    | 📝     |
+| RD-9  | Polish, accessibility, docs                          | 📝     |
+
 ## Decisions pending approval
 
 | #   | Decision                                                                              | Recommendation                                                             |

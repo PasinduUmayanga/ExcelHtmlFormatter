@@ -27,21 +27,33 @@ says so with the reason and **Try again**. Recent activity and the theme don't h
 
 The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
 
-- **Start:** "Continue with <file>" (only when a file is open; returns to the last document screen visited) and the
-  format's open card ("Choose a file →" opens the Open screen).
+- **Layout ("Blue Shiny Wave" prototype):** "Welcome to FormaFlow" over a decorative wave and file pictures; a "How
+  it works" bar (Select file type, Choose action, Process & export; numbers fill as choices are made, the current
+  part has `aria-current="step"`); two columns below 1320 px become one, in the order step 1, step 2, Quick actions.
+- **Choose what to do:** **Step 1: Select file type** (Excel, Word, PDF, Text cards: a labelled page picture, the
+  name, the extensions and a short description; the app's own type lists only what it really opens, `.xlsx`),
+  **Step 2: Choose an action** for that type, then **Continue** under the actions, which opens the Open screen. The
+  line beside Continue says "Available now: …" or why nothing can be started. Types and actions come from
+  `features/workflow/registry.ts`; an action is selectable only when the running app implements it (Format HTML tags
+  for Excel), the others show **Coming soon** and can't be chosen. A type with no ready action leaves Continue disabled
+  and says so. Both groups are radio groups (arrow keys, Home and End move between enabled cards). The choice is kept
+  while the app runs.
+- **Quick actions:** Open recent (moves to Recent activity below), Formatting Profiles (Tag styles), Help & guides.
+- **Resume:** "You're working on <file>" with **Continue →** (only when a file is open; returns to the last document
+  screen visited).
 - **Workflow lock (FR-29):** the sidebar's four workflow steps, and their addresses, are locked until the workflow is
-  started from Home: "Choose a file →", **Open again** or **Continue**. Going Home mid-workflow keeps it unlocked.
+  started from Home: **Continue**, **Open** in recent activity, or **Continue →** on the open file. Going Home
+  mid-workflow keeps it unlocked.
   A clean save ends it (see F5); typed addresses of locked screens go to Home.
 - **After a clean save:** the save summary (below) is shown at the top of Home, with **Show in folder** and a close
   button, until closed or the next workflow starts.
-- **Coming soon:** Convert to PDF, Word and text, shown as unavailable (disabled button "Not available yet"); listed in
-  `EXPORT_TARGETS` (`screens/Dashboard.tsx`).
-- **Tools:** Tag styles.
-- **Recent activity:** the last 10 opens and saves, newest first: file name, what happened (saves: source file, items
-  formatted, saved-file check result), folder, time. **Open again** opens the Open dialog in that folder; **Clear**
-  empties the list (kept across restarts).
+- **Tag styles** is reached from **Formatting Profiles** in the sidebar (the old Tools card is gone).
+- **Recent activity:** the last 10 opens and saves, newest first, one row each: file name and folder, status as
+  recorded (Opened, Formatted, Saved with differences, Saved, not checked; the full description is the status's
+  tooltip), time, and **Open** ("Open again from <folder>" for screen readers), which opens the Open dialog in that
+  folder. **Clear** empties the list (kept across restarts).
 
-**Acceptance:** e2e "starts on Home…" and "Home lists recent activity…"; unit `ui/tests/dashboard.test.tsx`,
+**Acceptance:** e2e "starts on Home…" and "Home lists recent activity…"; unit `ui/tests/dashboard.test.tsx`, `ui/tests/home.test.tsx`,
 `desktop/tests/activity.test.ts`.
 
 ## F0b. Header and theme (FR-27)

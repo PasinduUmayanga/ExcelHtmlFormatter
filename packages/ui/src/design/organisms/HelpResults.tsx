@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { highlight, searchWords, type HelpResult } from '../../help/search'
+import { highlight, searchWords, type HelpResult } from '../../features/help/search'
 
 /** Search results on Help home: where each match is, and the words found, highlighted as text. */
 export function HelpResults({ query, results }: { query: string; results: readonly HelpResult[] }) {

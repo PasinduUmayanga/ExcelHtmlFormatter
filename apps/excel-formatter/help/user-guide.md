@@ -4,9 +4,11 @@ Each step of FormaFlow in detail, from opening a workbook to checking the saved 
 
 ## Home
 
-**Choose a file →** starts the workflow and opens the Open screen. When a file is open, **Continue** takes you back to the step you were on. The workflow steps in the sidebar are locked until you start one of these. Convert to PDF, Word and text are marked **Coming soon**: they can't be used yet.
+Home asks two things. **Step 1: Select file type:** Excel, Word, PDF or Text. **Step 2: Choose an action** for that type. Today FormaFlow can **Format HTML tags** in Excel workbooks; the other actions, such as Convert to PDF, are marked **Coming soon** and can't be chosen yet. Then click **Continue** to open a file. You can also use the arrow keys to move between the cards. **Quick actions** take you to your recent files, to Formatting Profiles (Tag styles) or to Help.
 
-**Recent activity** lists the last 10 files you opened and saved, and whether each saved file checked out. **Open again** opens the file dialog in that folder. The list stays on this computer; **Clear** empties it.
+When a file is open, **Continue →** next to its name takes you back to the step you were on. The workflow steps in the sidebar are locked until you start from Home.
+
+**Recent Activity** lists the last 10 files you opened and saved, and whether each saved file checked out (point at the status for details). **Open** opens the file dialog in that file's folder. The list stays on this computer; **Clear** empties it.
 
 ## Opening a file
 

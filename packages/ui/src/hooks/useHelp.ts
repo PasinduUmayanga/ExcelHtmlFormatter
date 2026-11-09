@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useFormatterApp } from '../router'
-import { helpSections, helpTopic } from './search'
+import { helpSections, helpTopic } from '../features/help/search'
 
 /** The running app's Help topics (parsed once) and their searchable sections. */
 export function useHelp() {

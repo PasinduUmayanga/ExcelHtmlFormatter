@@ -9,7 +9,7 @@ import {
   type ElectronApi,
   type ExportResult
 } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 
 const doc: DocumentSummary = {
   file: { path: 'C:/x.xlsx', name: 'x.xlsx', sizeBytes: 1 },

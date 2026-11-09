@@ -11,19 +11,31 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font:
-    14px/1.5 'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font: var(--text-md) / 1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
 }
 h1 {
-  font-size: 20px;
-  margin: 0 0 4px;
+  font-size: var(--text-title);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
 }
 .sub {
   color: var(--muted);
-  margin: 0 0 22px;
+  font-size: 15px;
+  margin: 0 0 var(--space-7);
+}
+/* Line icons (lucide) sit on the text line and take the text colour */
+.icon {
+  flex: none;
+  vertical-align: -0.18em;
 }
 .row {
   display: flex;
@@ -33,8 +45,9 @@ h1 {
 }
 .card {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 16px 18px;
+  background: var(--surface);
 }
 .code {
   font-family: var(--mono);
@@ -81,19 +94,47 @@ input[type='text'] {
   padding: 6px 8px;
   border: 1px solid var(--control-border);
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
 }
 select {
   max-width: 280px;
 }
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 .placeholder {
   border: 1px dashed var(--line2);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 18px 20px;
   color: var(--muted);
+}
+/* Text for screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/*
+ * Card surfaces: bordered panels sit on --surface, a step lighter (dark) or whiter (light) than the page, as in the
+ * redesign references. Loaded before the levels, so a component that sets its own background still wins.
+ */
+.stat,
+.editor,
+.job,
+.placeholder,
+.check-list,
+.check-detail,
+.taglist,
+.activity,
+.help-result-list,
+.app-details {
+  background: var(--surface);
 }

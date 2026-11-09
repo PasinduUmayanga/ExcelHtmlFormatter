@@ -34,11 +34,28 @@ test('starts on Home with the document steps locked', async () => {
   expect(await app.evaluate(({ app }) => app.getPath('userData'))).toBe(join(dir, 'user-data'))
   await expect(screenTitle(window)).toHaveText('Welcome to FormaFlow')
   await expect(window).toHaveURL(/index\.html(#\/)?$/)
-  // Conversions that don't exist yet are shown, but can't be used.
-  for (const name of ['Convert to PDF', 'Convert to Word', 'Convert to text']) {
-    await expect(window.getByRole('region', { name })).toContainText('Coming soon')
-    await expect(window.getByRole('region', { name }).getByRole('button')).toBeDisabled()
-  }
+  // Step 1: Excel is chosen; step 2 offers only what this app does, the rest is "Coming soon".
+  const types = window.getByRole('radiogroup', { name: 'File type' })
+  await expect(types.getByRole('radio', { name: /Excel/ })).toHaveAttribute('aria-checked', 'true')
+  // Only the extension the app really opens (no .xls: ExcelJS can't read it).
+  await expect(types.getByRole('radio', { name: /Excel/ }).locator('.card-ext')).toHaveText('.xlsx')
+  const actions = window.getByRole('radiogroup', { name: 'Action for Excel' })
+  await expect(actions.getByRole('radio', { name: /Format HTML tags/ })).toHaveAttribute('aria-checked', 'true')
+  await expect(actions.getByRole('radio', { name: /Convert to PDF/ })).toHaveAttribute('aria-disabled', 'true')
+  await expect(actions.getByRole('radio', { name: /Convert to PDF/ })).toContainText('Coming soon')
+  const go = window.getByRole('button', { name: 'Continue', exact: true })
+  await expect(go).toBeEnabled()
+  // Word has nothing ready yet: no action can be chosen and Continue says why.
+  await types.getByRole('radio', { name: /Word/ }).click()
+  const wordActions = window.getByRole('radiogroup', { name: 'Action for Word' })
+  await expect(wordActions.getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(go).toBeDisabled()
+  await expect(window.locator('.continue-row')).toContainText('coming soon')
+  // Arrow keys move the choice; back to Excel brings its action back.
+  await types.getByRole('radio', { name: /Word/ }).press('ArrowLeft')
+  await expect(types.getByRole('radio', { name: /Excel/ })).toHaveAttribute('aria-checked', 'true')
+  await expect(types.getByRole('radio', { name: /Excel/ })).toBeFocused()
+  await expect(go).toBeEnabled()
   await expect(window.locator('.recent')).toContainText('Nothing yet')
   // The whole workflow is locked until an item is picked on Home, also when typing an address.
   for (const step of WORKFLOW_STEPS) {
@@ -46,7 +63,7 @@ test('starts on Home with the document steps locked', async () => {
   }
   await window.evaluate(() => (location.hash = '#/open'))
   await expect(window).toHaveURL(/#\/$/)
-  await window.getByRole('button', { name: 'Choose a file →' }).click()
+  await go.click()
   await expect(window).toHaveURL(/#\/open$/)
   await expect(window.locator('.nav', { hasText: 'Open file' })).not.toHaveAttribute('aria-disabled')
 })
@@ -245,7 +262,7 @@ test('Home: Continue mid-workflow, recent activity, Open again in that folder, C
   await expect(window.locator('.check-chip')).toContainText('complete', { timeout: 30_000 })
 
   // Going Home mid-workflow keeps it unlocked; Continue returns to the screen the user was on.
-  await window.getByRole('link', { name: 'Home' }).click()
+  await window.getByRole('link', { name: 'Home', exact: true }).click()
   await expect(window.locator('.nav', { hasText: 'Preview & export' })).not.toHaveAttribute('aria-disabled')
   await window.getByRole('button', { name: 'Continue →' }).click()
   await expect(window).toHaveURL(/#\/preview\/Products$/)
@@ -258,7 +275,11 @@ test('Home: Continue mid-workflow, recent activity, Open again in that folder, C
   const rows = window.locator('.activity li')
   await expect(rows).toHaveCount(2)
   await expect(rows.nth(0)).toContainText('formatted.xlsx')
-  await expect(rows.nth(0)).toContainText('41 cells formatted · saved file verified')
+  await expect(rows.nth(0)).toContainText('Formatted')
+  await expect(rows.nth(0).locator('.activity-status')).toHaveAttribute(
+    'title',
+    /41 cells formatted · saved file verified/
+  )
   await expect(rows.nth(1)).toContainText('product_catalog.xlsx')
   await expect(rows.nth(1)).toContainText('Opened')
 
@@ -296,7 +317,7 @@ test('the theme choice applies to the whole app and survives a restart', async (
   ).toEqual(['dark', true])
   // The window was created in the dark background, so it never flashes white while loading.
   expect(await run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBackgroundColor())).toBe(
-    '#11161D'
+    '#0B172A'
   )
 
   await again.getByRole('radio', { name: 'Light' }).click()
@@ -306,7 +327,7 @@ test('the theme choice applies to the whole app and survives a restart', async (
 test('Help: topics by keyboard, search, links between topics and About', async () => {
   const { window } = run
   // From the header, by keyboard.
-  await window.getByRole('link', { name: 'Help' }).focus()
+  await window.getByRole('link', { name: 'Help', exact: true }).focus()
   await window.keyboard.press('Enter')
   await expect(screenTitle(window)).toHaveText('Help')
   for (const name of ['Getting started', 'User guide', 'FAQs', 'Troubleshooting', 'About']) {
@@ -334,14 +355,14 @@ test('Help: topics by keyboard, search, links between topics and About', async (
   await window.getByRole('link', { name: 'Open FAQs' }).click()
   await window.locator('.markdown').getByRole('link', { name: 'Tag styles' }).click()
   await expect(window).toHaveURL(/#\/help\/user-guide\?section=tag-styles$/)
-  await window.getByRole('link', { name: 'Help' }).click()
+  await window.getByRole('link', { name: 'Help', exact: true }).click()
   await window.getByRole('link', { name: 'Open About' }).click()
   await expect(window.locator('.app-details')).toContainText('0.1.0')
   await expect(window.locator('.app-details')).toContainText('config.json')
 
   // Home links here too.
-  await window.getByRole('link', { name: 'Home' }).click()
-  await window.getByRole('button', { name: 'Open help' }).click()
+  await window.getByRole('link', { name: 'Home', exact: true }).click()
+  await window.getByRole('link', { name: 'Help & Support' }).click()
   await expect(screenTitle(window)).toHaveText('Help')
 })
 

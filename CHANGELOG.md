@@ -31,6 +31,25 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Redesign phase 1, theme and app shell:** deep navy and electric-blue colours for dark and light (all text still
+  meets WCAG AA, checked by a unit test; filled buttons use a slightly deeper blue so their white text passes),
+  larger type, line icons (`lucide-react`), a new sidebar (Home, My Workspace, Formatting Profiles, Help & Support,
+  with the profile and version at the bottom; subtitle "Document Processing Workspace") and a header with breadcrumbs,
+  Help and an icon theme switch. The current page is marked for screen readers with `aria-current`.
+- **Redesign phase 2, Home** (layout, colours and pictures from the "Blue Shiny Wave" prototype): "Welcome to
+  FormaFlow" over a glossy blue wave, a three-part "How it works" bar, then **Step 1: Select file type** (Excel, Word,
+  PDF, Text) with Quick actions (Open recent, Formatting Profiles, Help & guides) and **Step 2: Choose an action**
+  with Continue. Only Format HTML tags for Excel can be chosen; the other actions say Coming soon. Excel lists only
+  `.xlsx`, the type the app really opens. Recent activity stays on Home as rows (file, folder, status, time, Open).
+  The Tag styles card left Home: use Formatting Profiles.
+- **Colours** follow the prototype: navy `#09182b` page, `#13243b` cards, `#2f90ff` blue; primary buttons and the
+  current page are a blue gradient whose both ends keep white text at 4.5:1. All pairs still pass the WCAG AA test.
+- File type pictures are the prototype's labelled pages (X, W, PDF, TXT). This replaces redesign decision R2
+  (generic pictures only), at the product owner's request.
+- The repository is now `PasinduUmayanga/FormaFlow` (was `ExcelHtmlFormatter`; GitHub redirects the old address) and
+  the root package is `formaflow`. `appId` and the settings folder are unchanged (ADR 0012).
+- `@hf/ui` keeps only components in its Atomic Design levels: state, hooks, Help logic, helpers and shared styles moved
+  to `state/`, `hooks/`, `features/help/`, `utils/` and `styles/` (ADR 0016). Nothing users see changed.
 - The workflow starts from Home: its steps are locked until you choose a file, open again or continue there. A clean
   save closes the file and returns to Home with a success message (Show in folder); a save with known issues or
   differences stays on Preview for review. Reloading returns to Home.

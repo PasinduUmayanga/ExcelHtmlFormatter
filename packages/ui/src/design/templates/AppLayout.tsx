@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Outlet, useRouterState } from '@tanstack/react-router'
-import { useApp } from '../../store'
+import { useApp } from '../../state/store'
 import { AppHeader, Sidebar } from '../organisms'
 import { Icon } from '../atoms'
 import { useFormatterApp } from '../../router'

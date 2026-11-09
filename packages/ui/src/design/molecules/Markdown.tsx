@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
-import type { Block, Inline, LinkTarget } from '../../help/markdown'
+import type { Block, Inline, LinkTarget } from '../../features/help/markdown'
 
 /** Draws a link inside Help (the screen decides how: e.g. a router link). External links never get here. */
 export type RenderLink = (target: Exclude<LinkTarget, { kind: 'external' }>, children: ReactNode) => ReactNode

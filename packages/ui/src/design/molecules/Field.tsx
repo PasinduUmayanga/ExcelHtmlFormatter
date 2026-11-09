@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 /**
  * A labelled setting: the label on the left, its control(s) on the right (`.field`).

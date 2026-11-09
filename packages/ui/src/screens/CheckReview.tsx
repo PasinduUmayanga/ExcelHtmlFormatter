@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { capitalize, count, defaultConfig, type CheckItem } from '@hf/core'
-import { useApp } from '../store'
+import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
 import { Button, Icon } from '../design/atoms'
 import { Banner, ConfirmBox, Stat, Tab, Tabs } from '../design/molecules'

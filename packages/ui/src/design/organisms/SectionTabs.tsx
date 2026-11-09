@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { isConfigured } from '@hf/core'
-import { useApp } from '../../store'
+import { useApp } from '../../state/store'
 import { Badge } from '../atoms'
 import { Tabs, tabClass } from '../molecules'
 

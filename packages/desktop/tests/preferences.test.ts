@@ -19,7 +19,7 @@ describe('preferences', () => {
 
   it("paints the window in the theme's sidebar colour before the page loads", () => {
     // Must match --side in the window's tokens, or the first paint would flash a different colour.
-    const tokens = readFileSync(join(__dirname, '../../ui/src/design/tokens.css'), 'utf8')
+    const tokens = readFileSync(join(__dirname, '../../ui/src/styles/tokens.css'), 'utf8')
     const sides = [...tokens.matchAll(/--side:\s*(#[0-9a-f]{6})/gi)].map((m) => m[1].toLowerCase())
     expect(sides[0]).toBe(windowBackground(false))
     expect(new Set(sides.slice(1))).toEqual(new Set([windowBackground(true)]))

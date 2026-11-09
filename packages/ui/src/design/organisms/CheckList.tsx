@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type RefObject } from 'react'
 import { describeCheckItem, type CheckItem } from '@hf/core'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 import { Badge, Button, Icon } from '../atoms'
 
 /**

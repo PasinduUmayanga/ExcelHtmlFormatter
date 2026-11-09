@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { BUILTIN_TAGS, builtinStyle, normalizeTagName } from '@hf/core'
-import { useApp } from '../../store'
+import { useApp } from '../../state/store'
 import { Button } from '../atoms'
 
 /** Adds a tag to the list (or selects it if it is there already). */

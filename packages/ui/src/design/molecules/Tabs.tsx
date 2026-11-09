@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 /** A row of tabs (`.tabs`). The tabs inside are links (TanStack `Link` with `tabClass`) or `Tab` buttons. */
 export function Tabs({ label, children }: { label?: string; children: ReactNode }) {

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DocumentSummary, ElectronApi, PickedFile } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 
 const picked: PickedFile = { path: 'C:/x.xlsx', name: 'x.xlsx', sizeBytes: 1 }
 const doc: DocumentSummary = {

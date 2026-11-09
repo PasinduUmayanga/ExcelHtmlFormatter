@@ -5,24 +5,26 @@ All project documentation lives here. Start with the [Software Architecture](arc
 
 ## Index
 
-| Document                                                       | Purpose                                                                  | Audience          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------- |
-| [requirements/SRS.md](requirements/SRS.md)                     | Requirements (`FR-xx`, `NFR-xx`) and constraints                         | Everyone          |
-| [design/FDS.md](design/FDS.md)                                 | Screens, workflows, business rules, acceptance criteria                  | Product, QA, devs |
-| [design/brand.md](design/brand.md)                             | The FormaFlow mark, its files and colours, how to use it                 | Design, devs      |
-| [architecture/SAD.md](architecture/SAD.md)                     | Packages, boundaries, runtime view, diagrams                             | Devs, reviewers   |
-| [architecture/adr/](architecture/adr/README.md)                | Architecture Decision Records: why things are the way they are           | Devs, reviewers   |
-| [technical/TDS.md](technical/TDS.md)                           | Implementation details: IPC, worker protocol, conversion rules, build    | Devs              |
-| [api/contracts.md](api/contracts.md)                           | `ElectronApi`, `FormatAdapter`, `FormatInfo`, worker protocol            | Devs              |
-| [data/settings-schema.md](data/settings-schema.md)             | The only stored data: the tag-style settings file                        | Devs, support     |
-| [security.md](security.md)                                     | Security architecture and practices                                      | Devs, reviewers   |
-| [testing-strategy.md](testing-strategy.md)                     | Test levels, tools, coverage floors, quality gates                       | Devs, QA          |
-| [user-manual.md](user-manual.md)                               | How to use the app                                                       | End users         |
-| [developer-guide.md](developer-guide.md)                       | Setup, conventions, adding features and formats, AI-assisted development | Devs, AI agents   |
-| [operations/deployment.md](operations/deployment.md)           | Building installers, CI, releases                                        | Release owner     |
-| [operations/troubleshooting.md](operations/troubleshooting.md) | Known problems and fixes (development and end users)                     | Devs, support     |
-| [roadmap.md](roadmap.md)                                       | Phases, task IDs, status, decisions pending approval                     | Tech lead, devs   |
-| [history/](history/PLAN.md)                                    | The original build plan and the first clickable demo (not maintained)    | Reference         |
+| Document                                                                                             | Purpose                                                                   | Audience          |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------- |
+| [requirements/SRS.md](requirements/SRS.md)                                                           | Requirements (`FR-xx`, `NFR-xx`) and constraints                          | Everyone          |
+| [design/FDS.md](design/FDS.md)                                                                       | Screens, workflows, business rules, acceptance criteria                   | Product, QA, devs |
+| [design/brand.md](design/brand.md)                                                                   | The FormaFlow mark, its files and colours, how to use it                  | Design, devs      |
+| [design/formaflow-audit.md](design/formaflow-audit.md)                                               | Redesign audit: what the app really supports, decisions R1–R9, phase plan | Design, devs      |
+| [design/FormaFlow-Claude-Redesign/](design/FormaFlow-Claude-Redesign/CLAUDE_IMPLEMENTATION_GUIDE.md) | Redesign guide and reference images (appearance contract)                 | Design, devs      |
+| [architecture/SAD.md](architecture/SAD.md)                                                           | Packages, boundaries, runtime view, diagrams                              | Devs, reviewers   |
+| [architecture/adr/](architecture/adr/README.md)                                                      | Architecture Decision Records: why things are the way they are            | Devs, reviewers   |
+| [technical/TDS.md](technical/TDS.md)                                                                 | Implementation details: IPC, worker protocol, conversion rules, build     | Devs              |
+| [api/contracts.md](api/contracts.md)                                                                 | `ElectronApi`, `FormatAdapter`, `FormatInfo`, worker protocol             | Devs              |
+| [data/settings-schema.md](data/settings-schema.md)                                                   | The only stored data: the tag-style settings file                         | Devs, support     |
+| [security.md](security.md)                                                                           | Security architecture and practices                                       | Devs, reviewers   |
+| [testing-strategy.md](testing-strategy.md)                                                           | Test levels, tools, coverage floors, quality gates                        | Devs, QA          |
+| [user-manual.md](user-manual.md)                                                                     | How to use the app                                                        | End users         |
+| [developer-guide.md](developer-guide.md)                                                             | Setup, conventions, adding features and formats, AI-assisted development  | Devs, AI agents   |
+| [operations/deployment.md](operations/deployment.md)                                                 | Building installers, CI, releases                                         | Release owner     |
+| [operations/troubleshooting.md](operations/troubleshooting.md)                                       | Known problems and fixes (development and end users)                      | Devs, support     |
+| [roadmap.md](roadmap.md)                                                                             | Phases, task IDs, status, decisions pending approval                      | Tech lead, devs   |
+| [history/](history/PLAN.md)                                                                          | The original build plan and the first clickable demo (not maintained)     | Reference         |
 
 Not applicable to this project: **database design** (there is no database; the only stored data is described in
 [data/settings-schema.md](data/settings-schema.md)) and **HTTP API documentation** (there is no server; the internal

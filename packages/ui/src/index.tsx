@@ -8,7 +8,7 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { createFormatterRouter, FormatterAppProvider, type FormatterAppConfig } from './router'
-import './styles.css'
+import './styles/styles.css'
 
 export function FormatterApp({ config }: { config: FormatterAppConfig }) {
   const [router] = useState(() => createFormatterRouter())
@@ -34,7 +34,11 @@ export {
   type PreviewProps,
   type PreviewView
 } from './router'
-export { useApp, canVisit, cleanError } from './store'
-export type { HelpSource } from './help/search'
-export { RichText, useConversion, linkTitle, styleToCss } from './design/molecules'
-export { JobProgressPanel, describeProgress } from './design/organisms'
+export { useApp, canVisit, cleanError } from './state/store'
+export type { HelpSource } from './features/help/search'
+export { RichText } from './design/molecules'
+export { JobProgressPanel } from './design/organisms'
+export { useConversion } from './hooks/useConversion'
+export { linkTitle } from './utils/linkTitle'
+export { styleToCss } from './utils/styleToCss'
+export { describeProgress } from './utils/describeProgress'

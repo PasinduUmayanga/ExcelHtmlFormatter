@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEditTag } from '../../hooks'
+import { useEditTag } from '../../hooks/useEditTag'
 import { Button, Icon } from '../atoms'
 import { Banner } from '../molecules'
 

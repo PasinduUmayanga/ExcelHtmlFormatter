@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { defaultConfig, type CheckItem } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 import { AddTag, CheckList, StyleEditor } from '../src/design/organisms'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -117,7 +117,8 @@ describe('CheckList', () => {
     const rows = el.querySelectorAll('[role="option"]')
     expect([...rows].map((r) => r.className)).toEqual(['check-row', 'check-row active'])
     expect(rows[0].querySelector('.chip')!.className).toBe('chip warn')
-    expect(rows[1].querySelector('.chip')!.textContent).toBe('ℹ A2')
+    expect(rows[1].querySelector('.chip')!.textContent).toBe(' A2')
+    expect(rows[1].querySelector('.chip svg')).not.toBeNull()
     click(rows[0])
     expect(onSelect).toHaveBeenCalledWith(items[0])
     expect(el.textContent).toContain('Page 1 of 2')

@@ -8,8 +8,8 @@ import {
   type RouterHistory
 } from '@tanstack/react-router'
 import type { ConvertOptions, FormatInfo } from '@hf/core'
-import type { HelpSource } from './help/search'
-import { canVisit, useApp } from './store'
+import type { HelpSource } from './features/help/search'
+import { canVisit, useApp } from './state/store'
 import { AppLayout } from './design/templates'
 import { Dashboard } from './screens/Dashboard'
 import { Help } from './screens/Help'
