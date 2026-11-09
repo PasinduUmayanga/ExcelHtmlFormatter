@@ -1,5 +1,6 @@
-import { useApp } from '../store'
+import { useApp } from '../../store'
 import type { JobProgress as Progress } from '@hf/core'
+import { Button } from '../atoms'
 
 /** Plain-language description of where a long task is. */
 export function describeProgress(p: Progress, items = 'items'): string {
@@ -32,14 +33,14 @@ export function JobProgressPanel({ title, items }: { title: string; items?: stri
 
   return (
     <div className="job" role="status" aria-live="polite">
-      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+      <div className="row spread nowrap">
         <div>
           <b>{title}</b>
           <div className="job-detail">{describeProgress(progress, items)}</div>
         </div>
-        <button className="btn small" onClick={cancelJob}>
+        <Button small onClick={cancelJob}>
           Cancel
-        </button>
+        </Button>
       </div>
       <div
         className={`bar ${percent === null ? 'indeterminate' : ''}`}

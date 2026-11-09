@@ -1,0 +1,329 @@
+/* Organisms: Sidebar, JobProgressPanel, CheckChip, SaveSummary, StyleEditor, AddTag, content check. */
+aside {
+  background: var(--side);
+  border-right: 1px solid var(--line);
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.brand {
+  font-weight: 600;
+  padding: 2px 10px 10px;
+}
+.navlabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  padding: 10px 10px 4px;
+}
+.nav {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--muted);
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+.nav:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--line);
+}
+.nav.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.nav:disabled,
+.nav[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.nav .num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  flex: none;
+}
+.nav.done .num {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+.side-foot {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px;
+  border-top: 1px solid var(--line);
+}
+.taglist {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: auto;
+  max-height: 420px;
+}
+.taglist button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  color: var(--text);
+  padding: 9px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.taglist button:last-child {
+  border-bottom: 0;
+}
+.taglist button:hover {
+  background: color-mix(in srgb, var(--line) 40%, transparent);
+}
+.taglist button.active {
+  background: var(--accent-bg);
+}
+.add-tag {
+  margin-top: 10px;
+}
+.add-tag input {
+  flex: 1;
+  min-width: 0;
+}
+.editor {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.toggles {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tg {
+  border: 1px solid var(--line2);
+  background: var(--bg);
+  color: var(--text);
+  min-width: 38px;
+  height: 34px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 10px;
+}
+/* Each style button shows its own effect */
+.tg.bold {
+  font-weight: 700;
+}
+.tg.italic {
+  font-style: italic;
+}
+.tg.underline {
+  text-decoration: underline;
+}
+.tg.strike {
+  text-decoration: line-through;
+}
+.tg.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+input[type='color'] {
+  width: 44px;
+  height: 32px;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  padding: 2px;
+  background: var(--bg);
+  cursor: pointer;
+}
+.preview {
+  border: 1px solid var(--line);
+  background: var(--side);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.preview + .preview {
+  margin-top: 8px;
+}
+.success {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--ok-bg);
+  color: var(--ok);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.success-detail {
+  color: var(--text);
+  margin-top: 2px;
+  font-size: 13px;
+}
+.job {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.job-detail {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+  margin-top: 12px;
+  position: relative;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+.bar.indeterminate > span {
+  width: 30%;
+  position: absolute;
+  animation: slide 1.2s ease-in-out infinite;
+}
+@keyframes slide {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar.indeterminate > span {
+    animation-duration: 4s;
+  }
+}
+.check-chip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  background: var(--side);
+  color: var(--muted);
+  font-size: 13px;
+}
+.check-chip.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.check-chip.warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.check-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) 3fr;
+  gap: 16px;
+  align-items: start;
+}
+.check-list {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 460px;
+  overflow: auto;
+}
+.check-list:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 13px;
+}
+.check-row.active {
+  background: var(--accent-bg);
+}
+.check-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pager {
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+.check-detail {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 16px;
+  max-height: 460px;
+  overflow: auto;
+}
+.check-detail h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  margin: 14px 0 6px;
+}
+.check-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--side);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.check-detail del {
+  background: var(--bad-bg);
+  color: var(--bad);
+  text-decoration: line-through;
+}
+.check-detail ins {
+  background: var(--warn-bg);
+  color: var(--warn);
+  text-decoration: underline;
+}
+.check-detail .layout,
+.layout-sample {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+.legend {
+  font-size: 12px;
+  margin-top: 6px;
+}
+@media (max-width: 1000px) {
+  .check-layout {
+    grid-template-columns: 1fr;
+  }
+}

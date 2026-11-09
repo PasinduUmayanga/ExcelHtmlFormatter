@@ -1,26 +1,13 @@
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
+import { useMemo } from 'react'
 import { getRouteApi, useNavigate, useRouter } from '@tanstack/react-router'
-import { BUILTIN_TAGS, builtinStyle, describeStyle, mergeScans, normalizeTagName, type TagStyle } from '@hf/core'
+import { BUILTIN_TAGS, builtinStyle, mergeScans } from '@hf/core'
 import { useApp } from '../store'
-import { RichText } from '../components/RichText'
+import { Badge, Button, TagName } from '../design/atoms'
+import { Field } from '../design/molecules'
+import { AddTag, StyleEditor } from '../design/organisms'
+import { ScreenTemplate } from '../design/templates'
 
 const route = getRouteApi('/settings')
-
-const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36]
-const FONTS = [
-  'Aptos',
-  'Arial',
-  'Calibri',
-  'Cambria',
-  'Consolas',
-  'Courier New',
-  'Georgia',
-  'Segoe UI',
-  'Tahoma',
-  'Times New Roman',
-  'Verdana'
-]
-const DEFAULT_COLOR = '#C00000'
 
 export function TagStyles() {
   const { config, doc, setUnknownTagAction, resetConfig, importConfig, exportConfig } = useApp()
@@ -52,12 +39,35 @@ export function TagStyles() {
         : null
 
   return (
-    <>
-      <h1>Tag styles</h1>
-      <p className="sub">
-        Choose the formatting for each HTML tag. Changes are saved automatically and used for every file.
-      </p>
-
+    <ScreenTemplate
+      title="Tag styles"
+      intro={<>Choose the formatting for each HTML tag. Changes are saved automatically and used for every file.</>}
+      footer={
+        <>
+          <div className="row">
+            <Button onClick={exportConfig}>Export JSON…</Button>
+            <Button onClick={importConfig}>Import JSON…</Button>
+            <Button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Reset all tag styles to the defaults? Your current styles will be lost unless you export them first.'
+                  )
+                )
+                  resetConfig()
+              }}
+            >
+              Reset to defaults
+            </Button>
+          </div>
+          {back && backLabel && (
+            <Button variant="primary" onClick={() => router.history.push(back)}>
+              Done, back to {backLabel} →
+            </Button>
+          )}
+        </>
+      }
+    >
       <div className="cfg">
         <div>
           <div className="taglist" role="listbox" aria-label="Tags">
@@ -72,11 +82,11 @@ export function TagStyles() {
                   className={name === tag ? 'active' : ''}
                   onClick={() => setSelected(name)}
                 >
-                  <span className="tag">&lt;{name}&gt;</span>
+                  <TagName name={name} />
                   {hasDefault ? (
-                    <span className="chip ok">Default</span>
+                    <Badge tone="ok">Default</Badge>
                   ) : !hasRule ? (
-                    <span className="chip warn">No style</span>
+                    <Badge tone="warn">No style</Badge>
                   ) : used[name] ? (
                     <span className="faint" title="Uses in the open file">
                       {used[name].count}×
@@ -96,9 +106,8 @@ export function TagStyles() {
         )}
       </div>
 
-      <div className="editor" style={{ marginTop: 20 }}>
-        <div className="field" style={{ margin: 0 }}>
-          <label htmlFor="unknown-action">Tags with no style</label>
+      <div className="editor mt-6">
+        <Field label="Tags with no style" htmlFor="unknown-action" className="mb-0">
           <select
             id="unknown-action"
             value={config.unknownTagAction}
@@ -107,243 +116,8 @@ export function TagStyles() {
             <option value="strip">Remove the tag, keep its text plain</option>
             <option value="keep">Keep the tag as visible text</option>
           </select>
-        </div>
+        </Field>
       </div>
-
-      <div className="footer">
-        <div className="row">
-          <button className="btn" onClick={exportConfig}>
-            Export JSON…
-          </button>
-          <button className="btn" onClick={importConfig}>
-            Import JSON…
-          </button>
-          <button
-            className="btn"
-            onClick={() => {
-              if (
-                window.confirm(
-                  'Reset all tag styles to the defaults? Your current styles will be lost unless you export them first.'
-                )
-              )
-                resetConfig()
-            }}
-          >
-            Reset to defaults
-          </button>
-        </div>
-        {back && backLabel && (
-          <button className="btn primary" onClick={() => router.history.push(back)}>
-            Done, back to {backLabel} →
-          </button>
-        )}
-      </div>
-    </>
-  )
-}
-
-function AddTag({ onAdded }: { onAdded: (tag: string) => void }) {
-  const { config, updateRule } = useApp()
-  const [value, setValue] = useState('')
-  const [error, setError] = useState<string | null>(null)
-
-  function submit(e: FormEvent) {
-    e.preventDefault()
-    const name = normalizeTagName(value)
-    if (!name) return setError('Use letters and numbers, e.g. mark or h1')
-    if (Object.hasOwn(BUILTIN_TAGS, name)) return setError(`<${name}> is built in and can't be styled`)
-    // A new tag starts as bold so the change is visible (or with its built-in look); an existing one is just selected.
-    if (config && !Object.hasOwn(config.rules, name)) updateRule(name, builtinStyle(name) ? {} : { bold: true })
-    onAdded(name)
-    setValue('')
-    setError(null)
-  }
-
-  return (
-    <form className="add-tag" onSubmit={submit}>
-      <div className="row" style={{ flexWrap: 'nowrap' }}>
-        <input
-          type="text"
-          aria-label="New tag name"
-          placeholder="New tag, e.g. mark"
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value)
-            setError(null)
-          }}
-        />
-        <button className="btn small" type="submit">
-          Add
-        </button>
-      </div>
-      {error && <div className="field-error">{error}</div>}
-    </form>
-  )
-}
-
-function StyleEditor({ tag, sample, uses }: { tag: string; sample?: string; uses?: number }) {
-  const { config, updateRule, createPlainRule, removeRule } = useApp()
-  if (!config) return null
-  const rule: TagStyle | undefined = Object.hasOwn(config.rules, tag) ? config.rules[tag] : undefined
-  const fallback = rule ? undefined : builtinStyle(tag)
-  // With no rule, the controls show the built-in look; the first change turns it into a rule.
-  const r = rule ?? fallback ?? {}
-  const set = (patch: Partial<TagStyle>) => updateRule(tag, patch)
-  const toggle = (key: 'bold' | 'italic' | 'underline' | 'strike', label: string, css: CSSProperties) => (
-    <button
-      type="button"
-      className={`tg ${r[key] ? 'on' : ''}`}
-      style={css}
-      aria-pressed={Boolean(r[key])}
-      title={key[0].toUpperCase() + key.slice(1)}
-      onClick={() => set({ [key]: !r[key] } as Partial<TagStyle>)}
-    >
-      {label}
-    </button>
-  )
-  const sizes = r.size && !SIZES.includes(r.size) ? [...SIZES, r.size].sort((a, b) => a - b) : SIZES
-  const fonts = r.font && !FONTS.includes(r.font) ? [...FONTS, r.font].sort() : FONTS
-  const description = describeStyle(tag, config.rules)
-
-  return (
-    <div className="editor">
-      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-        <div className="row" style={{ gap: 8 }}>
-          <span className="tag" style={{ fontSize: 15 }}>
-            &lt;{tag}&gt;
-          </span>
-          {uses ? <span className="faint">{uses} uses in this file</span> : null}
-        </div>
-        {rule && (
-          <button className="btn small" onClick={() => removeRule(tag)}>
-            Remove style
-          </button>
-        )}
-      </div>
-
-      {!rule && fallback && (
-        <div className="banner" style={{ marginBottom: 16 }}>
-          <span>Uses the built-in look ({description?.parts.join(' · ')}). Any change below makes it your own.</span>
-        </div>
-      )}
-
-      {!rule && !fallback && (
-        <div className="banner" style={{ marginBottom: 16 }}>
-          <span>No style yet. Any change below creates one, or keep the text without formatting.</span>
-          <button className="btn small" onClick={() => createPlainRule(tag)}>
-            Keep text plain
-          </button>
-        </div>
-      )}
-
-      <div className="field">
-        <label>Text style</label>
-        <div className="toggles">
-          {toggle('bold', 'B', { fontWeight: 700 })}
-          {toggle('italic', 'I', { fontStyle: 'italic' })}
-          {toggle('underline', 'U', { textDecoration: 'underline' })}
-          {toggle('strike', 'S', { textDecoration: 'line-through' })}
-        </div>
-      </div>
-
-      <div className="field">
-        <label htmlFor="color-on">Font color</label>
-        <div className="row">
-          <label className="row" style={{ gap: 6 }}>
-            <input
-              id="color-on"
-              type="checkbox"
-              checked={Boolean(r.color)}
-              onChange={(e) => set({ color: e.target.checked ? DEFAULT_COLOR : undefined })}
-            />
-            Set color
-          </label>
-          {r.color && (
-            <>
-              <input
-                type="color"
-                aria-label="Font color"
-                value={r.color}
-                onChange={(e) => set({ color: e.target.value.toUpperCase() })}
-              />
-              <span className="code">{r.color}</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="field">
-        <label htmlFor="font-size">Font size</label>
-        <select
-          id="font-size"
-          value={r.size ?? ''}
-          onChange={(e) => set({ size: e.target.value ? Number(e.target.value) : undefined })}
-        >
-          <option value="">Keep the cell's size</option>
-          {sizes.map((s) => (
-            <option key={s} value={s}>
-              {s} pt
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="field">
-        <label htmlFor="font-name">Font</label>
-        <select id="font-name" value={r.font ?? ''} onChange={(e) => set({ font: e.target.value || undefined })}>
-          <option value="">Keep the cell's font</option>
-          {fonts.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="field">
-        <label>Position</label>
-        <div className="seg" role="radiogroup" aria-label="Position">
-          {(
-            [
-              ['', 'Normal'],
-              ['superscript', 'Superscript'],
-              ['subscript', 'Subscript']
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={label}
-              role="radio"
-              aria-checked={(r.vertAlign ?? '') === value}
-              className={(r.vertAlign ?? '') === value ? 'on' : ''}
-              onClick={() => set({ vertAlign: value || undefined })}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="field" style={{ alignItems: 'start', marginBottom: 0 }}>
-        <label>Preview</label>
-        <div>
-          <div className="preview">
-            <RichText html={`The <${tag}>quick brown fox</${tag}> jumps over the lazy dog.`} options={config} />
-          </div>
-          {sample && (
-            <div className="preview">
-              <div className="code" style={{ marginBottom: 4 }}>
-                From your file:
-              </div>
-              <RichText html={sample} options={config} />
-            </div>
-          )}
-          {description && (
-            <div className="faint" style={{ marginTop: 6, fontSize: 12.5 }}>
-              {description.parts.join(' · ')}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    </ScreenTemplate>
   )
 }

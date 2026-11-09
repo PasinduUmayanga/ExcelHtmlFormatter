@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { Outlet } from '@tanstack/react-router'
-import { useApp } from './store'
-import { Sidebar } from './components/Sidebar'
+import { useApp } from '../../store'
+import { Sidebar } from '../organisms'
+import { Icon } from '../atoms'
 
 /** The window frame shared by every screen: sidebar, error banner, current screen, toast. */
 export function AppLayout() {
@@ -17,9 +18,11 @@ export function AppLayout() {
       <main>
         {error && (
           <div className="error" role="alert">
-            <span>⚠ {error}</span>
+            <span>
+              <Icon name="warning" /> {error}
+            </span>
             <button onClick={() => setError(null)} aria-label="Dismiss">
-              ✕
+              <Icon name="close" />
             </button>
           </div>
         )}

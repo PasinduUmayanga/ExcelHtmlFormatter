@@ -60,6 +60,23 @@ count opening tags per section, remembering the first cell and a sample for prev
 - **Rendering cell text:** `RichText` renders runs as React text nodes with inline CSS from `styleToCss()`. No HTML is
   ever injected.
 - **Performance:** the preview component is memoised so 100 ms progress updates don't re-render the grid.
+- **Components (Atomic Design, [ADR 0011](../architecture/adr/0011-atomic-design-in-ui.md)):** `src/design/` holds
+  the levels, each with an `index.ts` and one stylesheet:
+
+  | Level     | Contents                                                                                                                                             | May use                               |
+  | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+  | Tokens    | `tokens.css`: colours (light, dark by `prefers-color-scheme`), `--radius`, `--space-1`…`--space-6`, `--text-xs`…`--text-lg`                          | —                                     |
+  | Atoms     | `Button` (variant, small), `Badge` (tone), `TagName`, `Icon`, `Spinner`, `Swatch`                                                                    | tokens                                |
+  | Molecules | `Field`, `SegmentedControl`, `Banner`, `ConfirmBox`, `Tabs`/`Tab`/`tabClass`, `Stat`, `RichText`, `styleToCss`                                       | atoms, `@hf/core`                     |
+  | Organisms | `Sidebar`, `JobProgressPanel`, `CheckChip`, `SectionTabs`, `SaveSummary`, `StyleEditor`, `AddTag`, `CheckList`, `CheckDetail`, `MissingStylesBanner` | the levels below, store, router hooks |
+  | Templates | `AppLayout` (sidebar, error banner, current screen, toast), `ScreenTemplate` (title, intro, content, footer)                                         | the levels below                      |
+  | Pages     | `src/screens/*`, one per route                                                                                                                       | everything above                      |
+
+  `styles.css` imports the level stylesheets in that order, then `screens/screens.css` and `utilities.css` (layout
+  helpers such as `.spread`, `.nowrap`, `.gap-1`, `.mt-2`, `.mb-5`, `.muted`, `.text-sm`, `.truncate`). Utilities load
+  last so they override like the inline styles they replaced. Class names are part of the e2e tests' selectors: keep
+  them when changing a component. Only data-driven inline styles are allowed (`Swatch`, `RichText` runs, the progress
+  bar).
 
 ## 5. Build and packaging (`apps/*`)
 

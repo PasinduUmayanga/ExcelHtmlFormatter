@@ -22,6 +22,7 @@ scenario; separate confirmed problems from suspicions.
 
 - [ ] Every IPC handler validates its arguments; file paths come from `pickedFiles`; settings go through `validateConfig`.
 - [ ] No `innerHTML` / `dangerouslySetInnerHTML`; file content is rendered through `RichText` as text.
+- [ ] UI reuses `src/design/` components at the right level; no fixed inline styles; existing class names kept.
 - [ ] `sandbox`, `contextIsolation`, CSP, navigation and window-open guards unchanged.
 - [ ] Preload imports only `electron` at runtime.
 - [ ] Router `validateSearch` returns every key; `back`-style params only accept in-app paths.

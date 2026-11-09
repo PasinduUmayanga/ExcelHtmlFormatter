@@ -1,22 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import {
-  capitalize,
-  contentDiff,
-  count,
-  defaultConfig,
-  describeCheckItem,
-  diffWords,
-  htmlToRuns,
-  words,
-  type CheckItem,
-  type ConvertOptions,
-  type DiffPart
-} from '@hf/core'
+import { capitalize, count, defaultConfig, type CheckItem } from '@hf/core'
 import { useApp } from '../store'
 import { useFormatterApp } from '../router'
-import { RichText } from '../components/RichText'
-import { Stat } from '../components/Stat'
+import { Button, Icon } from '../design/atoms'
+import { Banner, ConfirmBox, Stat, Tab, Tabs } from '../design/molecules'
+import { CheckDetail, CheckList } from '../design/organisms'
+import { ScreenTemplate } from '../design/templates'
 
 const fallbackConfig = defaultConfig()
 const route = getRouteApi('/check/$section')
@@ -37,7 +27,6 @@ export function CheckReview() {
     useApp()
   const [paged, setPaged] = useState<{ anchor: string; page: number } | null>(null)
   const [confirming, setConfirming] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
   const options = config ?? fallbackConfig
   const { unit } = format
 
@@ -66,7 +55,6 @@ export function CheckReview() {
   const page = paged?.anchor === anchor ? paged.page : Math.floor(selectedIndex / PAGE_SIZE)
   const setPage = (next: number) => setPaged({ anchor, page: next })
   const selectedItem = here[selectedIndex]
-  useFocusSelected(listRef, selectedItem?.location)
 
   if (!doc) return null
   const pages = Math.max(1, Math.ceil(here.length / PAGE_SIZE))
@@ -102,18 +90,64 @@ export function CheckReview() {
   }
 
   return (
-    <>
-      <h1>{saved ? 'Saved file check' : 'Content check'}</h1>
-      <p className="sub">
-        {saved
-          ? `The saved file was read back and compared with what was converted. Every other ${unit.singular} must be unchanged.`
-          : `Every converted ${unit.singular} is compared with its original text, so nothing is lost without you knowing.`}
-      </p>
-
+    <ScreenTemplate
+      title={saved ? 'Saved file check' : 'Content check'}
+      intro={
+        <>
+          {saved
+            ? `The saved file was read back and compared with what was converted. Every other ${unit.singular} must be unchanged.`
+            : `Every converted ${unit.singular} is compared with its original text, so nothing is lost without you knowing.`}
+        </>
+      }
+      footer={
+        <>
+          <div className="row">
+            <Button
+              onClick={() =>
+                navigate({
+                  to: '/preview/$section',
+                  params: { section: doc.sections.some((s) => s.name === section) ? section : doc.sections[0].name }
+                })
+              }
+            >
+              ← Back to preview
+            </Button>
+            <Button
+              onClick={() =>
+                navigate({
+                  to: '/settings',
+                  search: { tag: undefined, back: `/check/${encodeURIComponent(section)}` }
+                })
+              }
+            >
+              Edit tag styles
+            </Button>
+          </div>
+          <div className="row">
+            <Button disabled={items.length === 0} onClick={() => exportReport(items)}>
+              Export report (CSV)
+            </Button>
+            {!saved && issues > 0 && (
+              <Button
+                variant="primary"
+                disabled={exporting || check.status !== 'done'}
+                onClick={() => setConfirming(true)}
+              >
+                Save anyway ({count(issues, { singular: 'issue', plural: 'issues' })})…
+              </Button>
+            )}
+          </div>
+        </>
+      }
+    >
       {!saved && check.status === 'running' && (
         <div className="check-chip">Checking again with your current tag styles…</div>
       )}
-      {!saved && check.status === 'failed' && <div className="check-chip warn">⚠ {check.error}</div>}
+      {!saved && check.status === 'failed' && (
+        <div className="check-chip warn">
+          <Icon name="warning" /> {check.error}
+        </div>
+      )}
 
       <div className="stats">
         {report && (
@@ -144,32 +178,27 @@ export function CheckReview() {
       {items
         .filter((i) => !i.section)
         .map((i, n) => (
-          <div key={n} className="banner" role="alert">
-            ⚠ {i.saved}
-          </div>
+          <Banner key={n} role="alert">
+            <Icon name="warning" /> {i.saved}
+          </Banner>
         ))}
 
-      <div className="tabs" role="tablist" aria-label={format.section.plural}>
-        {sectionNames.map((name) => {
-          const n = items.filter((i) => i.section === name).length
-          return (
-            <button
-              key={name}
-              role="tab"
-              aria-selected={name === section}
-              className={`tab ${name === section ? 'active' : ''}`}
-              onClick={() =>
-                select(
-                  items.find((i) => i.section === name),
-                  name
-                )
-              }
-            >
-              {name} <span className="faint">{n}</span>
-            </button>
-          )
-        })}
-      </div>
+      <Tabs label={format.section.plural}>
+        {sectionNames.map((name) => (
+          <Tab
+            key={name}
+            selected={name === section}
+            onClick={() =>
+              select(
+                items.find((i) => i.section === name),
+                name
+              )
+            }
+          >
+            {name} <span className="faint">{items.filter((i) => i.section === name).length}</span>
+          </Tab>
+        ))}
+      </Tabs>
 
       {here.length === 0 ? (
         <div className="placeholder">
@@ -179,200 +208,31 @@ export function CheckReview() {
         </div>
       ) : (
         <div className="check-layout">
-          <div
-            className="check-list"
-            role="listbox"
-            aria-label="Items to review"
-            tabIndex={0}
-            ref={listRef}
+          <CheckList
+            items={shown}
+            selected={selectedItem}
+            onSelect={(item) => select(item)}
             onKeyDown={onKey}
-            aria-activedescendant={selectedItem ? `check-${selectedItem.location}` : undefined}
-          >
-            {shown.map((item) => (
-              <div
-                key={item.location}
-                id={`check-${item.location}`}
-                role="option"
-                aria-selected={item === selectedItem}
-                className={`check-row ${item === selectedItem ? 'active' : ''}`}
-                onClick={() => select(item)}
-              >
-                <span className={`chip ${item.severity === 'issue' ? 'warn' : ''}`}>
-                  {item.severity === 'issue' ? '⚠' : 'ℹ'} {item.location || '—'}
-                </span>
-                <span className="check-desc">{describeCheckItem(item)}</span>
-              </div>
-            ))}
-            {pages > 1 && (
-              <div className="row pager">
-                <button className="btn small" disabled={page === 0} onClick={() => setPage(page - 1)}>
-                  ← Previous
-                </button>
-                <span className="faint">
-                  Page {page + 1} of {pages}
-                </span>
-                <button className="btn small" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>
-                  Next →
-                </button>
-              </div>
-            )}
-          </div>
+            page={page}
+            pages={pages}
+            onPage={setPage}
+          />
           {selectedItem && <CheckDetail item={selectedItem} options={options} />}
         </div>
       )}
 
       {confirming && (
-        <div className="banner" role="alertdialog" aria-label="Save anyway">
-          <span>
-            Save with {count(issues, { singular: 'known issue', plural: 'known issues' })}? The{' '}
-            {issues === 1 ? `${unit.singular} keeps its issue` : `${unit.plural} keep their issues`} in the saved file.
-            Your original file is not changed.
-          </span>
-          <div className="row">
-            <button className="btn small" onClick={() => setConfirming(false)}>
-              Cancel
-            </button>
-            <button className="btn small primary" onClick={saveAnyway}>
-              Save anyway
-            </button>
-          </div>
-        </div>
+        <ConfirmBox
+          label="Save anyway"
+          confirmLabel="Save anyway"
+          onConfirm={saveAnyway}
+          onCancel={() => setConfirming(false)}
+        >
+          Save with {count(issues, { singular: 'known issue', plural: 'known issues' })}? The{' '}
+          {issues === 1 ? `${unit.singular} keeps its issue` : `${unit.plural} keep their issues`} in the saved file.
+          Your original file is not changed.
+        </ConfirmBox>
       )}
-
-      <div className="footer">
-        <div className="row">
-          <button
-            className="btn"
-            onClick={() =>
-              navigate({
-                to: '/preview/$section',
-                params: { section: doc.sections.some((s) => s.name === section) ? section : doc.sections[0].name }
-              })
-            }
-          >
-            ← Back to preview
-          </button>
-          <button
-            className="btn"
-            onClick={() =>
-              navigate({
-                to: '/settings',
-                search: { tag: undefined, back: `/check/${encodeURIComponent(section)}` }
-              })
-            }
-          >
-            Edit tag styles
-          </button>
-        </div>
-        <div className="row">
-          <button className="btn" disabled={items.length === 0} onClick={() => exportReport(items)}>
-            Export report (CSV)
-          </button>
-          {!saved && issues > 0 && (
-            <button
-              className="btn primary"
-              disabled={exporting || check.status !== 'done'}
-              onClick={() => setConfirming(true)}
-            >
-              Save anyway ({count(issues, { singular: 'issue', plural: 'issues' })})…
-            </button>
-          )}
-        </div>
-      </div>
-    </>
+    </ScreenTemplate>
   )
-}
-
-/** Scrolls the selected row into view when it changes (keyboard navigation). */
-function useFocusSelected(listRef: RefObject<HTMLDivElement | null>, location: string | undefined) {
-  useEffect(() => {
-    if (!location) return
-    listRef.current?.querySelector(`[id="check-${CSS.escape(location)}"]`)?.scrollIntoView?.({ block: 'nearest' })
-  }, [listRef, location])
-}
-
-/** One item side by side: the raw HTML, the original text (missing words in red) and the result. */
-export function CheckDetail({ item, options }: { item: CheckItem; options: ConvertOptions }) {
-  const result = useMemo(() => htmlToRuns(item.source, options), [item.source, options])
-  const isAfterSave = item.kind === 'saved' || item.kind === 'untouched'
-  const parts = useMemo(
-    () =>
-      isAfterSave
-        ? diffWords(words(item.converted), words(item.saved ?? ''))
-        : contentDiff(item.source, result, options),
-    [isAfterSave, item, result, options]
-  )
-
-  return (
-    <div className="check-detail" aria-label={`Details of ${item.location}`}>
-      <div className="check-desc-full">
-        <b>{item.location || 'File'}</b> · {describeCheckItem(item)}
-      </div>
-      {item.kind !== 'untouched' && (
-        <section>
-          <h3>Original HTML</h3>
-          <pre className="code check-text">{clip(item.source)}</pre>
-        </section>
-      )}
-      {isAfterSave ? (
-        <>
-          <section>
-            <h3>{item.kind === 'untouched' ? 'Original value' : 'Converted text'}</h3>
-            <DiffText parts={parts} side="before" fallback={item.converted} />
-          </section>
-          <section>
-            <h3>In the saved file</h3>
-            <DiffText parts={parts} side="after" fallback={item.saved ?? ''} />
-          </section>
-        </>
-      ) : (
-        <>
-          <section>
-            <h3>Original text</h3>
-            <DiffText parts={parts} side="before" fallback={item.converted} />
-          </section>
-          <section>
-            <h3>Converted</h3>
-            <div className="check-text">
-              <RichText html={item.source} options={options} result={result} />
-            </div>
-            <p className="faint legend">
-              <span className="layout-sample">Green</span>: bullets, numbers and separators added for layout.{' '}
-              <del>Red</del>: text missing from the result. <ins>Underlined</ins>: text not in the original.
-            </p>
-            {(item.proof?.added.length ?? 0) > 0 && (
-              <p>
-                Not in the original:{' '}
-                {item.proof!.added.map((g, i) => (
-                  <ins key={i}>{g.text} </ins>
-                ))}
-              </p>
-            )}
-          </section>
-        </>
-      )}
-    </div>
-  )
-}
-
-/** Words of one side of a diff, with the other side's differences marked (as text, never as HTML). */
-function DiffText({ parts, side, fallback }: { parts: DiffPart[] | null; side: 'before' | 'after'; fallback: string }) {
-  if (!parts) return <div className="check-text">{fallback}</div>
-  return (
-    <div className="check-text">
-      {parts.map((part, i) => {
-        const text = part.items.join(' ') + ' '
-        if (part.op === 'same') return <span key={i}>{text}</span>
-        if (part.op === 'removed') return side === 'before' ? <del key={i}>{text}</del> : null
-        return side === 'after' ? <ins key={i}>{text}</ins> : null
-      })}
-    </div>
-  )
-}
-
-/** Raw HTML shown in the detail panel: the start of very long cells only (the full text is in the CSV report). */
-export const MAX_SHOWN_HTML = 5000
-export function clip(text: string): string {
-  if (text.length <= MAX_SHOWN_HTML) return text
-  return `${text.slice(0, MAX_SHOWN_HTML)}… (${(text.length - MAX_SHOWN_HTML).toLocaleString('en-US')} more characters)`
 }

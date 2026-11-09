@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { styleToCss } from '../src/components/styleToCss'
+import { styleToCss } from '../src/design/molecules/styleToCss'
 
 describe('styleToCss', () => {
   it('maps styles to CSS for previews', () => {

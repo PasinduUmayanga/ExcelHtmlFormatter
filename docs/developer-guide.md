@@ -86,7 +86,14 @@ source (`exports` → `src/…`); there's no build step per package.
 5. Tests: unit tests for the logic, a router test for guards, an e2e step if it changes the main flow.
 6. Docs: FDS (behaviour), user manual (if users see it), plus the `docs-sync` skill checklist.
 
-(Phase 2 will reorganise `@hf/ui` into feature folders and a design system. This guide will be updated then.)
+**Where UI code goes (Atomic Design, [ADR 0011](architecture/adr/0011-atomic-design-in-ui.md)):** reuse what is in
+`packages/ui/src/design/` before writing markup. A new piece goes to the lowest level that fits: an element with no
+parts (`atoms/`), a few atoms working together (`molecules/`), a section that knows the store or the router
+(`organisms/`), a layout (`templates/`). Screens in `screens/` compose them inside `ScreenTemplate` and hold only what
+is specific to that screen. Use tokens and the helpers in `utilities.css` instead of inline styles; keep existing class
+names (the e2e tests use them). Screens and components don't call `window.api`; add a store action instead. Test
+components with `renderToStaticMarkup`, or with happy-dom and React's `act` for clicks (see
+`packages/ui/tests/molecules.test.tsx`).
 
 ## 7. Adding a format
 

@@ -19,6 +19,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The window's code is organised by Atomic Design (ADR 0011): design tokens, atoms, molecules, organisms and templates
+  in `packages/ui/src/design/`, screens built on `ScreenTemplate`, no fixed inline styles, and component tests
+  (`@hf/ui` coverage floors raised). Nothing users see changed.
 - Read and write errors from the Excel adapter keep the original error as `cause`. Messages are unchanged.
 - The historical plan and demo moved to `docs/history/`.
 

@@ -16,7 +16,7 @@ PDF, DOCX, TXT, HTML, Markdown — see `docs/roadmap.md` (phases need Tech Lead 
 | `packages/core`          | Pure engine: tokenizer, HTML → runs, tag scan, settings validation, types, `FormatAdapter`, `FormatInfo` | Electron, Node, React, other `@hf/*`, libraries  |
 | `packages/adapter-excel` | `.xlsx` via ExcelJS (worker side); `./format` is browser-safe                                            | Electron, React, `@hf/ui`, `@hf/desktop`         |
 | `packages/desktop`       | Electron shell: `./main` (window, IPC, settings), `./worker`, `./preload`                                | React, `@hf/ui`, format adapters                 |
-| `packages/ui`            | React window: screens, TanStack Router routes and guards, zustand store                                  | Electron, Node, ExcelJS, `@hf/desktop`, adapters |
+| `packages/ui`            | React window: screens, routes and guards, zustand store, design system in `src/design/` (ADR 0011)       | Electron, Node, ExcelJS, `@hf/desktop`, adapters |
 | `apps/excel-formatter`   | Composition root: wires format + adapter + preview; packaging; e2e tests                                 | —                                                |
 | `tools/lint`             | ESLint + Prettier (uses TypeScript 6 on purpose, see ADR 0007)                                           | —                                                |
 | `docs/`                  | All documentation; start at `docs/README.md`                                                             | —                                                |

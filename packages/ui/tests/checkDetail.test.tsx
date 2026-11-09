@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { DEFAULT_RULES, type CheckItem } from '@hf/core'
-import { CheckDetail } from '../src/screens/CheckReview'
+import { CheckDetail } from '../src/design/organisms/CheckDetail'
 
 const options = { rules: DEFAULT_RULES, unknownTagAction: 'strip' as const }
 const item = (patch: Partial<CheckItem>): CheckItem => ({

@@ -1,0 +1,69 @@
+/* Screens: the few rules that belong to one screen only. */
+.drop {
+  border: 2px dashed var(--line2);
+  border-radius: 12px;
+  padding: 56px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.15s;
+  width: 100%;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.drop:hover,
+.drop.over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.drop .big {
+  font-size: 40px;
+  line-height: 1;
+}
+.drop b {
+  display: block;
+  font-size: 16px;
+  margin: 10px 0 4px;
+}
+.drop:disabled {
+  cursor: progress;
+}
+tr.sel td {
+  background: color-mix(in srgb, var(--accent-bg) 60%, transparent);
+}
+tbody tr.static {
+  cursor: default;
+}
+th.num,
+td.num {
+  text-align: right;
+}
+.style-desc {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.preview-cell {
+  max-width: 340px;
+}
+.preview-cell .xl {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+td.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.cfg {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+th.pick {
+  width: 36px;
+}
+.save-note {
+  max-width: 360px;
+}

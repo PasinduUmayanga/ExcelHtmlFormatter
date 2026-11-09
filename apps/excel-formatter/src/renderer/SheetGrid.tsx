@@ -52,7 +52,7 @@ export const SheetGrid = memo(function SheetGrid({ preview: data, view, options 
         </table>
       </div>
       {preview.truncated && (
-        <p className="faint" style={{ fontSize: 12.5, marginTop: 8 }}>
+        <p className="faint text-sm mt-3">
           Showing the first {preview.rows.length} rows and {cols} columns of {preview.rowCount.toLocaleString()} ×{' '}
           {preview.columnCount.toLocaleString()}. The whole sheet is converted when you save.
         </p>

@@ -2,6 +2,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { capitalize, count, sortedTags } from '@hf/core'
 import { useApp } from '../store'
 import { useFormatterApp } from '../router'
+import { Badge, Button, TagName } from '../design/atoms'
+import { ScreenTemplate } from '../design/templates'
 
 const formatSize = (bytes: number) =>
   bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
@@ -23,17 +25,34 @@ export function SelectSections() {
   const hiddenWithHtml = withHtml.length - visibleWithHtml
 
   return (
-    <>
-      <h1>Select {words.plural}</h1>
-      <p className="sub">
-        <b>{count(sections.length, words)}</b> found in {file.name} ({formatSize(file.sizeBytes)}).{' '}
-        {withHtml.length === 0 && `None of them contain HTML tags.`}
-        {visibleWithHtml > 0 &&
-          `${visibleWithHtml} ${visibleWithHtml === 1 ? 'contains' : 'contain'} HTML and ${visibleWithHtml === 1 ? 'is' : 'are'} selected for you.`}
-        {hiddenWithHtml > 0 &&
-          ` ${hiddenWithHtml} hidden ${hiddenWithHtml === 1 ? `${words.singular} also contains` : `${words.plural} also contain`} HTML; tick ${hiddenWithHtml === 1 ? 'it' : 'them'} to include.`}
-      </p>
-
+    <ScreenTemplate
+      title={<>Select {words.plural}</>}
+      intro={
+        <>
+          <b>{count(sections.length, words)}</b> found in {file.name} ({formatSize(file.sizeBytes)}).{' '}
+          {withHtml.length === 0 && `None of them contain HTML tags.`}
+          {visibleWithHtml > 0 &&
+            `${visibleWithHtml} ${visibleWithHtml === 1 ? 'contains' : 'contain'} HTML and ${visibleWithHtml === 1 ? 'is' : 'are'} selected for you.`}
+          {hiddenWithHtml > 0 &&
+            ` ${hiddenWithHtml} hidden ${hiddenWithHtml === 1 ? `${words.singular} also contains` : `${words.plural} also contain`} HTML; tick ${hiddenWithHtml === 1 ? 'it' : 'them'} to include.`}
+        </>
+      }
+      footer={
+        <>
+          <Button onClick={() => navigate({ to: '/open' })}>← Open another file</Button>
+          <div className="row">
+            <span className="muted">{selected.length} selected</span>
+            <Button
+              variant="primary"
+              disabled={selected.length === 0}
+              onClick={() => navigate({ to: '/analysis/$section', params: { section: selected[0] } })}
+            >
+              Analyse tags →
+            </Button>
+          </div>
+        </>
+      }
+    >
       {sections.length === 0 ? (
         <div className="placeholder">This file has no {words.plural}.</div>
       ) : (
@@ -41,7 +60,7 @@ export function SelectSections() {
           <table>
             <thead>
               <tr>
-                <th style={{ width: 36 }}>
+                <th className="pick">
                   <input
                     type="checkbox"
                     aria-label={`Select all ${words.plural}`}
@@ -71,7 +90,7 @@ export function SelectSections() {
                       />
                     </td>
                     <td>
-                      <b>{section.name}</b> {section.state !== 'visible' && <span className="chip muted">Hidden</span>}
+                      <b>{section.name}</b> {section.state !== 'visible' && <Badge tone="muted">Hidden</Badge>}
                     </td>
                     <td>{section.sizeLabel}</td>
                     <td>
@@ -83,13 +102,11 @@ export function SelectSections() {
                     </td>
                     <td>
                       {tags.length === 0 ? (
-                        <span className="chip info">No HTML found</span>
+                        <Badge tone="info">No HTML found</Badge>
                       ) : (
-                        <span className="row" style={{ gap: 4 }}>
+                        <span className="row gap-1">
                           {tags.slice(0, MAX_TAGS_SHOWN).map(([tag, usage]) => (
-                            <span key={tag} className="tag" title={`${usage.count} uses, first in ${usage.firstCell}`}>
-                              &lt;{tag}&gt;
-                            </span>
+                            <TagName key={tag} name={tag} title={`${usage.count} uses, first in ${usage.firstCell}`} />
                           ))}
                           {tags.length > MAX_TAGS_SHOWN && (
                             <span className="faint">+{tags.length - MAX_TAGS_SHOWN} more</span>
@@ -104,22 +121,6 @@ export function SelectSections() {
           </table>
         </div>
       )}
-
-      <div className="footer">
-        <button className="btn" onClick={() => navigate({ to: '/open' })}>
-          ← Open another file
-        </button>
-        <div className="row">
-          <span style={{ color: 'var(--muted)' }}>{selected.length} selected</span>
-          <button
-            className="btn primary"
-            disabled={selected.length === 0}
-            onClick={() => navigate({ to: '/analysis/$section', params: { section: selected[0] } })}
-          >
-            Analyse tags →
-          </button>
-        </div>
-      </div>
-    </>
+    </ScreenTemplate>
   )
 }

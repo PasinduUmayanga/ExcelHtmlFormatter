@@ -30,13 +30,13 @@ flowchart TB
   xl --> exceljs[(ExcelJS)]
 ```
 
-| Package                | Responsibility                                                                                                                                        | Runs in                       |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `@hf/core`             | Tokenizer, HTML → styled runs, tag scanning, settings validation, style descriptions, shared types, `FormatAdapter`, `FormatInfo`                     | Everywhere (pure)             |
-| `@hf/adapter-excel`    | `.xlsx`: read, summarise sheets, preview grid data, convert cells to rich text, safe write. `./format` = browser-safe `excelFormat` and preview types | Worker (`./format`: window)   |
-| `@hf/desktop`          | `./main`: window, IPC handlers, dialogs, settings file, jobs, crash dialogs · `./worker`: runs a `FormatAdapter` · `./preload`: `window.api` bridge   | Main process, worker, preload |
-| `@hf/ui`               | React window: routes and guards (TanStack Router), screens, zustand store, shared components, styles                                                  | Window (renderer)             |
-| `apps/excel-formatter` | Wires format + adapter + preview component; app icon; packaging; e2e tests                                                                            | All (as bundles)              |
+| Package                | Responsibility                                                                                                                                                                         | Runs in                       |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `@hf/core`             | Tokenizer, HTML → styled runs, tag scanning, settings validation, style descriptions, shared types, `FormatAdapter`, `FormatInfo`                                                      | Everywhere (pure)             |
+| `@hf/adapter-excel`    | `.xlsx`: read, summarise sheets, preview grid data, convert cells to rich text, safe write. `./format` = browser-safe `excelFormat` and preview types                                  | Worker (`./format`: window)   |
+| `@hf/desktop`          | `./main`: window, IPC handlers, dialogs, settings file, jobs, crash dialogs · `./worker`: runs a `FormatAdapter` · `./preload`: `window.api` bridge                                    | Main process, worker, preload |
+| `@hf/ui`               | React window: routes and guards (TanStack Router), screens (pages), zustand store, design system by Atomic Design level in `src/design/` ([ADR 0011](adr/0011-atomic-design-in-ui.md)) | Window (renderer)             |
+| `apps/excel-formatter` | Wires format + adapter + preview component; app icon; packaging; e2e tests                                                                                                             | All (as bundles)              |
 
 **Dependency rules** (enforced by ESLint, `tools/lint/config.js`):
 
@@ -119,6 +119,7 @@ sequenceDiagram
 
 - `FormatAdapter` reads and writes the same format. Export to other formats needs a reader → neutral document model →
   writer pipeline with a format registry (roadmap Phase 3, needs decision D1).
-- `@hf/desktop`'s IPC handlers and `@hf/ui`'s screens have low unit-test coverage (covered by e2e for now); Phase 2
-  splits them into testable modules and introduces a design system (Atomic Design).
+- `@hf/desktop`'s IPC handlers have low unit-test coverage (covered by e2e for now); Phase 2 splits them into
+  testable modules. `@hf/ui`'s components are unit-tested since the Atomic Design change (ADR 0011); screens are
+  covered by e2e.
 - ExcelJS doesn't keep charts, pivot tables or macros ([ADR 0005](adr/0005-exceljs-for-xlsx.md)).

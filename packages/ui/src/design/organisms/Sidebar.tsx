@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link, useParams, useRouterState } from '@tanstack/react-router'
-import { canVisit, useApp } from '../store'
-import { useFormatterApp } from '../router'
+import { canVisit, useApp } from '../../store'
+import { useFormatterApp } from '../../router'
+import { Icon } from '../atoms'
 
 type Step = 'open' | 'sections' | 'analysis' | 'preview'
 const ORDER: Step[] = ['open', 'sections', 'analysis', 'preview']
@@ -29,7 +30,7 @@ export function Sidebar() {
     const className = `nav ${current === id ? 'active' : ''} ${done ? 'done' : ''}`
     const children = (
       <>
-        <span className="num">{done ? '✓' : i + 1}</span>
+        <span className="num">{done ? <Icon name="check" /> : i + 1}</span>
         {label}
       </>
     )
@@ -69,22 +70,22 @@ export function Sidebar() {
 
       <div className="navlabel">Configuration</div>
       <Link to="/settings" className={`nav ${current === 'settings' ? 'active' : ''}`}>
-        <span className="num">⚙</span>Tag styles
+        <span className="num">
+          <Icon name="settings" />
+        </span>
+        Tag styles
       </Link>
 
       <div className="side-foot">
         {doc && (
-          <div
-            title={doc.file.path}
-            style={{ marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-          >
-            📄 <b>{doc.file.name}</b>
+          <div title={doc.file.path} className="truncate mb-2">
+            <Icon name="file" /> <b>{doc.file.name}</b>
           </div>
         )}
         Profile: <b>{config?.profileName ?? '…'}</b>
         <br />
         {config ? Object.keys(config.rules).length : 0} tag rules
-        {appInfo && <div style={{ color: 'var(--faint)', marginTop: 4 }}>v{appInfo.version}</div>}
+        {appInfo && <div className="faint mt-1">v{appInfo.version}</div>}
       </div>
     </aside>
   )

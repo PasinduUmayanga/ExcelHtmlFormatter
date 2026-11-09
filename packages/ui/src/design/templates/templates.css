@@ -1,0 +1,46 @@
+/* Templates: the window frame (AppLayout) and the screen layout (ScreenTemplate). */
+.app {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  height: 100%;
+}
+main {
+  padding: 28px 32px;
+  overflow: auto;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.error {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bad-bg);
+  color: var(--bad);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.error button {
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}

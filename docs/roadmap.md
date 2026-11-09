@@ -22,15 +22,17 @@ reviewable change at a time. Status: ✅ done · 🔄 in progress · ⏳ approve
 | P1-T5 | Project skills                                                | ✅     | add-format, add-feature, verify-release, docs-sync, review-checklist |
 | P1-T6 | SRS, FDS, user manual, testing strategy, security, operations | ✅     | Requirement IDs FR-01–FR-12, NFR-01–NFR-08                           |
 
-## Phase 2 — Modular refactor, no behaviour change 📝
+## Phase 2 — Modular refactor, no behaviour change 🔄
 
-| ID    | Task                                                                               | Category    | Depends on   |
-| ----- | ---------------------------------------------------------------------------------- | ----------- | ------------ |
-| P2-T1 | Split the desktop main process into IPC modules and services; IPC tests            | Recommended | P0           |
-| P2-T2 | One shared safe-write utility                                                      | Recommended | P2-T1        |
-| P2-T3 | Split the UI store into slices per feature                                         | Recommended | P0-T2        |
-| P2-T4 | `@hf/design-system` (tokens, atoms → templates), no inline styles, component tests | Recommended | P0-T1        |
-| P2-T5 | `@hf/ui` reorganised into feature modules with composed routes                     | Recommended | P2-T3, P2-T4 |
+P2-T4 approved and done 2026-11-09; the other tasks still need approval.
+
+| ID    | Task                                                                         | Category    | Depends on   | Status                                                                        |
+| ----- | ---------------------------------------------------------------------------- | ----------- | ------------ | ----------------------------------------------------------------------------- |
+| P2-T1 | Split the desktop main process into IPC modules and services; IPC tests      | Recommended | P0           | 📝                                                                            |
+| P2-T2 | One shared safe-write utility                                                | Recommended | P2-T1        | 📝                                                                            |
+| P2-T3 | Split the UI store into slices per feature                                   | Recommended | P0-T2        | 📝                                                                            |
+| P2-T4 | Design system (tokens, atoms → templates), no inline styles, component tests | Recommended | P0-T1        | ✅ inside `@hf/ui` ([ADR 0011](architecture/adr/0011-atomic-design-in-ui.md)) |
+| P2-T5 | `@hf/ui` reorganised into feature modules with composed routes               | Recommended | P2-T3, P2-T4 | 📝                                                                            |
 
 ## Phase 3 — Export and conversion architecture 📝
 
@@ -56,16 +58,16 @@ GitHub Releases, signing secrets) · P5-T3 security in CI (`pnpm audit`, Electro
 
 ## Decisions pending approval
 
-| #   | Decision                                                                              | Recommendation                                          |
-| --- | ------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| D1  | Export/conversion in scope? Through a lossy neutral model, keeping native formatting? | Yes; keep both paths                                    |
-| D2  | One app per format, or one multi-format app                                           | Decide before Phase 4                                   |
-| D3  | PDF via `printToPDF` or a PDF library                                                 | `printToPDF`                                            |
-| D4  | Design system as its own package                                                      | Yes                                                     |
-| D7  | Full documentation set or lean first                                                  | Done: full set written in Phase 1                       |
-| D8  | CI: AppVeyor, GitHub Actions or both                                                  | AppVeyor (Windows) + GitHub Actions (macOS) if required |
-| D10 | Project license                                                                       | Tech Lead's choice; LICENSE file not created yet        |
-| D11 | Make `refactor/monorepo` the base of `main`; add a GitHub remote                      | Yes                                                     |
+| #   | Decision                                                                              | Recommendation                                                             |
+| --- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| D1  | Export/conversion in scope? Through a lossy neutral model, keeping native formatting? | Yes; keep both paths                                                       |
+| D2  | One app per format, or one multi-format app                                           | Decide before Phase 4                                                      |
+| D3  | PDF via `printToPDF` or a PDF library                                                 | `printToPDF`                                                               |
+| D4  | Design system as its own package                                                      | Revised: folders inside `@hf/ui` until a second consumer exists (ADR 0011) |
+| D7  | Full documentation set or lean first                                                  | Done: full set written in Phase 1                                          |
+| D8  | CI: AppVeyor, GitHub Actions or both                                                  | AppVeyor (Windows) + GitHub Actions (macOS) if required                    |
+| D10 | Project license                                                                       | Tech Lead's choice; LICENSE file not created yet                           |
+| D11 | Make `refactor/monorepo` the base of `main`; add a GitHub remote                      | Yes                                                                        |
 
 Decided: D5 ESLint + Prettier ([ADR 0007](architecture/adr/0007-lint-tooling-package.md)), D6 Playwright
 ([ADR 0008](architecture/adr/0008-playwright-electron-e2e.md)), D9 `AGENTS.md` as the source for `CLAUDE.md`.

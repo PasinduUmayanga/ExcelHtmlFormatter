@@ -38,6 +38,10 @@ export interface AppState {
   init(): Promise<void>
   /** Opens a file. Resolves to true when it is ready to show. */
   openFile(file: PickedFile): Promise<boolean>
+  /** Asks for a file with the Open dialog, then opens it. False when cancelled, busy or it failed. */
+  browseForFile(): Promise<boolean>
+  /** Opens a file dropped on the window. False when busy or it failed. */
+  openDroppedFile(file: File): Promise<boolean>
   toggleSection(name: string): void
   selectAllSections(selected: boolean): void
   setError(message: string | null): void
@@ -190,6 +194,27 @@ export const useApp = create<AppState>((set, get) => ({
       return false
     } finally {
       set({ loading: false, pendingFile: null, job: null })
+    }
+  },
+
+  async browseForFile() {
+    if (get().loading) return false
+    try {
+      const file = await window.api.openFileDialog()
+      return file ? await get().openFile(file) : false
+    } catch (e) {
+      set({ error: cleanError(e) })
+      return false
+    }
+  },
+
+  async openDroppedFile(dropped) {
+    if (get().loading) return false
+    try {
+      return await get().openFile(await window.api.describeDroppedFile(dropped))
+    } catch (e) {
+      set({ error: cleanError(e) })
+      return false
     }
   },
 

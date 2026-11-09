@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { isConfigured } from '@hf/core'
-import { useApp } from '../store'
+import { useApp } from '../../store'
+import { Badge } from '../atoms'
+import { Tabs, tabClass } from '../molecules'
 
 /**
  * One tab per selected section, as links to the same screen for another section.
@@ -20,18 +22,18 @@ export function SectionTabs({
   const rules = config?.rules ?? {}
 
   return (
-    <div className="tabs" role="tablist">
+    <Tabs>
       {selected.map((name) => {
         const section = doc.sections.find((s) => s.name === name)
         const missing = section ? Object.keys(section.scan.tags).filter((t) => !isConfigured(t, rules)).length : 0
-        const className = `tab ${current === name ? 'active' : ''}`
+        const className = tabClass(current === name)
         const content = (
           <>
             {name}
             {missing > 0 && (
-              <span className="chip warn" title={`${missing} ${missing === 1 ? 'tag has' : 'tags have'} no style`}>
+              <Badge tone="warn" title={`${missing} ${missing === 1 ? 'tag has' : 'tags have'} no style`}>
                 {missing}
-              </span>
+              </Badge>
             )}
           </>
         )
@@ -60,6 +62,6 @@ export function SectionTabs({
           </Link>
         )
       })}
-    </div>
+    </Tabs>
   )
 }

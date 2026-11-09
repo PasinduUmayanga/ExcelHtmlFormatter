@@ -3,9 +3,10 @@ import { capitalize, defaultConfig, describeStyle, isConfigured, sortedTags } fr
 import { useApp } from '../store'
 import { useFormatterApp } from '../router'
 import { useEditTag } from '../hooks'
-import { SectionTabs } from '../components/SectionTabs'
-import { RichText } from '../components/RichText'
-import { Stat } from '../components/Stat'
+import { RichText, Stat } from '../design/molecules'
+import { Badge, Button, Swatch, TagName } from '../design/atoms'
+import { MissingStylesBanner, SectionTabs } from '../design/organisms'
+import { ScreenTemplate } from '../design/templates'
 
 const fallbackConfig = defaultConfig()
 const route = getRouteApi('/analysis/$section')
@@ -27,12 +28,20 @@ export function TagAnalysis() {
   const tagList = (list: string[]) => list.map((t) => `<${t}>`).join(', ')
 
   return (
-    <>
-      <h1>Tag analysis</h1>
-      <p className="sub">
-        The formatting tags found in each selected {format.section.singular}, and the style each one will get.
-      </p>
-
+    <ScreenTemplate
+      title="Tag analysis"
+      intro={
+        <>The formatting tags found in each selected {format.section.singular}, and the style each one will get.</>
+      }
+      footer={
+        <>
+          <Button onClick={() => navigate({ to: '/sections' })}>← Back</Button>
+          <Button variant="primary" onClick={() => navigate({ to: '/preview/$section', params: { section: name } })}>
+            Preview result →
+          </Button>
+        </>
+      }
+    >
       <SectionTabs screen="analysis" current={name} />
 
       <div className="stats">
@@ -43,17 +52,12 @@ export function TagAnalysis() {
       </div>
 
       {missing.length > 0 && (
-        <div className="banner" role="status">
-          <span>
-            ⚠ {tagList(missing)} {missing.length === 1 ? 'has' : 'have'} no style yet.{' '}
-            {options.unknownTagAction === 'keep'
-              ? `The tags will stay in the ${unit.singular} as visible text.`
-              : 'The tags will be removed and their text left plain.'}
-          </span>
-          <button className="btn link" onClick={() => editTag(missing[0])}>
-            Set a style →
-          </button>
-        </div>
+        <MissingStylesBanner firstTag={missing[0]}>
+          {tagList(missing)} {missing.length === 1 ? 'has' : 'have'} no style yet.{' '}
+          {options.unknownTagAction === 'keep'
+            ? `The tags will stay in the ${unit.singular} as visible text.`
+            : 'The tags will be removed and their text left plain.'}
+        </MissingStylesBanner>
       )}
 
       {tags.length === 0 ? (
@@ -77,21 +81,21 @@ export function TagAnalysis() {
                 return (
                   <tr key={tag} className="static">
                     <td>
-                      <span className="tag">&lt;{tag}&gt;</span>
+                      <TagName name={tag} />
                     </td>
                     <td className="num">{usage.count.toLocaleString()}</td>
                     <td className="code">{usage.firstCell}</td>
                     <td>
                       {description ? (
                         <span className="style-desc">
-                          <span className="chip ok">
+                          <Badge tone="ok">
                             {description.builtin ? 'Built in' : description.fallback ? 'Default' : 'Styled'}
-                          </span>{' '}
-                          {description.color && <span className="swatch" style={{ background: description.color }} />}
+                          </Badge>{' '}
+                          {description.color && <Swatch color={description.color} />}
                           {description.parts.join(' · ')}
                         </span>
                       ) : (
-                        <span className="chip warn">No style</span>
+                        <Badge tone="warn">No style</Badge>
                       )}
                     </td>
                     <td className="preview-cell" title={usage.sample}>
@@ -99,9 +103,9 @@ export function TagAnalysis() {
                     </td>
                     <td className="actions">
                       {!description?.builtin && (
-                        <button className="btn small" onClick={() => editTag(tag)}>
+                        <Button small onClick={() => editTag(tag)}>
                           {description ? 'Edit' : 'Set style'}
-                        </button>
+                        </Button>
                       )}
                     </td>
                   </tr>
@@ -111,18 +115,6 @@ export function TagAnalysis() {
           </table>
         </div>
       )}
-
-      <div className="footer">
-        <button className="btn" onClick={() => navigate({ to: '/sections' })}>
-          ← Back
-        </button>
-        <button
-          className="btn primary"
-          onClick={() => navigate({ to: '/preview/$section', params: { section: name } })}
-        >
-          Preview result →
-        </button>
-      </div>
-    </>
+    </ScreenTemplate>
   )
 }

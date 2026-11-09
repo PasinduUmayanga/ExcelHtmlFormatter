@@ -15,21 +15,26 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 
 ## Current numbers (2026-11-09)
 
-- Unit/integration: **121 tests** — core 61, adapter-excel 42, ui 12, desktop 6.
-- End-to-end: **5 tests** — start state; open → analyse → set style → preview → export (saved file checked, original
-  unchanged); refuse to overwrite the original; Cancel during a 60,000-cell export leaves no file; reload returns to Open.
+- Unit/integration: **254 tests** — core 132, adapter-excel 57, ui 53, desktop 12.
+- End-to-end: **7 tests** — start state; open → analyse → set style → preview → export (saved file checked, original
+  unchanged); a content issue stops the save until "Save anyway", with a CSV report; refuse to overwrite the original;
+  Cancel during a 60,000-cell export leaves no file; Cancel while checking the saved file keeps the file; reload
+  returns to Open.
+- `@hf/ui` components have unit tests by level (`atoms`, `molecules`, `organisms` tests): rendered markup with
+  `renderToStaticMarkup`, clicks and typing with happy-dom and React's `act`. No testing library is needed.
 
 ## Coverage
 
 Floors are set in each `packages/*/vitest.config.ts` and checked by `pnpm test:coverage`. They may be raised, never
-lowered without review.
+lowered without review. Set a new floor about one point below the measured value: a floor equal to the measurement
+fails on machines where timing-dependent code runs a little differently (as happened in CI).
 
-| Package             | Lines | Statements | Functions | Branches | Note                                                                          |
-| ------------------- | ----- | ---------- | --------- | -------- | ----------------------------------------------------------------------------- |
-| `@hf/core`          | 99    | 99         | 100       | 95       |                                                                               |
-| `@hf/adapter-excel` | 98    | 91         | 96        | 82       |                                                                               |
-| `@hf/desktop`       | 23    | 21         | 15        | 14       | IPC handlers untested at unit level (covered by e2e); Phase 2 raises this     |
-| `@hf/ui`            | 18    | 17         | 12        | 16       | Screens untested at unit level (covered by e2e); Phase 2 adds component tests |
+| Package             | Lines | Statements | Functions | Branches | Note                                                                      |
+| ------------------- | ----- | ---------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `@hf/core`          | 99    | 99         | 100       | 95       |                                                                           |
+| `@hf/adapter-excel` | 98    | 91         | 96        | 82       |                                                                           |
+| `@hf/desktop`       | 23    | 21         | 15        | 14       | IPC handlers untested at unit level (covered by e2e); Phase 2 raises this |
+| `@hf/ui`            | 45    | 44         | 38        | 37       | Components unit-tested (ADR 0011); screens covered by e2e                 |
 
 ## Quality gates
 

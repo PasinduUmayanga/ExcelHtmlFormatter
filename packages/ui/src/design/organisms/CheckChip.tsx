@@ -1,8 +1,9 @@
 import { useNavigate } from '@tanstack/react-router'
 import { count } from '@hf/core'
-import { useApp } from '../store'
-import { useFormatterApp } from '../router'
+import { useApp } from '../../store'
+import { useFormatterApp } from '../../router'
 import { describeProgress } from './JobProgress'
+import { Button, Icon, Spinner } from '../atoms'
 
 /**
  * The content check's status on Preview & export: running, all complete, or issues to review
@@ -19,18 +20,17 @@ export function CheckChip({ section, onRetry }: { section: string; onRetry: () =
   if (check.status === 'running') {
     return (
       <div className="check-chip" role="status" aria-live="polite">
-        <span className="spinner" aria-hidden />{' '}
-        {check.progress ? describeProgress(check.progress, unit.plural) : 'Checking that no text is lost…'}
+        <Spinner /> {check.progress ? describeProgress(check.progress, unit.plural) : 'Checking that no text is lost…'}
       </div>
     )
   }
   if (check.status === 'failed') {
     return (
       <div className="check-chip warn" role="status">
-        ⚠ {check.error}{' '}
-        <button className="btn link" onClick={onRetry}>
+        <Icon name="warning" /> {check.error}{' '}
+        <Button variant="link" onClick={onRetry}>
           Try again
-        </button>
+        </Button>
       </div>
     )
   }
@@ -40,22 +40,23 @@ export function CheckChip({ section, onRetry }: { section: string; onRetry: () =
     const first = report.items[0]
     return (
       <div className="check-chip warn" role="status">
-        ⚠ Content check: {count(report.issues, unit)} {report.issues === 1 ? 'needs' : 'need'} review.{' '}
-        <button className="btn link" onClick={() => open(first?.location, first?.section)}>
+        <Icon name="warning" /> Content check: {count(report.issues, unit)} {report.issues === 1 ? 'needs' : 'need'}{' '}
+        review.{' '}
+        <Button variant="link" onClick={() => open(first?.location, first?.section)}>
           Review →
-        </button>
+        </Button>
       </div>
     )
   }
   return (
     <div className="check-chip ok" role="status">
-      ✓ Content check: all {count(report.checked, unit)} complete, no text lost.
+      <Icon name="check" /> Content check: all {count(report.checked, unit)} complete, no text lost.
       {report.notes > 0 && (
         <>
           {' '}
-          <button className="btn link" onClick={() => open(report.items[0]?.location, report.items[0]?.section)}>
+          <Button variant="link" onClick={() => open(report.items[0]?.location, report.items[0]?.section)}>
             {count(report.notes, { singular: 'note', plural: 'notes' })} →
-          </button>
+          </Button>
         </>
       )}
     </div>

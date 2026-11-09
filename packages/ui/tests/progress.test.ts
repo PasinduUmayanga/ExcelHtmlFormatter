@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeProgress } from '../src/components/JobProgress'
+import { describeProgress } from '../src/design/organisms/JobProgress'
 
 describe('describeProgress', () => {
   it('describes progress in plain language, using the format’s words', () => {

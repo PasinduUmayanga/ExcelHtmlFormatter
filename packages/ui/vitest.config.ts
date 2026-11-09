@@ -9,7 +9,8 @@ export default defineConfig({
       include: ['src/**'],
       exclude: ['src/**/*.d.ts'],
       reporter: ['text-summary', 'lcov'],
-      thresholds: { lines: 18, statements: 17, functions: 12, branches: 16 }
+      // Raised with the component tests (ADR 0011): measured 46.3 / 45.2 / 39.2 / 38.7, about one point of margin.
+      thresholds: { lines: 45, statements: 44, functions: 38, branches: 37 }
     }
   }
 })

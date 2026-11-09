@@ -1,0 +1,115 @@
+/* Molecules: Field, SegmentedControl (.seg), Banner, Tabs, Stat, RichText (.xl). */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tab {
+  text-decoration: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.stat {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat .v {
+  font-size: 22px;
+  font-weight: 600;
+}
+.stat .v.ok {
+  color: var(--ok);
+}
+.stat .v.warn {
+  color: var(--warn);
+}
+.stat .l {
+  font-size: 12px;
+  color: var(--muted);
+}
+.banner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--warn-bg);
+  color: var(--warn);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.xl {
+  font-family: Calibri, Carlito, 'Segoe UI', sans-serif;
+  font-size: 11pt;
+  /* Spaces matter, as in Excel: list indents, table separators and <pre> text line up. */
+  white-space: pre-wrap;
+}
+/* Linked text: the address (or why it is not linked) is in the tooltip */
+.xl [title] {
+  cursor: help;
+}
+.field-error {
+  color: var(--bad);
+  font-size: 12.5px;
+  margin-top: 4px;
+}
+.field {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.field.top {
+  align-items: start;
+}
+.field > label:first-child {
+  color: var(--muted);
+  font-size: 13px;
+}
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.seg button {
+  border: 0;
+  background: var(--bg);
+  color: var(--muted);
+  font: inherit;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.seg button.on {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-weight: 600;
+}

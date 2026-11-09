@@ -1,0 +1,99 @@
+/* Base: element defaults and small layout helpers shared by every level. */
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.5 'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+h1 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+.sub {
+  color: var(--muted);
+  margin: 0 0 22px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+}
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+th {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  background: var(--side);
+}
+tbody tr {
+  cursor: pointer;
+}
+tbody tr:hover td {
+  background: color-mix(in srgb, var(--line) 40%, transparent);
+}
+.faint {
+  color: var(--faint);
+}
+select,
+input[type='text'] {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+select {
+  max-width: 280px;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.placeholder {
+  border: 1px dashed var(--line2);
+  border-radius: 10px;
+  padding: 18px 20px;
+  color: var(--muted);
+}

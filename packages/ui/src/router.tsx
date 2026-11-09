@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router'
 import type { ConvertOptions, FormatInfo } from '@hf/core'
 import { canVisit, useApp } from './store'
-import { AppLayout } from './AppLayout'
+import { AppLayout } from './design/templates'
 import { OpenFile } from './screens/OpenFile'
 import { SelectSections } from './screens/SelectSections'
 import { TagAnalysis } from './screens/TagAnalysis'
