@@ -1,6 +1,6 @@
 # HTML Formatter
 
-[![Build status](https://ci.appveyor.com/api/projects/status/eujqqr0dl6v4fh3p/branch/main?svg=true)](https://ci.appveyor.com/project/Mahadenamuththa/excelhtmlformatter/branch/main)
+[![Build status](https://ci.appveyor.com/api/projects/status/eujqqr0dl6v4fh3p?svg=true)](https://ci.appveyor.com/project/Mahadenamuththa/excelhtmlformatter)
 ![Node.js](https://img.shields.io/badge/Node.js-26_LTS-5FA04E?logo=nodedotjs&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-12.18-F69220?logo=pnpm&logoColor=white)
 ![Turborepo](https://img.shields.io/badge/Turborepo-2.11-EF4444?logo=turborepo&logoColor=white)
