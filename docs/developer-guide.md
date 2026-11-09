@@ -79,7 +79,7 @@ source (`exports` → `src/…`); there's no build step per package.
 
 1. Add the screen in `packages/ui/src/screens/` and its route in `packages/ui/src/router.tsx`. Add a guard if it
    needs an open document, and validate search params, **returning every key**.
-2. Put data in the store (`packages/ui/src/store.ts`), not in component state, if other screens need it.
+2. Put data in the store (`packages/ui/src/state/store.ts`), not in component state, if other screens need it.
 3. If it needs the main process, add an IPC method: update `ElectronApi` in `@hf/core`, the preload, the main
    handler (validating every argument), and [contracts.md](api/contracts.md).
 4. Use the format's words from `useFormatterApp().format` instead of hard-coding "sheet" or "cell".
@@ -95,7 +95,7 @@ changes, update the help in the same change.
 `packages/ui/src/design/` before writing markup. A new piece goes to the lowest level that fits: an element with no
 parts (`atoms/`), a few atoms working together (`molecules/`), a section that knows the store or the router
 (`organisms/`), a layout (`templates/`). Screens in `screens/` compose them inside `ScreenTemplate` and hold only what
-is specific to that screen. Use tokens and the helpers in `utilities.css` instead of inline styles; keep existing class
+is specific to that screen. Code that isn't a component goes outside the levels ([ADR 0016](architecture/adr/0016-ui-logic-outside-atomic-levels.md)): reusable functions in `src/utils/`, hooks in `src/hooks/`, logic for one feature in `src/features/<feature>/`, app state in `src/state/store.ts`. Use tokens and the helpers in `styles/utilities.css` instead of inline styles; keep existing class
 names (the e2e tests use them). Screens and components don't call `window.api`; add a store action instead. Test
 components with `renderToStaticMarkup`, or with happy-dom and React's `act` for clicks (see
 `packages/ui/tests/molecules.test.tsx`).

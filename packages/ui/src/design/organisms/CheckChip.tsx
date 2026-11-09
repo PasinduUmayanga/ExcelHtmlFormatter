@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router'
 import { count } from '@hf/core'
-import { useApp } from '../../store'
+import { useApp } from '../../state/store'
 import { useFormatterApp } from '../../router'
-import { describeProgress } from './JobProgress'
+import { describeProgress } from '../../utils/describeProgress'
 import { Button, Icon, Spinner } from '../atoms'
 
 /**

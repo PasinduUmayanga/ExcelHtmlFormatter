@@ -1,6 +1,6 @@
 import { builtinStyle, describeStyle, type TagStyle } from '@hf/core'
-import { useApp } from '../../store'
-import { cx } from '../cx'
+import { useApp } from '../../state/store'
+import { cx } from '../../utils/cx'
 import { Button, TagName } from '../atoms'
 import { Banner, Field, RichText, SegmentedControl } from '../molecules'
 

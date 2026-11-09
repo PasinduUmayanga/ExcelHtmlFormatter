@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Badge, Button, Icon, ICONS, Logo, Spinner, Swatch, TagName } from '../src/design/atoms'
-import { cx } from '../src/design/cx'
+import { cx } from '../src/utils/cx'
 
 const html = (node: React.ReactElement) => renderToStaticMarkup(node)
 

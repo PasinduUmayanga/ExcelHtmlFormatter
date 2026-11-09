@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
-import { useApp } from '../store'
+import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
 import { Badge, Button } from '../design/atoms'
 import { FeatureCard } from '../design/molecules'

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { ThemeChoice } from '@hf/core'
-import { useApp } from '../../store'
+import { useApp } from '../../state/store'
 import { SegmentedControl } from '../molecules'
 
 const THEMES = [

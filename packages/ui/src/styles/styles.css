@@ -1,0 +1,12 @@
+/*
+ * The window's styles, in cascade order: shared tokens and base, then one file per Atomic Design level (kept next to
+ * its components), the screens, and the layout helpers last so they win like the inline styles they replaced.
+ */
+@import './tokens.css';
+@import './base.css';
+@import '../design/atoms/atoms.css';
+@import '../design/molecules/molecules.css';
+@import '../design/organisms/organisms.css';
+@import '../design/templates/templates.css';
+@import '../screens/screens.css';
+@import './utilities.css';

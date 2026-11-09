@@ -1,5 +1,5 @@
-/// <reference path="./env.d.ts" />
-/// <reference path="./css.d.ts" />
+/// <reference path="../env.d.ts" />
+/// <reference path="../css.d.ts" />
 import { create } from 'zustand'
 import {
   CANCELLED_MESSAGE,

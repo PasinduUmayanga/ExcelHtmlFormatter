@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { capitalize, defaultConfig, isConfigured, mergeScans } from '@hf/core'
-import { useApp } from '../store'
+import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
 import { Button, Icon } from '../design/atoms'
 import { SegmentedControl, Stat } from '../design/molecules'

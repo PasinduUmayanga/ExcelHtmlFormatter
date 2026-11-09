@@ -31,6 +31,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- `@hf/ui` keeps only components in its Atomic Design levels: state, hooks, Help logic, helpers and shared styles moved
+  to `state/`, `hooks/`, `features/help/`, `utils/` and `styles/` (ADR 0016). Nothing users see changed.
 - The workflow starts from Home: its steps are locked until you choose a file, open again or continue there. A clean
   save closes the file and returns to Home with a success message (Show in folder); a save with known issues or
   differences stays on Preview for review. Reloading returns to Home.

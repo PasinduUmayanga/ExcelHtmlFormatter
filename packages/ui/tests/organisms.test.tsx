@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { defaultConfig, type CheckItem } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 import { AddTag, CheckList, StyleEditor } from '../src/design/organisms'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true

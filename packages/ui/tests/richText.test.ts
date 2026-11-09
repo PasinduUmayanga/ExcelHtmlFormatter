@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_RULES, htmlToRuns } from '@hf/core'
-import { linkTitle } from '../src/design/molecules/RichText'
+import { linkTitle } from '../src/utils/linkTitle'
 
 const convert = (html: string) => htmlToRuns(html, { rules: DEFAULT_RULES, unknownTagAction: 'strip' })
 
@@ -26,7 +26,7 @@ describe('linkTitle (preview tooltips)', () => {
 })
 
 describe('clip (long HTML on the compare screen)', async () => {
-  const { clip, MAX_SHOWN_HTML } = await import('../src/design/organisms/CheckDetail')
+  const { clip, MAX_SHOWN_HTML } = await import('../src/utils/clip')
   it('keeps short text and shortens long text, saying how much is left out', () => {
     expect(clip('short')).toBe('short')
     expect(clip('x'.repeat(MAX_SHOWN_HTML + 1234))).toBe(`${'x'.repeat(MAX_SHOWN_HTML)}… (1,234 more characters)`)

@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useApp } from '../store'
+import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
 import { Icon } from '../design/atoms'
 import { JobProgressPanel } from '../design/organisms'

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useParams, useRouterState } from '@tanstack/react-router'
-import { canVisit, useApp } from '../../store'
+import { canVisit, useApp } from '../../state/store'
 import { useFormatterApp } from '../../router'
 import { Icon, Logo } from '../atoms'
 

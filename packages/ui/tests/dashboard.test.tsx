@@ -2,9 +2,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { ActivityEntry, ElectronApi } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 import { FeatureCard } from '../src/design/molecules'
-import { describeActivity, formatWhen } from '../src/design/organisms'
+import { describeActivity, formatWhen } from '../src/utils/describeActivity'
 import { EXPORT_TARGETS } from '../src/screens/Dashboard'
 
 const cells = { singular: 'cell', plural: 'cells' }

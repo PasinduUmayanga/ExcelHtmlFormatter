@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 export type Tone = 'ok' | 'warn' | 'info' | 'muted'
 

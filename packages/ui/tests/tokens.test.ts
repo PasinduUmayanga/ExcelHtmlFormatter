@@ -16,7 +16,7 @@ function contrast(a: string, b: string): number {
 }
 
 // The light values come from the first :root block; dark values override them.
-const css = readFileSync(join(__dirname, '../src/design/tokens.css'), 'utf8')
+const css = readFileSync(join(__dirname, '../src/styles/tokens.css'), 'utf8')
 const darkStart = css.indexOf('@media (prefers-color-scheme: dark)')
 const read = (text: string) =>
   Object.fromEntries([...text.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})\b/gi)].map((m) => [m[1], m[2].toLowerCase()]))

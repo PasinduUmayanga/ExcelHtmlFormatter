@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** primary: the screen's main action; link: looks like a text link (inside banners and messages) */

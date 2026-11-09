@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { defaultConfig, type ElectronApi } from '@hf/core'
-import { useApp } from '../src/store'
+import { useApp } from '../src/state/store'
 import { StartupScreen } from '../src/design/templates'
 
 let api: Partial<Record<keyof ElectronApi, ReturnType<typeof vi.fn>>>

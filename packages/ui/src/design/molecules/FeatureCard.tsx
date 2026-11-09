@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 /**
  * A card for one thing the user can do: a title, a sentence about it, and its action. `primary` marks the

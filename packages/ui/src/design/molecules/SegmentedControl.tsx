@@ -1,4 +1,4 @@
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 /** A choice of one option out of a few, shown as joined buttons (`.seg`, a radio group). */
 export function SegmentedControl<T extends string>({

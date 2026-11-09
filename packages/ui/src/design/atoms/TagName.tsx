@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from 'react'
-import { cx } from '../cx'
+import { cx } from '../../utils/cx'
 
 /** An HTML tag's name shown as code, `<b>`. The name is text: React escapes it, it is never parsed as HTML. */
 export function TagName({

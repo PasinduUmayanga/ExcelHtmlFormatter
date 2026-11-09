@@ -42,7 +42,7 @@ count opening tags per section, remembering the first cell and a sample for prev
 
 - **Help Center** ([ADR 0015](../architecture/adr/0015-help-center-markdown.md)): topics come from the app
   (`FormatterAppConfig.help`, e.g. `apps/excel-formatter/src/renderer/help.ts` importing `help/*.md?raw`).
-  `src/help/markdown.ts` parses to blocks and inlines; `src/help/search.ts` splits topics into sections at `##`
+  `src/features/help/markdown.ts` parses to blocks and inlines; `src/features/help/search.ts` splits topics into sections at `##`
   headings and ranks matches (words in titles and headings count 3, in text 1; every word must appear);
   `useHelp()` parses once per app. Screens `Help` (`#/help?q=`) and `HelpTopic` (`#/help/$topic?section=`); the
   `Markdown` molecule draws blocks and hands Help links to the screen. Headings get anchors (`slug`).
@@ -93,14 +93,19 @@ count opening tags per section, remembering the first cell and a sample for prev
 
   | Level     | Contents                                                                                                                                             | May use                               |
   | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-  | Tokens    | `tokens.css`: colours (light, dark by `prefers-color-scheme`), `--radius`, `--space-1`…`--space-6`, `--text-xs`…`--text-lg`                          | —                                     |
+  | Tokens    | `styles/tokens.css`: colours (light, dark by `prefers-color-scheme`), `--radius`, `--space-1`…`--space-6`, `--text-xs`…`--text-lg`                   | —                                     |
   | Atoms     | `Button` (variant, small), `Badge` (tone), `TagName`, `Icon`, `Spinner`, `Swatch`                                                                    | tokens                                |
-  | Molecules | `Field`, `SegmentedControl`, `Banner`, `ConfirmBox`, `Tabs`/`Tab`/`tabClass`, `Stat`, `RichText`, `styleToCss`                                       | atoms, `@hf/core`                     |
+  | Molecules | `Field`, `SegmentedControl`, `Banner`, `ConfirmBox`, `Tabs`/`Tab`/`tabClass`, `Stat`, `RichText`, `FeatureCard`, `Markdown`                          | atoms, `@hf/core`, utils              |
   | Organisms | `Sidebar`, `JobProgressPanel`, `CheckChip`, `SectionTabs`, `SaveSummary`, `StyleEditor`, `AddTag`, `CheckList`, `CheckDetail`, `MissingStylesBanner` | the levels below, store, router hooks |
   | Templates | `AppLayout` (sidebar, error banner, current screen, toast), `ScreenTemplate` (title, intro, content, footer)                                         | the levels below                      |
   | Pages     | `src/screens/*`, one per route                                                                                                                       | everything above                      |
 
-  `styles.css` imports the level stylesheets in that order, then `screens/screens.css` and `utilities.css` (layout
+  Outside the levels ([ADR 0016](../architecture/adr/0016-ui-logic-outside-atomic-levels.md)): `state/store.ts`,
+  `hooks/` (`useEditTag`, `useHelp`, `useConversion`), `features/help/` (Markdown parser, search), `utils/` (`cx`,
+  `styleToCss`, `linkTitle`, `describeProgress`, `describeActivity`, `clip`) and `styles/`. The levels' `index.ts`
+  export components only.
+
+  `styles/styles.css` imports `tokens.css`, `base.css`, the level stylesheets in that order, then `screens/screens.css` and `utilities.css` (layout
   helpers such as `.spread`, `.nowrap`, `.gap-1`, `.mt-2`, `.mb-5`, `.muted`, `.text-sm`, `.truncate`). Utilities load
   last so they override like the inline styles they replaced. Class names are part of the e2e tests' selectors: keep
   them when changing a component. Only data-driven inline styles are allowed (`Swatch`, `RichText` runs, the progress
