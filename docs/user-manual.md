@@ -25,6 +25,9 @@ Convert to PDF, Word and text are shown as **Coming soon**: they can't be used y
 last 10 files you opened and saved, with whether the saved file checked out. **Open again** opens the file dialog in
 that folder. The list is kept on this computer only; **Clear** empties it. The sidebar's **Home** link brings you back.
 
+**Theme:** use **Light**, **Dark** or **System** at the top of the window. System follows your computer's setting.
+FormaFlow remembers your choice.
+
 1. **Open file.** Drop an `.xlsx` file on the window, or click it to browse. A progress bar shows while the file is
    read; **Cancel** stops it.
 2. **Select sheets.** Sheets that contain HTML are ticked for you. Tick or untick sheets, then click **Analyse tags →**.

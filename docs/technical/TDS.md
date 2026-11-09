@@ -40,6 +40,11 @@ count opening tags per section, remembering the first cell and a sample for prev
 
 ## 3. Jobs, workers and progress (`@hf/desktop`)
 
+- **Theme** ([ADR 0014](../architecture/adr/0014-theme-preference.md)): `src/main/preferences.ts` (`parsePreferences`,
+  `isTheme`, `windowBackground`). On `whenReady` the saved theme is set as `nativeTheme.themeSource` before the window
+  is created; the window background follows `nativeTheme.shouldUseDarkColors` (also on `updated`). The window's CSS
+  needs nothing else: `tokens.css` switches on `prefers-color-scheme`, which follows `nativeTheme`. The header
+  (`organisms/AppHeader`) shows the choice from the store (`theme`, `setTheme`).
 - **Recent activity** ([ADR 0013](../architecture/adr/0013-recent-activity.md)): `src/main/activity.ts`
   (`parseActivity`, `addActivity`, `knownFolder`). Loaded once into memory; each change is written with
   `writeJsonSafely` in order. Recorded after `document:open` succeeds and after `document:export` finishes (with the

@@ -9,6 +9,8 @@ export function exposeApi(): void {
     openFileDialog: (startIn) => ipcRenderer.invoke('file:open', startIn),
     getActivity: () => ipcRenderer.invoke('activity:list'),
     clearActivity: () => ipcRenderer.invoke('activity:clear'),
+    getPreferences: () => ipcRenderer.invoke('preferences:get'),
+    setTheme: (theme) => ipcRenderer.invoke('preferences:setTheme', theme),
     describeDroppedFile: (file) => ipcRenderer.invoke('file:describe', webUtils.getPathForFile(file)),
     openDocument: (path) => ipcRenderer.invoke('document:open', path),
     getSectionPreview: (path, section) => ipcRenderer.invoke('document:preview', path, section),

@@ -22,7 +22,9 @@ export async function launchApp(reuseDir?: string): Promise<RunningApp> {
   const dir = reuseDir ?? mkdtempSync(join(tmpdir(), 'ehf-e2e-'))
   const app = await electron.launch({
     args: ['.', `--user-data-dir=${join(dir, 'user-data')}`],
-    cwd: resolve(__dirname, '..')
+    cwd: resolve(__dirname, '..'),
+    // No light/dark emulation: the app's own theme (Electron's nativeTheme) decides, as for users.
+    colorScheme: null
   })
   const window = await app.firstWindow()
   await window.waitForSelector('main h1')

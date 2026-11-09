@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { useApp } from '../../store'
-import { Sidebar } from '../organisms'
+import { AppHeader, Sidebar } from '../organisms'
 import { Icon } from '../atoms'
 
 const DOCUMENT_SCREENS = /^\/(sections|analysis|preview|check)(\/|\?|$)/
@@ -23,19 +23,22 @@ export function AppLayout() {
   return (
     <div className="app">
       <Sidebar />
-      <main>
-        {error && (
-          <div className="error" role="alert">
-            <span>
-              <Icon name="warning" /> {error}
-            </span>
-            <button onClick={() => setError(null)} aria-label="Dismiss">
-              <Icon name="close" />
-            </button>
-          </div>
-        )}
-        <Outlet />
-      </main>
+      <div className="main-col">
+        <AppHeader />
+        <main>
+          {error && (
+            <div className="error" role="alert">
+              <span>
+                <Icon name="warning" /> {error}
+              </span>
+              <button onClick={() => setError(null)} aria-label="Dismiss">
+                <Icon name="close" />
+              </button>
+            </div>
+          )}
+          <Outlet />
+        </main>
+      </div>
       {notice && (
         <div className="toast" role="status">
           {notice}

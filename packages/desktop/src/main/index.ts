@@ -1,5 +1,5 @@
 // @hf/desktop/main: the shared Electron main process. Each app calls startDesktopApp() once.
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme, shell } from 'electron'
 import type { Worker, WorkerOptions } from 'node:worker_threads'
 import { join, basename, dirname, extname, parse, resolve } from 'node:path'
 import { readFile, writeFile, stat, mkdir, rename, rm } from 'node:fs/promises'
@@ -16,6 +16,7 @@ import {
   type ExportStats,
   type ActivityEntry,
   type FormatInfo,
+  type Preferences,
   type JobKind,
   type JobProgress,
   type PickedFile
@@ -24,6 +25,7 @@ import { JobWorker } from './workerClient'
 import { reportText, sectionList, unreadableSave } from './ipcChecks'
 import { userDataPath } from './userData'
 import { addActivity, knownFolder, parseActivity } from './activity'
+import { isTheme, parsePreferences, windowBackground } from './preferences'
 
 export interface DesktopAppOptions {
   /** Names, file types and words for this format */
@@ -60,6 +62,11 @@ export function startDesktopApp(options: DesktopAppOptions): void {
   const extensions = format.fileTypes.flatMap((t) => t.extensions.map((e) => e.toLowerCase()))
   const configPath = () => join(app.getPath('userData'), 'config.json')
   const activityPath = () => join(app.getPath('userData'), 'activity.json')
+  const preferencesPath = () => join(app.getPath('userData'), 'preferences.json')
+  const loadPreferences = (): Promise<Preferences> =>
+    readFile(preferencesPath(), 'utf8')
+      .then((json) => parsePreferences(JSON.parse(json)))
+      .catch(() => parsePreferences(undefined))
 
   /*
    * Recent activity: read once, then kept in memory. Writes run one at a time, in order. A failure to
@@ -104,7 +111,7 @@ export function startDesktopApp(options: DesktopAppOptions): void {
       title: format.appName,
       icon: options.icon,
       autoHideMenuBar: true,
-      backgroundColor: '#f6f7f9',
+      backgroundColor: windowBackground(nativeTheme.shouldUseDarkColors),
       webPreferences: {
         preload: preloadPath,
         contextIsolation: true,
@@ -330,6 +337,15 @@ export function startDesktopApp(options: DesktopAppOptions): void {
   ipcMain.handle('activity:list', (): Promise<ActivityEntry[]> => loadActivity())
   ipcMain.handle('activity:clear', (): Promise<void> => updateActivity(() => []))
 
+  /* ---------- Window preferences (theme) ---------- */
+
+  ipcMain.handle('preferences:get', (): Promise<Preferences> => loadPreferences())
+  ipcMain.handle('preferences:setTheme', async (_e, theme: unknown): Promise<void> => {
+    if (!isTheme(theme)) throw new Error('Unknown theme.')
+    nativeTheme.themeSource = theme
+    await writeJsonSafely(preferencesPath(), { ...(await loadPreferences()), theme })
+  })
+
   /* ---------- Tag-style settings ---------- */
 
   ipcMain.handle('config:load', async (): Promise<AppConfig> => {
@@ -398,7 +414,14 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     exportJob?.worker.terminate('The app is closing.')
   })
 
-  app.whenReady().then(() => {
+  // The saved theme is applied before the window exists, so it opens in the right colours.
+  app.whenReady().then(async () => {
+    nativeTheme.themeSource = (await loadPreferences()).theme
+    // Keep the window background in step (seen while resizing, and before a reload paints).
+    nativeTheme.on('updated', () => {
+      for (const w of BrowserWindow.getAllWindows())
+        w.setBackgroundColor(windowBackground(nativeTheme.shouldUseDarkColors))
+    })
     createWindow()
     // macOS: re-open a window when the dock icon is clicked.
     app.on('activate', () => {

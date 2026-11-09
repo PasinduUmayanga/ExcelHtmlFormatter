@@ -253,6 +253,31 @@ test('Home lists recent activity, opens again in that folder, and Clear survives
   await expect(run.window.locator('.recent')).toContainText('Nothing yet')
 })
 
+test('the theme choice applies to the whole app and survives a restart', async () => {
+  const { app, window, dir } = run
+  const theme = window.getByRole('radiogroup', { name: 'Theme' })
+  await expect(theme.getByRole('radio', { name: 'System' })).toHaveAttribute('aria-checked', 'true')
+
+  await theme.getByRole('radio', { name: 'Dark' }).click()
+  await expect.poll(() => app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe('dark')
+  await expect.poll(() => window.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(true)
+
+  await app.close()
+  run = await launchApp(dir)
+  const again = run.window.getByRole('radiogroup', { name: 'Theme' })
+  await expect(again.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
+  expect(
+    await run.app.evaluate(({ nativeTheme }) => [nativeTheme.themeSource, nativeTheme.shouldUseDarkColors])
+  ).toEqual(['dark', true])
+  // The window was created in the dark background, so it never flashes white while loading.
+  expect(await run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBackgroundColor())).toBe(
+    '#11161D'
+  )
+
+  await again.getByRole('radio', { name: 'Light' }).click()
+  await expect.poll(() => run.window.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(false)
+})
+
 test('reloading a document screen goes back to Open (route guards)', async () => {
   const { window } = run
   await openWorkbook(run, SAMPLE)

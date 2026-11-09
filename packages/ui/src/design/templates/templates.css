@@ -4,6 +4,21 @@
   grid-template-columns: 230px 1fr;
   height: 100%;
 }
+/* The column right of the sidebar: the header bar, then the scrolling screen. */
+.main-col {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 32px;
+  border-bottom: 1px solid var(--line);
+}
 main {
   padding: 28px 32px;
   overflow: auto;

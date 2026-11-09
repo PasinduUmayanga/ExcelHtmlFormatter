@@ -1,7 +1,7 @@
 /* Atoms: Button, Badge (.chip), TagName (.tag), Swatch, Spinner. */
 .btn {
   font: inherit;
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   background: var(--bg);
   color: var(--text);
   padding: 7px 14px;
@@ -14,7 +14,7 @@
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 .btn:disabled {
   opacity: 0.45;

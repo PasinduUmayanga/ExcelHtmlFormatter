@@ -29,6 +29,13 @@ The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
 **Acceptance:** e2e "starts on Home…" and "Home lists recent activity…"; unit `ui/tests/dashboard.test.tsx`,
 `desktop/tests/activity.test.ts`.
 
+## F0b. Header and theme (FR-27)
+
+A header bar above every screen holds **Theme: Light / Dark / System** (a radio group). System follows the operating
+system live. The choice applies at once to the window, dialogs and menus, is remembered, and the next start opens in
+it ([ADR 0014](../architecture/adr/0014-theme-preference.md)). **Acceptance:** e2e "the theme choice applies…";
+unit `ui/tests/theme.test.ts`, `ui/tests/tokens.test.ts` (contrast), `desktop/tests/preferences.test.ts`.
+
 ## F1. Open file (FR-01, FR-02, FR-09)
 
 - Click the drop area for the Open dialog (filtered to `.xlsx`), or drop a file on it.

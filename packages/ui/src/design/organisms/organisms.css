@@ -64,7 +64,7 @@ aside {
 .nav.done .num {
   background: var(--ok);
   border-color: var(--ok);
-  color: #fff;
+  color: var(--on-ok);
 }
 .side-foot {
   margin-top: auto;
@@ -120,7 +120,7 @@ aside {
   flex-wrap: wrap;
 }
 .tg {
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   background: var(--bg);
   color: var(--text);
   min-width: 38px;
@@ -146,12 +146,12 @@ aside {
 .tg.on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 input[type='color'] {
   width: 44px;
   height: 32px;
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 2px;
   background: var(--bg);

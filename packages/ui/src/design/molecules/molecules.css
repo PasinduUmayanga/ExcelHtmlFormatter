@@ -96,7 +96,7 @@
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   overflow: hidden;
 }

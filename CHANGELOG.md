@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Theme:** Light, Dark or System from a new header bar; applied to the window, dialogs and menus, remembered, and
+  no white flash when a dark window opens (ADR 0014).
 - **Home** screen (the new start screen): open a file or continue with the open one, planned conversions to PDF, Word
   and text shown as "Coming soon", Tag styles, and **Recent activity** (last 10 opens and saves with the saved file's
   check result, Open again, Clear). Activity is recorded by the main process and stored on this computer (ADR 0013).
@@ -22,6 +24,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Colours meet WCAG 2.2 AA in both themes: darker hint text, green and amber text, stronger outlines on inputs,
+  buttons and toggles, and dark text on blue and green in dark mode. A unit test checks every pair.
 - Renamed the app to **FormaFlow** (window, sidebar with a tagline, installers, shortcuts, documentation). Settings stay
   in the existing "Excel HTML Formatter" folder and the installer upgrades the old app (ADR 0012).
 - The window's code is organised by Atomic Design (ADR 0011): design tokens, atoms, molecules, organisms and templates
