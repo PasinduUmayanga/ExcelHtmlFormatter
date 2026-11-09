@@ -19,6 +19,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Renamed the app to **FormaFlow** (window, sidebar with a tagline, installers, shortcuts, documentation). Settings stay
+  in the existing "Excel HTML Formatter" folder and the installer upgrades the old app (ADR 0012).
 - The window's code is organised by Atomic Design (ADR 0011): design tokens, atoms, molecules, organisms and templates
   in `packages/ui/src/design/`, screens built on `ScreenTemplate`, no fixed inline styles, and component tests
   (`@hf/ui` coverage floors raised). Nothing users see changed.

@@ -18,7 +18,11 @@ test.afterEach(async () => {
 const hash = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex')
 
 test('starts on Open with the document steps locked', async () => {
-  const { window } = run
+  const { app, window, dir } = run
+  await expect(window).toHaveTitle('FormaFlow')
+  await expect(window.locator('.brand')).toContainText('FormaFlow')
+  // The test's own settings folder wins over the kept "Excel HTML Formatter" folder.
+  expect(await app.evaluate(({ app }) => app.getPath('userData'))).toBe(join(dir, 'user-data'))
   await expect(screenTitle(window)).toHaveText('Open an Excel file')
   await expect(window).toHaveURL(/#\/open$/)
   for (const step of ['Select sheets', 'Tag analysis', 'Preview & export']) {

@@ -1,6 +1,6 @@
 ---
 name: add-format
-description: Add support for a new file format to the HTML Formatter monorepo — a new FormatAdapter package plus a thin app (e.g. Word → Word), or later a reader/writer for exporting to PDF/DOCX/TXT/HTML/Markdown. Use whenever a task mentions a new file type, export format or conversion.
+description: Add support for a new file format to the FormaFlow monorepo — a new FormatAdapter package plus a thin app (e.g. Word → Word), or later a reader/writer for exporting to PDF/DOCX/TXT/HTML/Markdown. Use whenever a task mentions a new file type, export format or conversion.
 ---
 
 # Add a file format

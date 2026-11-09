@@ -3,7 +3,9 @@
 Last reviewed: 2026-11-09. There is no database. The app stores exactly one file per app: the tag styles.
 
 - **Location:** `<Electron userData>/config.json`. On Windows: `%APPDATA%\Excel HTML Formatter\config.json`. On macOS:
-  `~/Library/Application Support/Excel HTML Formatter/config.json`.
+  `~/Library/Application Support/Excel HTML Formatter/config.json`. The folder keeps the product's earlier name
+  (`userDataFolder` in `startDesktopApp`), so settings carry over after the rename to FormaFlow
+  ([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).
 - **Written by:** `config:save` (every change in Tag styles, queued so only the latest is written) and `config:import`.
 - **Write method:** `config.json.tmp` then rename (a crash can't leave half a file).
 - **Validation:** `validateConfig()` in `packages/core/src/validateConfig.ts` runs on load, save, import and export.

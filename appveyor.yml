@@ -1,4 +1,4 @@
-# AppVeyor CI for the HTML Formatter monorepo (Windows).
+# AppVeyor CI for the FormaFlow monorepo (Windows).
 #
 # Runs the full test plan from docs/testing-strategy.md:
 #   lint -> format check -> type-check -> build -> unit tests + coverage -> end-to-end (real Electron app) -> installers

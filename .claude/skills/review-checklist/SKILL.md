@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: Project-specific review checklist (architecture, security, tests, docs) for changes to the HTML Formatter monorepo. Use when reviewing a diff, branch or pull request, together with the built-in /code-review and /security-review.
+description: Project-specific review checklist (architecture, security, tests, docs) for changes to the FormaFlow monorepo. Use when reviewing a diff, branch or pull request, together with the built-in /code-review and /security-review.
 ---
 
 # Review checklist

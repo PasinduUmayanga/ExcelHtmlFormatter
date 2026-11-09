@@ -1,15 +1,16 @@
-# User Manual — Excel HTML Formatter
+# User Manual — FormaFlow
 
 Last reviewed: 2026-11-09
 
-Excel HTML Formatter turns HTML tags inside Excel cells into real formatting. For example, a cell containing
+FormaFlow (called Excel HTML Formatter before 2026-11-09) turns HTML tags inside Excel cells into real formatting. For example, a cell containing
 `<b>my name</b> is <i>pasindu</i>` becomes "**my name** is _pasindu_". Your original file is never changed: the app
 always saves a new copy.
 
 ## Installing
 
-- **Windows:** run `Excel-HTML-Formatter-Setup-<version>.exe` (installs for your user only, no admin rights), or run
-  `Excel-HTML-Formatter-<version>-portable.exe` from any folder without installing.
+- **Windows:** run `FormaFlow-Setup-<version>.exe` (installs for your user only, no admin rights), or run
+  `FormaFlow-<version>-portable.exe` from any folder without installing. Installing FormaFlow over Excel HTML Formatter
+  upgrades it and keeps your tag styles.
 - **macOS:** open the `.dmg` and drag the app to Applications.
 
 The app isn't code-signed yet, so the first launch shows a warning:

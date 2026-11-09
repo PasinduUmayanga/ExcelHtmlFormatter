@@ -21,6 +21,7 @@ import {
 } from '@hf/core'
 import { JobWorker } from './workerClient'
 import { reportText, sectionList, unreadableSave } from './ipcChecks'
+import { userDataPath } from './userData'
 
 export interface DesktopAppOptions {
   /** Names, file types and words for this format */
@@ -32,6 +33,11 @@ export interface DesktopAppOptions {
   createWorker: (options: WorkerOptions) => Worker
   /** Window icon for Windows/Linux (macOS uses the .icns in the app bundle) */
   icon?: string
+  /**
+   * Settings folder name inside the system's app-data folder, when it differs from the product name
+   * (e.g. the name before a rename). Leave out to use Electron's default.
+   */
+  userDataFolder?: string
   /** Built preload and window files, relative to the built main.js (defaults match electron-vite) */
   preloadPath?: string
   rendererHtmlPath?: string
@@ -40,6 +46,13 @@ export interface DesktopAppOptions {
 /** Starts the app: one window, the IPC API from @hf/desktop/preload, and background workers. */
 export function startDesktopApp(options: DesktopAppOptions): void {
   const { format } = options
+  // Must happen before the app is ready, before anything reads or writes the settings folder.
+  const settingsFolder = userDataPath(
+    app.getPath('appData'),
+    options.userDataFolder,
+    app.commandLine.hasSwitch('user-data-dir')
+  )
+  if (settingsFolder) app.setPath('userData', settingsFolder)
   const preloadPath = options.preloadPath ?? join(__dirname, '../preload/preload.js')
   const rendererHtmlPath = options.rendererHtmlPath ?? join(__dirname, '../renderer/index.html')
   const extensions = format.fileTypes.flatMap((t) => t.extensions.map((e) => e.toLowerCase()))

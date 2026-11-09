@@ -45,7 +45,10 @@ export function Sidebar() {
 
   return (
     <aside>
-      <div className="brand">{format.appName}</div>
+      <div className="brand">
+        {format.appName}
+        {format.tagline && <div className="brand-tagline">{format.tagline}</div>}
+      </div>
       <div className="navlabel">Workflow</div>
       {step('open', 0, 'Open file', (c, cls) => (
         <Link key="open" to="/open" className={cls}>

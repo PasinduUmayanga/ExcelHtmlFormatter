@@ -1,4 +1,4 @@
-# HTML Formatter
+# FormaFlow
 
 [![Build status](https://ci.appveyor.com/api/projects/status/eujqqr0dl6v4fh3p?svg=true)](https://ci.appveyor.com/project/Mahadenamuththa/excelhtmlformatter)
 ![Node.js](https://img.shields.io/badge/Node.js-26_LTS-5FA04E?logo=nodedotjs&logoColor=white)
@@ -14,7 +14,8 @@
 
 Desktop apps for Windows and macOS that turn HTML tags inside documents, such as `<b>my name</b> is <i>pasindu</i>`,
 into real formatting. Each file format gets its own app, built from shared packages. Today there is one app:
-**Excel HTML Formatter** ([apps/excel-formatter](apps/excel-formatter/README.md)).
+**FormaFlow** for Excel ([apps/excel-formatter](apps/excel-formatter/README.md)). FormaFlow was called "Excel HTML
+Formatter" before 2026-11-09.
 
 > Badge versions are taken from `pnpm-lock.yaml`. CI status badges will be added once the repository has a CI remote.
 

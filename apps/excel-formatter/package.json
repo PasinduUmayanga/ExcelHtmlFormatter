@@ -1,6 +1,6 @@
 {
   "name": "excel-formatter",
-  "productName": "Excel HTML Formatter",
+  "productName": "FormaFlow",
   "version": "0.1.0",
   "description": "Convert HTML tags inside Excel cells into real rich-text formatting",
   "author": "Pasindu",

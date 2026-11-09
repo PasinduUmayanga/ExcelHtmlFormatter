@@ -7,7 +7,7 @@ Last reviewed: 2026-11-09 · Authoritative for **what** the product must do. Beh
 
 Users receive spreadsheets (and later other documents) whose text contains HTML tags, e.g.
 `<b>my name</b> is <i>pasindu</i>`. The product turns those tags into real formatting in a **new** file, with styles
-the user chooses per tag. Scope today: `.xlsx` → `.xlsx` (Excel HTML Formatter). Planned: export/conversion to PDF,
+the user chooses per tag. Scope today: `.xlsx` → `.xlsx` (FormaFlow for Excel). Planned: export/conversion to PDF,
 DOCX, TXT, HTML and Markdown ([roadmap](../roadmap.md)).
 
 **Users:** office users preparing documents. They need no technical knowledge.

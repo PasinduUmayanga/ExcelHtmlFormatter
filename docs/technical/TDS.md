@@ -40,6 +40,10 @@ count opening tags per section, remembering the first cell and a sample for prev
 
 ## 3. Jobs, workers and progress (`@hf/desktop`)
 
+- **Settings folder:** `startDesktopApp({ userDataFolder })` sets `userData` to that folder inside the system's
+  app-data folder before the app is ready (`userDataPath()` in `src/main/userData.ts`), unless `--user-data-dir` was
+  given. The Excel app passes `'Excel HTML Formatter'` ([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).
+
 - `JobWorker` wraps one `worker_threads.Worker` (heap limit 4 GB). `request()` returns a promise per message id;
   `terminate(reason)` rejects everything pending with `reason` (default `CANCELLED_MESSAGE`).
 - **Session worker:** created by `document:open`; replaced when another file is opened; keeps the document for previews.

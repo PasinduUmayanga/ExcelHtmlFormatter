@@ -47,7 +47,8 @@ use `throttle()` from `@hf/core` for frequent updates.
 
 ## `FormatInfo`
 
-Plain data, safe in every context: `id`, `appName`, `fileTypes`, `outputSuffix`, `outputExtension`, the words for
+Plain data, safe in every context: `id`, `appName`, optional `tagline` (shown under the name in the sidebar,
+[ADR 0012](../architecture/adr/0012-formaflow-product-name.md)), `fileTypes`, `outputSuffix`, `outputExtension`, the words for
 `section` and `unit` (singular/plural), and screen texts (`openTitle`, `openHint`, `dropHint`, `lineBreakNote`,
 `saveNote`).
 

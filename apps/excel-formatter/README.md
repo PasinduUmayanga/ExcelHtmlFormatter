@@ -1,6 +1,6 @@
-# Excel HTML Formatter
+# FormaFlow (Excel)
 
-Converts HTML tags inside Excel cells, such as `<b>my name</b> is <i>pasindu</i>`, into real Excel rich-text formatting. Part of the HTML Formatter monorepo: see the [root README](../../README.md) for setup, commands and structure.
+Converts HTML tags inside Excel cells, such as `<b>my name</b> is <i>pasindu</i>`, into real Excel rich-text formatting. Part of the FormaFlow monorepo: see the [root README](../../README.md) for setup, commands and structure.
 
 ## What it does
 
@@ -41,8 +41,8 @@ build/icon.svg / .png    app icon (pnpm --filter excel-formatter icon re-renders
 
 `pnpm dist:excel` from the repo root. It produces:
 
-- **On Windows:** `dist/Excel-HTML-Formatter-Setup-<version>.exe` and `dist/Excel-HTML-Formatter-<version>-portable.exe`
-- **On a Mac:** `dist/Excel-HTML-Formatter-<version>-mac-universal.dmg`
+- **On Windows:** `dist/FormaFlow-Setup-<version>.exe` and `dist/FormaFlow-<version>-portable.exe`
+- **On a Mac:** `dist/FormaFlow-<version>-mac-universal.dmg`
 
 **First-launch warnings (the apps are not code-signed yet):**
 
@@ -51,4 +51,4 @@ build/icon.svg / .png    app icon (pnpm --filter excel-formatter icon re-renders
 
 **Long folder paths on Windows:** the installer builder (NSIS) can't read paths over 260 characters. Keep the repo in a short folder.
 
-Settings are saved to `%APPDATA%\Excel HTML Formatter\config.json` on Windows.
+Settings are saved to `%APPDATA%\Excel HTML Formatter\config.json` on Windows. The settings folder keeps its earlier name, so saved tag styles carry over after the rename to FormaFlow. ([ADR 0012](../../docs/architecture/adr/0012-formaflow-product-name.md))

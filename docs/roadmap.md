@@ -56,6 +56,22 @@ P5-T1 (AppVeyor part) requested by the Tech Lead on 2026-11-09: `appveyor.yml` a
 P5-T1 CI decision; `appveyor.yml` and/or verify GitHub Actions on a remote · P5-T2 release process (versioning,
 GitHub Releases, signing secrets) · P5-T3 security in CI (`pnpm audit`, Electron fuses, dependency review).
 
+## FormaFlow programme (plan approved 2026-11-09) 🔄
+
+Rebranding and UX work, one approval per phase. Decisions B1–B10 were approved with the plan.
+
+| Phase | Work                                                             | Status                                                         |
+| ----- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| FF-1  | Architecture analysis and plan                                   | ✅                                                             |
+| FF-2  | Rebranding (name only; `appId`, APIs and settings folder kept)   | ✅ [ADR 0012](architecture/adr/0012-formaflow-product-name.md) |
+| FF-3  | Dashboard (format cards, "Coming soon" export actions, activity) | 📝                                                             |
+| FF-4  | Light/Dark/System theme, saved preference, contrast fixes        | 📝                                                             |
+| FF-5  | Help Center (from the Markdown docs, searchable)                 | 📝                                                             |
+| FF-6  | Logo concepts, choice and integration                            | 📝                                                             |
+| FF-7  | Startup loading screen with error and retry                      | 📝                                                             |
+| FF-8  | Pre-export review (always), Passed/Warnings/Failed, structure    | 📝                                                             |
+| FF-9  | Final testing, documentation and regression                      | 📝                                                             |
+
 ## Decisions pending approval
 
 | #   | Decision                                                                              | Recommendation                                                             |

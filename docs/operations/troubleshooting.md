@@ -29,4 +29,5 @@ Last reviewed: 2026-11-09. End-user problems are also in the [user manual](../us
 | Window frozen or blank                | Renderer crash                                                                 | A dialog offers Reload; settings are kept. Report with the app version |
 
 Settings file location: Windows `%APPDATA%\Excel HTML Formatter\config.json`; macOS
-`~/Library/Application Support/Excel HTML Formatter/config.json`.
+`~/Library/Application Support/Excel HTML Formatter/config.json`. The folder keeps FormaFlow's earlier name on purpose,
+so saved tag styles carry over ([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).

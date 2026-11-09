@@ -1,6 +1,6 @@
 ---
 name: docs-sync
-description: Keep the HTML Formatter documentation, agent instructions and roadmap in sync with a code change. Use at the end of every change, and when asked to update or review documentation.
+description: Keep the FormaFlow documentation, agent instructions and roadmap in sync with a code change. Use at the end of every change, and when asked to update or review documentation.
 ---
 
 # Keep the docs in sync

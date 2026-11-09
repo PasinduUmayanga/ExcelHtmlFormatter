@@ -1,6 +1,6 @@
 ---
 name: verify-release
-description: Full verification of the HTML Formatter monorepo before merging or releasing — checks, coverage, end-to-end tests, build, packaging and package contents. Use before a merge to main, a version tag, or when asked to "verify", "validate" or "check everything".
+description: Full verification of the FormaFlow monorepo before merging or releasing — checks, coverage, end-to-end tests, build, packaging and package contents. Use before a merge to main, a version tag, or when asked to "verify", "validate" or "check everything".
 ---
 
 # Verify before merge or release
