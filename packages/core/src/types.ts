@@ -124,6 +124,14 @@ export interface ActivityEntry {
   differences?: number
 }
 
+/** Light, dark, or follow the operating system. */
+export type ThemeChoice = 'system' | 'light' | 'dark'
+
+/** Window preferences, stored apart from the tag styles (they are not part of an exported style profile). */
+export interface Preferences {
+  theme: ThemeChoice
+}
+
 /**
  * The API the preload script exposes to the UI as `window.api`. The same for every format;
  * only the preview data is format-specific (`unknown` here, typed by each app).
@@ -138,6 +146,10 @@ export interface ElectronApi {
   getActivity(): Promise<ActivityEntry[]>
   /** Empties the recent actions list. */
   clearActivity(): Promise<void>
+  /** The saved window preferences (the theme). */
+  getPreferences(): Promise<Preferences>
+  /** Applies a theme to the whole app (window, dialogs, menus) and saves it. Rejects anything else. */
+  setTheme(theme: ThemeChoice): Promise<void>
   /** For drag-and-drop: turns a dropped File into a PickedFile (rejects unsupported file types). */
   describeDroppedFile(file: File): Promise<PickedFile>
   /** Reads a file picked above and scans every section for HTML tags. */

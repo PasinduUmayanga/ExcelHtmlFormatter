@@ -44,5 +44,5 @@ pnpm check && pnpm test:e2e
 
 ## 4. Docs (same change)
 
-FDS (behaviour + acceptance), SRS if requirements changed, user manual (if users see it), SAD §4 route table,
+FDS (behaviour + acceptance), SRS if requirements changed, Help topics in `apps/<app>/help/` (if users see it), SAD §4 route table,
 contracts (if IPC changed), README features (if notable), CHANGELOG, roadmap status. Run the `docs-sync` skill.

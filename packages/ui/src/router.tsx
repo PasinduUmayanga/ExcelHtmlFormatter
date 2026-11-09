@@ -8,9 +8,12 @@ import {
   type RouterHistory
 } from '@tanstack/react-router'
 import type { ConvertOptions, FormatInfo } from '@hf/core'
+import type { HelpSource } from './help/search'
 import { canVisit, useApp } from './store'
 import { AppLayout } from './design/templates'
 import { Dashboard } from './screens/Dashboard'
+import { Help } from './screens/Help'
+import { HelpTopic } from './screens/HelpTopic'
 import { OpenFile } from './screens/OpenFile'
 import { SelectSections } from './screens/SelectSections'
 import { TagAnalysis } from './screens/TagAnalysis'
@@ -32,6 +35,8 @@ export interface PreviewProps {
 export interface FormatterAppConfig {
   format: FormatInfo
   Preview: ComponentType<PreviewProps>
+  /** Help Center topics, in order (Markdown, ADR 0015). Leave out for no topics. */
+  help?: readonly HelpSource[]
 }
 
 const AppConfigContext = createContext<FormatterAppConfig | null>(null)
@@ -67,13 +72,23 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
   // Home (the start screen): start or continue, coming features, tools and recent activity.
   const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Dashboard })
 
-  const openRoute = createRoute({ getParentRoute: () => rootRoute, path: '/open', component: OpenFile })
+  // The workflow is unlocked from Home; while it is locked its screens send the user there.
+  const start = () => (useApp.getState().workflowActive ? '/open' : '/')
+
+  const openRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/open',
+    beforeLoad: () => {
+      if (!useApp.getState().workflowActive) throw redirect({ to: '/' })
+    },
+    component: OpenFile
+  })
 
   const sectionsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/sections',
     beforeLoad: () => {
-      if (!canVisit(useApp.getState(), 'sections')) throw redirect({ to: '/open' })
+      if (!canVisit(useApp.getState(), 'sections')) throw redirect({ to: start() })
     },
     component: SelectSections
   })
@@ -81,7 +96,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
   /** Shared guard for the two per-section screens. */
   function guardSection(section: string, screen: 'analysis' | 'preview') {
     const state = useApp.getState()
-    if (!canVisit(state, 'sections')) throw redirect({ to: '/open' })
+    if (!canVisit(state, 'sections')) throw redirect({ to: start() })
     if (!canVisit(state, screen)) throw redirect({ to: '/sections' })
     if (!state.selected.includes(section)) {
       const first = state.selected[0]
@@ -120,7 +135,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     }),
     beforeLoad: ({ params, search }) => {
       const state = useApp.getState()
-      if (!canVisit(state, 'sections')) throw redirect({ to: '/open' })
+      if (!canVisit(state, 'sections')) throw redirect({ to: start() })
       if (!canVisit(state, 'preview')) throw redirect({ to: '/sections' })
       const known = state.doc!.sections.some((s) => s.name === params.section)
       // The saved-file view needs a saved file; the content check needs a selected section.
@@ -143,6 +158,27 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     component: TagStyles
   })
 
+  const helpRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/help',
+    // Always return every key: TanStack keeps the raw value of any key left out.
+    validateSearch: (search: { q?: unknown }): { q?: string } => ({
+      q: typeof search.q === 'string' && search.q.length <= 200 ? search.q : undefined
+    }),
+    component: Help
+  })
+
+  const helpTopicRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/help/$topic',
+    // Always return every key. `section` is a heading anchor (letters, digits, hyphens).
+    validateSearch: (search: { section?: unknown }): { section?: string } => ({
+      section:
+        typeof search.section === 'string' && /^[a-z0-9-]{1,80}$/.test(search.section) ? search.section : undefined
+    }),
+    component: HelpTopic
+  })
+
   const routeTree = rootRoute.addChildren([
     indexRoute,
     openRoute,
@@ -150,7 +186,9 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     analysisRoute,
     previewRoute,
     checkRoute,
-    settingsRoute
+    settingsRoute,
+    helpRoute,
+    helpTopicRoute
   ])
   return createRouter({ routeTree, history: options.history ?? createHashHistory() })
 }

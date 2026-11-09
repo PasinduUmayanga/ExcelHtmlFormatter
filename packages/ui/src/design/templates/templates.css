@@ -4,6 +4,21 @@
   grid-template-columns: 230px 1fr;
   height: 100%;
 }
+/* The column right of the sidebar: the header bar, then the scrolling screen. */
+.main-col {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 32px;
+  border-bottom: 1px solid var(--line);
+}
 main {
   padding: 28px 32px;
   overflow: auto;
@@ -43,4 +58,34 @@ main {
   border-radius: var(--radius);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
   z-index: 10;
+}
+/* Startup: the same look as the static screen in the app's index.html */
+.startup {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  background: var(--side);
+}
+.startup-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  width: min(360px, 90vw);
+  text-align: center;
+}
+.startup-card p {
+  margin: 0;
+}
+.startup-name {
+  font-size: 22px;
+  font-weight: 600;
+}
+.startup .bar {
+  width: 200px;
+  margin-top: 0;
+}
+.startup-error {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
 }

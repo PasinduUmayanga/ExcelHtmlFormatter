@@ -86,6 +86,11 @@ source (`exports` → `src/…`); there's no build step per package.
 5. Tests: unit tests for the logic, a router test for guards, an e2e step if it changes the main flow.
 6. Docs: FDS (behaviour), user manual (if users see it), plus the `docs-sync` skill checklist.
 
+**Help text** is Markdown in `apps/<app>/help/*.md` (one file per topic, `# Title` then a one-line summary), listed
+in `src/renderer/help.ts`. Only headings, paragraphs, lists, bold, italic, code and links between topics
+(`other-topic.md#section`) are supported ([ADR 0015](architecture/adr/0015-help-center-markdown.md)). When a feature
+changes, update the help in the same change.
+
 **Where UI code goes (Atomic Design, [ADR 0011](architecture/adr/0011-atomic-design-in-ui.md)):** reuse what is in
 `packages/ui/src/design/` before writing markup. A new piece goes to the lowest level that fits: an element with no
 parts (`atoms/`), a few atoms working together (`molecules/`), a section that knows the store or the router

@@ -40,11 +40,30 @@ count opening tags per section, remembering the first cell and a sample for prev
 
 ## 3. Jobs, workers and progress (`@hf/desktop`)
 
+- **Help Center** ([ADR 0015](../architecture/adr/0015-help-center-markdown.md)): topics come from the app
+  (`FormatterAppConfig.help`, e.g. `apps/excel-formatter/src/renderer/help.ts` importing `help/*.md?raw`).
+  `src/help/markdown.ts` parses to blocks and inlines; `src/help/search.ts` splits topics into sections at `##`
+  headings and ranks matches (words in titles and headings count 3, in text 1; every word must appear);
+  `useHelp()` parses once per app. Screens `Help` (`#/help?q=`) and `HelpTopic` (`#/help/$topic?section=`); the
+  `Markdown` molecule draws blocks and hands Help links to the screen. Headings get anchors (`slug`).
+- **Theme** ([ADR 0014](../architecture/adr/0014-theme-preference.md)): `src/main/preferences.ts` (`parsePreferences`,
+  `isTheme`, `windowBackground`). On `whenReady` the saved theme is set as `nativeTheme.themeSource` before the window
+  is created; the window background follows `nativeTheme.shouldUseDarkColors` (also on `updated`). The window's CSS
+  needs nothing else: `tokens.css` switches on `prefers-color-scheme`, which follows `nativeTheme`. The header
+  (`organisms/AppHeader`) shows the choice from the store (`theme`, `setTheme`).
 - **Recent activity** ([ADR 0013](../architecture/adr/0013-recent-activity.md)): `src/main/activity.ts`
   (`parseActivity`, `addActivity`, `knownFolder`). Loaded once into memory; each change is written with
   `writeJsonSafely` in order. Recorded after `document:open` succeeds and after `document:export` finishes (with the
   verification result). The UI reloads it after an open or a save (`loadActivity`) and remembers the last document
   screen (`lastStep`, set by `AppLayout`) for Home's Continue.
+- **Startup (FR-30):** `apps/excel-formatter/index.html` contains a static startup screen inside `#root` (inline styles
+  and the mark; no script), replaced when React renders. The store's `startup` (`loading` / `ready` / `failed`) is set
+  by `retryStartup()` (settings and app info; activity and theme load after, without failing start-up); `AppLayout`
+  shows `templates/StartupScreen` until it is `ready`. `init()` registers the job-progress listener only once.
+- **Workflow lock (FR-29):** store `workflowActive` (set by `startWorkflow()` from Home, cleared by a clean save in
+  `exportDocument`, which returns `'completed'` and moves the result to `lastSaved`). `canVisit` requires it; the
+  router's guards send locked screens (including `#/open`) to `/`. A save with known issues or differences returns
+  `'saved'` and keeps the document open.
 - **Settings folder:** `startDesktopApp({ userDataFolder })` sets `userData` to that folder inside the system's
   app-data folder before the app is ready (`userDataPath()` in `src/main/userData.ts`), unless `--user-data-dir` was
   given. The Excel app passes `'Excel HTML Formatter'` ([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).

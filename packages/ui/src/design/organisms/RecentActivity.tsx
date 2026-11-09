@@ -33,9 +33,10 @@ export function formatWhen(iso: string, now = new Date()): string {
 /** The Home screen's list of recent opens and saves, with "Open again" and "Clear". */
 export function RecentActivity() {
   const { format } = useFormatterApp()
-  const { activity, browseForFile, clearActivity, loading } = useApp()
+  const { activity, browseForFile, clearActivity, loading, startWorkflow } = useApp()
   const navigate = useNavigate()
   const openFrom = async (folder: string) => {
+    startWorkflow()
     if (await browseForFile(folder)) navigate({ to: '/sections' })
   }
 

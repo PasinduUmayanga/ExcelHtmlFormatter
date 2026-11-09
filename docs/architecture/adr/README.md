@@ -14,19 +14,21 @@ An ADR records one important decision: the context, what was decided, and what f
 
 ## Index
 
-| #                                                   | Decision                                                       | Status   |
-| --------------------------------------------------- | -------------------------------------------------------------- | -------- |
-| [0001](0001-monorepo-pnpm-turborepo.md)             | Monorepo with pnpm workspaces and Turborepo                    | Accepted |
-| [0002](0002-tanstack-router-hash-history.md)        | TanStack Router with hash history                              | Accepted |
-| [0003](0003-worker-threads-for-file-work.md)        | All file work in worker threads, with Cancel                   | Accepted |
-| [0004](0004-own-html-tokenizer.md)                  | Own HTML tokenizer instead of a DOM parser                     | Accepted |
-| [0005](0005-exceljs-for-xlsx.md)                    | ExcelJS for reading and writing .xlsx                          | Accepted |
-| [0006](0006-format-adapter-and-composition-root.md) | `FormatAdapter` contract; apps as composition roots            | Accepted |
-| [0007](0007-lint-tooling-package.md)                | ESLint + Prettier in their own package (TypeScript 6 for lint) | Accepted |
-| [0008](0008-playwright-electron-e2e.md)             | Playwright for end-to-end tests of the Electron app            | Accepted |
-| [0011](0011-atomic-design-in-ui.md)                 | Atomic Design inside `@hf/ui` (not a separate package)         | Accepted |
-| [0012](0012-formaflow-product-name.md)              | Product name FormaFlow; `appId` and settings folder unchanged  | Accepted |
-| [0013](0013-recent-activity.md)                     | Recent activity recorded by the main process; read/clear only  | Accepted |
+| #                                                   | Decision                                                           | Status   |
+| --------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| [0001](0001-monorepo-pnpm-turborepo.md)             | Monorepo with pnpm workspaces and Turborepo                        | Accepted |
+| [0002](0002-tanstack-router-hash-history.md)        | TanStack Router with hash history                                  | Accepted |
+| [0003](0003-worker-threads-for-file-work.md)        | All file work in worker threads, with Cancel                       | Accepted |
+| [0004](0004-own-html-tokenizer.md)                  | Own HTML tokenizer instead of a DOM parser                         | Accepted |
+| [0005](0005-exceljs-for-xlsx.md)                    | ExcelJS for reading and writing .xlsx                              | Accepted |
+| [0006](0006-format-adapter-and-composition-root.md) | `FormatAdapter` contract; apps as composition roots                | Accepted |
+| [0007](0007-lint-tooling-package.md)                | ESLint + Prettier in their own package (TypeScript 6 for lint)     | Accepted |
+| [0008](0008-playwright-electron-e2e.md)             | Playwright for end-to-end tests of the Electron app                | Accepted |
+| [0011](0011-atomic-design-in-ui.md)                 | Atomic Design inside `@hf/ui` (not a separate package)             | Accepted |
+| [0012](0012-formaflow-product-name.md)              | Product name FormaFlow; `appId` and settings folder unchanged      | Accepted |
+| [0013](0013-recent-activity.md)                     | Recent activity recorded by the main process; read/clear only      | Accepted |
+| [0014](0014-theme-preference.md)                    | Theme chosen in the app, applied by the main process (nativeTheme) | Accepted |
+| [0015](0015-help-center-markdown.md)                | Help Center from Markdown in the app, rendered without HTML        | Accepted |
 
 0009 and 0010 are reserved for the content-model and link-policy decisions of the F2 formatting work (to be written).
 

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, useParams, useRouterState } from '@tanstack/react-router'
 import { canVisit, useApp } from '../../store'
 import { useFormatterApp } from '../../router'
-import { Icon } from '../atoms'
+import { Icon, Logo } from '../atoms'
 
 type Step = 'open' | 'sections' | 'analysis' | 'preview'
 const ORDER: Step[] = ['open', 'sections', 'analysis', 'preview']
@@ -29,7 +29,8 @@ export function Sidebar() {
 
   const step = (id: Step, i: number, label: string, link: (children: ReactNode, className: string) => ReactNode) => {
     const done = currentIndex > i
-    const enabled = id === 'open' || canVisit(state, id)
+    // Locked until the workflow is started from Home (and again after a clean save).
+    const enabled = id === 'open' ? state.workflowActive : canVisit(state, id)
     const className = `nav ${current === id ? 'active' : ''} ${done ? 'done' : ''}`
     const children = (
       <>
@@ -49,8 +50,11 @@ export function Sidebar() {
   return (
     <aside>
       <div className="brand">
-        {format.appName}
-        {format.tagline && <div className="brand-tagline">{format.tagline}</div>}
+        <Logo />
+        <div>
+          {format.appName}
+          {format.tagline && <div className="brand-tagline">{format.tagline}</div>}
+        </div>
       </div>
       <Link to="/" className={`nav ${current === 'home' ? 'active' : ''}`}>
         <span className="num">

@@ -22,7 +22,9 @@ export async function launchApp(reuseDir?: string): Promise<RunningApp> {
   const dir = reuseDir ?? mkdtempSync(join(tmpdir(), 'ehf-e2e-'))
   const app = await electron.launch({
     args: ['.', `--user-data-dir=${join(dir, 'user-data')}`],
-    cwd: resolve(__dirname, '..')
+    cwd: resolve(__dirname, '..'),
+    // No light/dark emulation: the app's own theme (Electron's nativeTheme) decides, as for users.
+    colorScheme: null
   })
   const window = await app.firstWindow()
   await window.waitForSelector('main h1')
@@ -43,13 +45,21 @@ export async function answerSaveDialog(app: ElectronApplication, path: string): 
   }, path)
 }
 
-/** Opens a workbook from Home ("Choose a file…") and waits for the sheet list. */
+/**
+ * Opens a workbook the way users do: Home's "Choose a file →" (which unlocks the workflow), then the Open
+ * screen's browse button. Waits for the sheet list.
+ */
 export async function openWorkbook({ app, window }: RunningApp, path: string): Promise<void> {
   await answerOpenDialog(app, path)
   await window.getByRole('link', { name: 'Home' }).click()
-  await window.getByRole('button', { name: 'Choose a file…' }).click()
+  await window.getByRole('button', { name: 'Choose a file →' }).click()
+  await window.waitForURL(/#\/open$/)
+  await window.getByRole('button', { name: /click to browse/i }).click()
   await window.waitForURL(/#\/sections$/)
 }
+
+/** The four workflow steps in the sidebar. */
+export const WORKFLOW_STEPS = ['Open file', 'Select sheets', 'Tag analysis', 'Preview & export']
 
 /** Makes the next Open dialog report the folder it was asked to start in, then cancel. */
 export async function recordOpenDialogFolder(app: ElectronApplication): Promise<() => Promise<string | undefined>> {

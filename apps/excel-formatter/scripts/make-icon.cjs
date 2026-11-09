@@ -10,6 +10,11 @@ const svgPath = join(__dirname, '..', 'build', 'icon.svg')
 const pngPath = join(__dirname, '..', 'build', 'icon.png')
 
 app.whenReady().then(async () => {
+  // Stop with an error instead of hanging when the SVG can't be drawn (for example, invalid XML).
+  process.on('unhandledRejection', (e) => {
+    console.error(`Could not make the icon: ${e instanceof Error ? e.message : e}`)
+    app.exit(1)
+  })
   const win = new BrowserWindow({ show: false, webPreferences: { offscreen: true } })
   await win.loadURL('data:text/html,<html><body></body></html>')
   const svg = readFileSync(svgPath, 'utf8')

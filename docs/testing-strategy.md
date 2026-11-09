@@ -15,12 +15,17 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 
 ## Current numbers (2026-11-09)
 
-- Unit/integration: **268 tests** — core 132, adapter-excel 57, ui 61, desktop 18.
-- End-to-end: **8 tests** — start state (Home, Coming soon cards); recent activity (entries after a save, Continue,
-  Open again starts in the right folder, Clear survives a restart); open → analyse → set style → preview → export (saved file checked, original
+- Unit/integration: **298 tests** — core 132, adapter-excel 57, ui 88, desktop 21.
+- End-to-end: **11 tests** — start-up failure and Try again; start state (Home, Coming soon cards, workflow locked, also by address); Help (keyboard, search, links between topics,
+  About details); theme (applies everywhere, survives a restart,
+  dark window background); Home (Continue mid-workflow, entries after a save,
+  Open again starts in the right folder, Clear survives a restart); open → analyse → set style → preview → export (back on Home with the summary, workflow locked, saved file checked, original
   unchanged); a content issue stops the save until "Save anyway", with a CSV report; refuse to overwrite the original;
   Cancel during a 60,000-cell export leaves no file; Cancel while checking the saved file keeps the file; reload
-  returns to Open.
+  returns to Home with the workflow locked.
+- Colour contrast: `ui/tests/tokens.test.ts` reads `tokens.css` and checks every text pair (≥ 4.5:1) and control
+  boundary (≥ 3:1) in light and dark.
+- e2e launches Electron with `colorScheme: null` (no light emulation), so tests see the app's real theme.
 - `@hf/ui` components have unit tests by level (`atoms`, `molecules`, `organisms` tests): rendered markup with
   `renderToStaticMarkup`, clicks and typing with happy-dom and React's `act`. No testing library is needed.
 

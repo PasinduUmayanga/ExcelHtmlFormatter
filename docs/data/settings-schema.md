@@ -1,7 +1,8 @@
 # Stored data: the tag-style settings file
 
-Last reviewed: 2026-11-09. There is no database. The app stores two files in its settings folder: the tag styles
-(`config.json`, below) and the recent activity (`activity.json`, at the end of this page).
+Last reviewed: 2026-11-09. There is no database. The app stores three files in its settings folder: the tag styles
+(`config.json`, below), the recent activity (`activity.json`) and window preferences (`preferences.json`), both at the
+end of this page.
 
 - **Location:** `<Electron userData>/config.json`. On Windows: `%APPDATA%\Excel HTML Formatter\config.json`. On macOS:
   `~/Library/Application Support/Excel HTML Formatter/config.json`. The folder keeps the product's earlier name
@@ -47,3 +48,9 @@ Last reviewed: 2026-11-09. There is no database. The app stores two files in its
 Window (Tag styles screen) → `saveConfig` → main validates → `config.json`. On start, `loadConfig` → validated →
 store. During export, the window sends the current settings; the main process validates them again before the worker
 uses them.
+
+## Window preferences: `preferences.json`
+
+`{ "theme": "system" | "light" | "dark" }`, written by `setTheme` (temporary file, then rename). Missing, damaged or
+unknown values mean `"system"` ([ADR 0014](../architecture/adr/0014-theme-preference.md)). Kept apart from
+`config.json` so the theme is not part of exported tag styles.

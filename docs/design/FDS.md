@@ -13,12 +13,27 @@ flowchart LR
   T -- Done --> A & P
 ```
 
+## F00. Startup (FR-30)
+
+The window opens straight onto a startup screen: the mark, "FormaFlow", "Starting…" and a bar that shows work is going
+on (no percentage: the time is unknown and usually very short). It is plain HTML in the app's `index.html`, so it shows
+before the app's code runs, in the saved theme. The app then loads the settings and app details ("Loading your
+settings…", same look) and opens Home as soon as they arrive, with no added delay. If they can't be read, the screen
+says so with the reason and **Try again**. Recent activity and the theme don't hold up or fail start-up.
+**Acceptance:** e2e "start-up: a failure…"; unit `ui/tests/startup.test.tsx`; the mark's shapes are checked against
+`icon.svg` (`atoms.test.tsx`).
+
 ## F0. Home (FR-25, FR-26)
 
 The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
 
 - **Start:** "Continue with <file>" (only when a file is open; returns to the last document screen visited) and the
-  format's open card ("Choose a file…" opens the dialog, then Select sheets).
+  format's open card ("Choose a file →" opens the Open screen).
+- **Workflow lock (FR-29):** the sidebar's four workflow steps, and their addresses, are locked until the workflow is
+  started from Home: "Choose a file →", **Open again** or **Continue**. Going Home mid-workflow keeps it unlocked.
+  A clean save ends it (see F5); typed addresses of locked screens go to Home.
+- **After a clean save:** the save summary (below) is shown at the top of Home, with **Show in folder** and a close
+  button, until closed or the next workflow starts.
 - **Coming soon:** Convert to PDF, Word and text, shown as unavailable (disabled button "Not available yet"); listed in
   `EXPORT_TARGETS` (`screens/Dashboard.tsx`).
 - **Tools:** Tag styles.
@@ -28,6 +43,22 @@ The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
 
 **Acceptance:** e2e "starts on Home…" and "Home lists recent activity…"; unit `ui/tests/dashboard.test.tsx`,
 `desktop/tests/activity.test.ts`.
+
+## F0b. Header and theme (FR-27)
+
+A header bar above every screen holds **Theme: Light / Dark / System** (a radio group). System follows the operating
+system live. The choice applies at once to the window, dialogs and menus, is remembered, and the next start opens in
+it ([ADR 0014](../architecture/adr/0014-theme-preference.md)). **Acceptance:** e2e "the theme choice applies…";
+unit `ui/tests/theme.test.ts`, `ui/tests/tokens.test.ts` (contrast), `desktop/tests/preferences.test.ts`.
+
+## F0c. Help Center (FR-28)
+
+**Help** in the header (and a card on Home) opens `#/help`: a search box and the topics (Getting started, User guide,
+FAQs, Troubleshooting, About). Typing searches titles, headings and text; each result names the topic and section,
+with an excerpt and the words highlighted; the count is announced. A topic page (`#/help/$topic`) lists its sections,
+then the text; links to other topics open them at the right section. About adds the version, platform and settings
+file. Web addresses are shown, not opened ([ADR 0015](../architecture/adr/0015-help-center-markdown.md)).
+**Acceptance:** e2e "Help: topics by keyboard…"; unit `ui/tests/help.test.tsx`, router test for `?q` and `?section`.
 
 ## F1. Open file (FR-01, FR-02, FR-09)
 
@@ -79,6 +110,9 @@ The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
 - **Save formatted file…** opens a Save dialog (default `<name>_formatted.xlsx`). Progress panel with Cancel.
 - Success box: "N cells formatted in M sheets, K set to wrap text", tags removed/kept, "Your original file was not
   changed", **Show in folder**.
+- **Clean save** (no known issues, and the saved file matches or its check was stopped): the file is closed, the
+  workflow ends and the app returns to Home, which shows the success box (FR-29). **Save with problems** (saved with
+  known issues, or the saved file has differences): stays on Preview with the file open so the review can be opened.
 - A note next to Save says charts, pivot tables and macros aren't copied.
 
 **Business rules:** see TDS §2 (conversion rules). **Acceptance:** e2e full flow checks the saved file's rich text and
@@ -89,7 +123,7 @@ wrap text, and that the original is unchanged; e2e overwrite refusal; e2e Cancel
 
 Addresses, guards and search parameters: [SAD §4](../architecture/SAD.md#4-window-routes-state-composition).
 The app starts on Home (`#/`); the sidebar's **Home** link returns there. A reload loses the open document and
-returns to Open. **Acceptance:** unit `ui/tests/router.test.ts`; e2e reload test.
+returns to Home with the workflow locked. **Acceptance:** unit `ui/tests/router.test.ts`; e2e reload test.
 
 ## F7. Errors and messages (NFR-08)
 

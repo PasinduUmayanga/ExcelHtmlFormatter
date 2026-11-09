@@ -27,14 +27,22 @@ async function visit(path: string) {
   }
 }
 
-afterEach(() => useApp.setState({ doc: null, selected: [], loading: false, exportResult: null }))
+afterEach(() => useApp.setState({ doc: null, selected: [], loading: false, exportResult: null, workflowActive: false }))
 
 describe('routes and guards (TanStack Router)', () => {
   it('starts on Home (/), which needs no open file', async () => {
     expect((await visit('/')).path).toBe('/')
   })
 
-  it('sends every document screen back to /open when no file is open', async () => {
+  it('keeps the workflow locked (back to Home) until it is started from Home', async () => {
+    for (const path of ['/open', '/sections', '/analysis/Products', '/preview/Products', '/check/Team']) {
+      expect((await visit(path)).path).toBe('/')
+    }
+  })
+
+  it('sends document screens to Open once the workflow is started but no file is open yet', async () => {
+    useApp.getState().startWorkflow()
+    expect((await visit('/open')).path).toBe('/open')
     for (const path of ['/sections', '/analysis/Products', '/preview/Products']) {
       expect((await visit(path)).path).toBe('/open')
     }
@@ -45,13 +53,13 @@ describe('routes and guards (TanStack Router)', () => {
   })
 
   it('needs at least one selected section for analysis and preview', async () => {
-    useApp.setState({ doc, selected: [] })
+    useApp.setState({ workflowActive: true, doc, selected: [] })
     expect((await visit('/sections')).path).toBe('/sections')
     expect((await visit('/analysis/Products')).path).toBe('/sections')
   })
 
   it('switches to the first selected section when the address names another one', async () => {
-    useApp.setState({ doc, selected: ['Team', 'Summary'] })
+    useApp.setState({ workflowActive: true, doc, selected: ['Team', 'Summary'] })
     expect((await visit('/analysis/Team')).path).toBe('/analysis/Team')
     expect((await visit('/analysis/Products')).path).toBe('/analysis/Team')
     expect((await visit('/preview/Nope')).path).toBe('/preview/Team')
@@ -59,15 +67,24 @@ describe('routes and guards (TanStack Router)', () => {
 
   it('keeps section names with spaces and symbols intact', async () => {
     const odd = { ...doc, sections: [{ ...doc.sections[0], name: 'Q1 & Q2 (draft)' }] }
-    useApp.setState({ doc: odd, selected: ['Q1 & Q2 (draft)'] })
+    useApp.setState({ workflowActive: true, doc: odd, selected: ['Q1 & Q2 (draft)'] })
     const router = createFormatterRouter({ history: createMemoryHistory({ initialEntries: ['/sections'] }) })
     await router.load()
     await router.navigate({ to: '/analysis/$section', params: { section: 'Q1 & Q2 (draft)' } })
     expect(router.state.matches.at(-1)?.params).toEqual({ section: 'Q1 & Q2 (draft)' })
   })
 
+  it('opens Help without a file, keeping only a sensible search and section', async () => {
+    expect(await visit('/help?q=wrap')).toEqual({ path: '/help', search: { q: 'wrap' } })
+    expect((await visit(`/help?q=${'x'.repeat(201)}`)).search).toEqual({})
+    expect(await visit('/help/faq?section=links')).toEqual({ path: '/help/faq', search: { section: 'links' } })
+    for (const bad of ['%3Cscript%3E', 'A%20B', 'x'.repeat(81)]) {
+      expect((await visit(`/help/faq?section=${bad}`)).search).toEqual({})
+    }
+  })
+
   it('validates search settings', async () => {
-    useApp.setState({ doc, selected: ['Team'] })
+    useApp.setState({ workflowActive: true, doc, selected: ['Team'] })
     expect((await visit('/preview/Team?view=original')).search).toEqual({ view: 'original' })
     expect((await visit('/preview/Team?view=weird')).search).toEqual({})
     expect((await visit('/settings?tag=mark&back=%2Fanalysis%2FTeam')).search).toEqual({
@@ -83,16 +100,18 @@ describe('routes and guards (TanStack Router)', () => {
 
 describe('canVisit', () => {
   it('follows the open file and the selection', () => {
-    expect(canVisit({ doc: null, loading: false, selected: [] }, 'sections')).toBe(false)
-    expect(canVisit({ doc, loading: true, selected: ['Team'] }, 'analysis')).toBe(false)
-    expect(canVisit({ doc, loading: false, selected: [] }, 'sections')).toBe(true)
-    expect(canVisit({ doc, loading: false, selected: [] }, 'preview')).toBe(false)
-    expect(canVisit({ doc, loading: false, selected: ['Team'] }, 'preview')).toBe(true)
+    expect(canVisit({ workflowActive: true, doc: null, loading: false, selected: [] }, 'sections')).toBe(false)
+    // A file still open after the workflow ended (it never is, but the rule doesn't depend on that)
+    expect(canVisit({ workflowActive: false, doc, loading: false, selected: ['Team'] }, 'preview')).toBe(false)
+    expect(canVisit({ workflowActive: true, doc, loading: true, selected: ['Team'] }, 'analysis')).toBe(false)
+    expect(canVisit({ workflowActive: true, doc, loading: false, selected: [] }, 'sections')).toBe(true)
+    expect(canVisit({ workflowActive: true, doc, loading: false, selected: [] }, 'preview')).toBe(false)
+    expect(canVisit({ workflowActive: true, doc, loading: false, selected: ['Team'] }, 'preview')).toBe(true)
   })
 
   it('opens the content check for a selected section, with a validated cell', async () => {
-    expect((await visit('/check/Team')).path).toBe('/open')
-    useApp.setState({ doc, selected: ['Team'] })
+    expect((await visit('/check/Team')).path).toBe('/')
+    useApp.setState({ workflowActive: true, doc, selected: ['Team'] })
     expect(await visit('/check/Team?cell=C7')).toEqual({ path: '/check/Team', search: { cell: 'C7' } })
     expect((await visit('/check/Products')).path).toBe('/preview/Team')
     // Anything that is not a short cell locator is dropped
@@ -101,7 +120,7 @@ describe('canVisit', () => {
   })
 
   it('shows the saved-file check only after a save that was verified', async () => {
-    useApp.setState({ doc, selected: ['Team'] })
+    useApp.setState({ workflowActive: true, doc, selected: ['Team'] })
     expect((await visit('/check/Summary?saved=true')).path).toBe('/preview/Team')
     const verification = { compared: 3, differences: 1, items: [], truncated: false }
     const stats = {

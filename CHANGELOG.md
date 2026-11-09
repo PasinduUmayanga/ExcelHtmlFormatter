@@ -7,6 +7,15 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Startup screen:** the window opens on the FormaFlow mark with "Starting…" in the saved theme, then opens as soon as
+  the settings are loaded. If they can't be read, it says why and offers Try again.
+- FormaFlow **logo** ("page in flow", chosen from three concepts): new app icon, the mark next to the name in the
+  sidebar, and a favicon. See `docs/design/brand.md`.
+- **Help Center** (Help in the header and on Home): Getting started, User guide, FAQs, Troubleshooting and About, with
+  search. Written in Markdown in `apps/excel-formatter/help/` and shown without HTML; About shows the version and
+  settings file (ADR 0015).
+- **Theme:** Light, Dark or System from a new header bar; applied to the window, dialogs and menus, remembered, and
+  no white flash when a dark window opens (ADR 0014).
 - **Home** screen (the new start screen): open a file or continue with the open one, planned conversions to PDF, Word
   and text shown as "Coming soon", Tag styles, and **Recent activity** (last 10 opens and saves with the saved file's
   check result, Open again, Clear). Activity is recorded by the main process and stored on this computer (ADR 0013).
@@ -22,6 +31,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The workflow starts from Home: its steps are locked until you choose a file, open again or continue there. A clean
+  save closes the file and returns to Home with a success message (Show in folder); a save with known issues or
+  differences stays on Preview for review. Reloading returns to Home.
+- Colours meet WCAG 2.2 AA in both themes: darker hint text, green and amber text, stronger outlines on inputs,
+  buttons and toggles, and dark text on blue and green in dark mode. A unit test checks every pair.
 - Renamed the app to **FormaFlow** (window, sidebar with a tagline, installers, shortcuts, documentation). Settings stay
   in the existing "Excel HTML Formatter" folder and the installer upgrades the old app (ADR 0012).
 - The window's code is organised by Atomic Design (ADR 0011): design tokens, atoms, molecules, organisms and templates

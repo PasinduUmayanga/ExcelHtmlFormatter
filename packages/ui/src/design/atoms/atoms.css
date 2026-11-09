@@ -1,12 +1,17 @@
 /* Atoms: Button, Badge (.chip), TagName (.tag), Swatch, Spinner. */
 .btn {
   font: inherit;
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   background: var(--bg);
   color: var(--text);
   padding: 7px 14px;
   border-radius: var(--radius);
   cursor: pointer;
+}
+/* Links that look like buttons (e.g. Help in the header) */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
 }
 .btn:hover:not(:disabled) {
   border-color: var(--faint);
@@ -14,7 +19,7 @@
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 .btn:disabled {
   opacity: 0.45;

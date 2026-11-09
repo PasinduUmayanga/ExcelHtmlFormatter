@@ -8,8 +8,14 @@ aside {
   gap: 4px;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 600;
   padding: 2px 10px 10px;
+}
+.brand .logo {
+  flex: none;
 }
 .brand-tagline {
   font-weight: 400;
@@ -64,7 +70,7 @@ aside {
 .nav.done .num {
   background: var(--ok);
   border-color: var(--ok);
-  color: #fff;
+  color: var(--on-ok);
 }
 .side-foot {
   margin-top: auto;
@@ -120,7 +126,7 @@ aside {
   flex-wrap: wrap;
 }
 .tg {
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   background: var(--bg);
   color: var(--text);
   min-width: 38px;
@@ -146,12 +152,12 @@ aside {
 .tg.on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 input[type='color'] {
   width: 44px;
   height: 32px;
-  border: 1px solid var(--line2);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 2px;
   background: var(--bg);
@@ -362,4 +368,30 @@ input[type='color'] {
 }
 .recent .placeholder {
   margin-top: var(--space-4);
+}
+/* Help: search results */
+.help-results {
+  margin-bottom: 28px;
+}
+.help-result-list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.help-result-list li {
+  padding: var(--space-4) 14px;
+  border-bottom: 1px solid var(--line);
+}
+.help-result-list li:last-child {
+  border-bottom: 0;
+}
+.help-result-title {
+  color: var(--accent);
+  font-weight: 600;
+}
+.help-excerpt {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
 }

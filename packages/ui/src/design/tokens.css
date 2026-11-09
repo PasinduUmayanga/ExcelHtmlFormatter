@@ -1,18 +1,28 @@
-/* Design tokens: colours (light, and dark following the operating system), sizes and spacing. */
+/*
+ * Design tokens: colours (light, and dark), sizes and spacing. Dark applies when the app's theme is Dark, or System
+ * on a dark operating system: the main process sets Electron's nativeTheme, which drives prefers-color-scheme.
+ * Every text colour has at least 4.5:1 contrast on its background, and --control-border 3:1 (WCAG 2.2 AA);
+ * packages/ui/tests/tokens.test.ts checks this.
+ */
 :root {
   --bg: #ffffff;
   --side: #f6f7f9;
   --line: #e2e5ea;
   --line2: #cfd4db;
+  /* Borders that show where a control is (inputs, buttons, toggles) */
+  --control-border: #858d98;
   --text: #1c2128;
   --muted: #5d6672;
-  --faint: #8b939e;
+  --faint: #687180;
   --accent: #1f6feb;
   --accent-bg: #e8f0fe;
   --accent-text: #174ea6;
-  --ok: #1a7f37;
+  --ok: #17702f;
   --ok-bg: #e6f4ea;
-  --warn: #9a6700;
+  /* Text on solid accent / ok backgrounds (primary buttons, pressed toggles, completed steps) */
+  --on-accent: #ffffff;
+  --on-ok: #ffffff;
+  --warn: #875a00;
   --warn-bg: #fff4d6;
   --bad: #cf222e;
   --bad-bg: #ffebe9;
@@ -37,14 +47,17 @@
     --side: #11161d;
     --line: #2a313b;
     --line2: #3a434f;
+    --control-border: #6e7681;
     --text: #e6edf3;
     --muted: #9aa5b1;
-    --faint: #6e7681;
+    --faint: #8b949e;
     --accent: #4c8dff;
     --accent-bg: #152a4a;
     --accent-text: #a8c7ff;
     --ok: #3fb950;
     --ok-bg: #12301c;
+    --on-accent: #0d1117;
+    --on-ok: #0d1117;
     --warn: #d29922;
     --warn-bg: #33270b;
     --bad: #f85149;

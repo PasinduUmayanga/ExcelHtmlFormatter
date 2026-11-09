@@ -35,5 +35,6 @@ export {
   type PreviewView
 } from './router'
 export { useApp, canVisit, cleanError } from './store'
+export type { HelpSource } from './help/search'
 export { RichText, useConversion, linkTitle, styleToCss } from './design/molecules'
 export { JobProgressPanel, describeProgress } from './design/organisms'

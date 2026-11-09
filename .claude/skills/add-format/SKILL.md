@@ -41,6 +41,7 @@ Copy `apps/excel-formatter`, then change:
 
 - `src/main/main.ts` (format + icon), `src/main/worker.ts` (`runWorker(<format>Adapter)`)
 - `src/renderer/main.tsx` + a preview component (props: `PreviewProps` from `@hf/ui`)
+- `help/*.md` + `src/renderer/help.ts`: the Help Center topics for this format (ADR 0015)
 - `package.json`: `name`, `productName`, runtime `dependencies` = the format library only; `@hf/*` stay in
   `devDependencies` (so they're bundled)
 - `electron-builder.yml` (`appId`, `productName`, artifact names), `build/icon.svg` (+ `pnpm --filter <app> icon`)
@@ -59,7 +60,7 @@ Check the built main/worker only `require` Electron, Node built-ins and the form
 ## 5. Docs (same change)
 
 ADR if any contract changed; `docs/api/contracts.md`; `docs/architecture/SAD.md` (package table);
-`docs/requirements/SRS.md` + `docs/design/FDS.md` (new FR IDs); `docs/user-manual.md`; root `README.md` (structure,
+`docs/requirements/SRS.md` + `docs/design/FDS.md` (new FR IDs); `docs/user-manual.md` (links to the app's help topics); root `README.md` (structure,
 features); `AGENTS.md` map; `docs/roadmap.md` status; `CHANGELOG.md`.
 
 ## 6. Report

@@ -10,6 +10,7 @@ import {
   type ActivityEntry,
   type AppConfig,
   type AppInfo,
+  type ThemeChoice,
   type ContentReport,
   type DocumentSummary,
   type ExportResult,
@@ -39,7 +40,15 @@ export interface AppState {
   appInfo: AppInfo | null
   error: string | null
 
+  /** Starts the app: listens for job progress (once) and loads what the screens need (see `startup`). */
   init(): Promise<void>
+  /**
+   * Start-up: the settings and app details every screen needs. 'loading' until they arrive (the window shows
+   * the startup screen), 'failed' with a message if they can't be read (the startup screen offers Try again).
+   */
+  startup: { status: 'loading' | 'ready' | 'failed'; error: string | null }
+  /** Loads the settings and app details again (Try again on the startup screen). */
+  retryStartup(): Promise<void>
   /** Opens a file. Resolves to true when it is ready to show. */
   openFile(file: PickedFile): Promise<boolean>
   /**
@@ -47,6 +56,10 @@ export interface AppState {
    * `startIn`: a folder from the recent activity to start the dialog in.
    */
   browseForFile(startIn?: string): Promise<boolean>
+  /** Light, dark or follow the system. Applied by the main process (window, dialogs, menus). */
+  theme: ThemeChoice
+  /** Applies and saves a theme. On failure the previous theme stays and an error is shown. */
+  setTheme(theme: ThemeChoice): Promise<void>
   /** Recent actions for the Home screen, newest first (recorded by the main process). */
   activity: ActivityEntry[]
   /** Reloads the recent actions. A failure leaves the list as it was (it is only a convenience). */
@@ -89,11 +102,25 @@ export interface AppState {
   /**
    * Saves the formatted copy. Checks the content first (unless a current check exists); if the check
    * finds issues, nothing is saved and 'review' is returned, unless `acceptIssues` is set
-   * ("Save anyway", decision E7).
+   * ("Save anyway", decision E7). A clean save (no known issues, and the saved file matches or its check was
+   * stopped) closes the file, ends the workflow and returns 'completed'; a save with problems returns 'saved'
+   * and keeps the file open so the problems can be reviewed.
    */
-  exportDocument(acceptIssues?: boolean): Promise<'saved' | 'review' | 'cancelled' | 'failed'>
+  exportDocument(acceptIssues?: boolean): Promise<'completed' | 'saved' | 'review' | 'cancelled' | 'failed'>
+  /** Shows the last saved file in its folder (the open document's save, or the one Home reports). */
   showInFolder(): void
   dismissExportResult(): void
+
+  /*
+   * The workflow (Open file → Preview & export) is unlocked by picking an item on Home, and ends with a
+   * clean save: the file is closed and Home shows `lastSaved`. Going Home in between keeps it unlocked.
+   */
+  workflowActive: boolean
+  /** Unlocks the workflow (Home's "Format an Excel file", "Open again"). Clears Home's save message. */
+  startWorkflow(): void
+  /** The last clean save, shown on Home until dismissed or the next workflow starts. */
+  lastSaved: ExportResult | null
+  dismissLastSaved(): void
 
   /* Content check (checks A and D, before saving) */
   check: ContentCheck
@@ -127,10 +154,10 @@ let runningCheck: { key: string; promise: Promise<ContentReport | null> } | null
 
 /** Which screens can be visited right now (used by route guards and the sidebar). */
 export function canVisit(
-  state: Pick<AppState, 'doc' | 'loading' | 'selected'>,
+  state: Pick<AppState, 'doc' | 'loading' | 'selected' | 'workflowActive'>,
   screen: 'sections' | 'analysis' | 'preview'
 ): boolean {
-  if (state.loading || !state.doc) return false
+  if (!state.workflowActive || state.loading || !state.doc) return false
   return screen === 'sections' || state.selected.length > 0
 }
 
@@ -161,275 +188,325 @@ export const cleanError = (e: unknown) => String((e as Error)?.message ?? e).rep
 
 const closedDocument = { doc: null, lastStep: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
 
-export const useApp = create<AppState>((set, get) => ({
-  pendingFile: null,
-  loading: false,
-  doc: null,
-  lastStep: null,
-  rememberStep(address) {
-    if (get().doc && get().lastStep !== address) set({ lastStep: address })
-  },
-  selected: [],
-  config: null,
-  appInfo: null,
-  error: null,
+/** True once the job-progress listener is registered (it must be registered only once). */
+let listening = false
 
-  async init() {
-    window.api.onJobProgress((kind, progress) => {
-      // The content check runs alongside the screen, not as the main job.
-      if (kind === 'check') {
-        if (get().check.status === 'running') set({ check: { ...get().check, progress } })
-        return
-      }
-      // Ignore late updates from a job that already finished or was cancelled.
-      if (get().job?.kind === kind) set({ job: { kind, progress } })
-    })
+export const useApp = create<AppState>((set, get) => {
+  /** Shows the saved theme in the header (main already applied it before the window opened). */
+  const loadTheme = async () => {
     try {
-      const [config, appInfo] = await Promise.all([window.api.loadConfig(), window.api.getAppInfo()])
-      set({ config, appInfo })
-    } catch (e) {
-      set({ error: 'Could not load settings: ' + cleanError(e) })
-    }
-    await get().loadActivity()
-  },
-
-  activity: [],
-  async loadActivity() {
-    try {
-      set({ activity: await window.api.getActivity() })
+      set({ theme: (await window.api.getPreferences()).theme })
     } catch {
-      // Recent activity is a convenience: keep what is shown rather than interrupt with an error.
-    }
-  },
-  async clearActivity() {
-    try {
-      await window.api.clearActivity()
-      set({ activity: [] })
-      get().notify('Recent activity cleared')
-    } catch (e) {
-      set({ error: 'Could not clear recent activity. ' + cleanError(e) })
-    }
-  },
-
-  async openFile(file) {
-    set({ pendingFile: file, loading: true, error: null, job: { kind: 'load', progress: { stage: 'reading' } } })
-    try {
-      const doc = await window.api.openDocument(file.path)
-      // Pre-select visible sections that contain HTML.
-      const selected = doc.sections.filter((s) => s.scan.htmlCells > 0 && s.state === 'visible').map((s) => s.name)
-      set({ ...closedDocument, doc, selected })
-      void get().loadActivity()
-      return true
-    } catch (e) {
-      // Starting a new load closes the previous file in the background, so start from scratch.
-      if (cleanError(e) === CANCELLED_MESSAGE) {
-        set(closedDocument)
-        get().notify(`Stopped opening ${file.name}`)
-      } else {
-        set({ ...closedDocument, error: `Could not open ${file.name}. ${cleanError(e)}` })
-      }
-      return false
-    } finally {
-      set({ loading: false, pendingFile: null, job: null })
-    }
-  },
-
-  async browseForFile(startIn) {
-    if (get().loading) return false
-    try {
-      const file = await window.api.openFileDialog(startIn)
-      return file ? await get().openFile(file) : false
-    } catch (e) {
-      set({ error: cleanError(e) })
-      return false
-    }
-  },
-
-  async openDroppedFile(dropped) {
-    if (get().loading) return false
-    try {
-      return await get().openFile(await window.api.describeDroppedFile(dropped))
-    } catch (e) {
-      set({ error: cleanError(e) })
-      return false
-    }
-  },
-
-  job: null,
-  cancelJob() {
-    const job = get().job
-    if (job) void window.api.cancelJob(job.kind)
-  },
-
-  toggleSection(name) {
-    const { doc, selected } = get()
-    if (!doc) return
-    const wanted = new Set(selected)
-    if (wanted.has(name)) wanted.delete(name)
-    else wanted.add(name)
-    set({ selected: doc.sections.map((s) => s.name).filter((n) => wanted.has(n)) })
-  },
-
-  selectAllSections(all) {
-    const { doc } = get()
-    set({ selected: all && doc ? doc.sections.map((s) => s.name) : [] })
-  },
-
-  setError(error) {
-    set({ error })
-  },
-
-  notice: null,
-  notify(message) {
-    clearTimeout(noticeTimer)
-    set({ notice: message })
-    noticeTimer = setTimeout(() => set({ notice: null }), 3000)
-  },
-
-  updateRule(tag, patch) {
-    const config = get().config
-    if (!config) return
-    // A tag with no rule yet starts from its built-in look (if it has one), so a change only changes one thing.
-    const current = Object.hasOwn(config.rules, tag) ? config.rules[tag] : builtinStyle(tag)
-    const rule = cleanStyle({ ...current, ...patch })
-    saveConfig({ ...config, rules: { ...config.rules, [tag]: rule } })
-  },
-
-  createPlainRule(tag) {
-    const config = get().config
-    if (config && !Object.hasOwn(config.rules, tag)) saveConfig({ ...config, rules: { ...config.rules, [tag]: {} } })
-  },
-
-  removeRule(tag) {
-    const config = get().config
-    if (!config || !Object.hasOwn(config.rules, tag)) return
-    const rules = { ...config.rules }
-    delete rules[tag]
-    saveConfig({ ...config, rules })
-  },
-
-  setUnknownTagAction(unknownTagAction) {
-    const config = get().config
-    if (config) saveConfig({ ...config, unknownTagAction })
-  },
-
-  resetConfig() {
-    saveConfig(defaultConfig())
-    get().notify('Tag styles reset to the defaults')
-  },
-
-  async importConfig() {
-    try {
-      const config = await window.api.importConfig()
-      if (!config) return
-      set({ config }) // already saved by the main process
-      get().notify(`Imported ${Object.keys(config.rules).length} tag rules`)
-    } catch (e) {
-      set({ error: 'Could not import tag styles. ' + cleanError(e) })
-    }
-  },
-
-  async exportConfig() {
-    const config = get().config
-    if (!config) return
-    try {
-      const name = await window.api.exportConfig(config)
-      if (name) get().notify(`Exported tag styles to ${name}`)
-    } catch (e) {
-      set({ error: 'Could not export tag styles. ' + cleanError(e) })
-    }
-  },
-
-  previews: {},
-  async loadPreview(section) {
-    const { doc, previews } = get()
-    if (!doc || previews[section]) return
-    try {
-      const preview = await window.api.getSectionPreview(doc.file.path, section)
-      // Ignore the answer if another file was opened meanwhile.
-      if (get().doc === doc) set({ previews: { ...get().previews, [section]: preview } })
-    } catch (e) {
-      set({ error: `Could not show ${section}. ${cleanError(e)}` })
-    }
-  },
-
-  exporting: false,
-  exportResult: null,
-  async exportDocument(acceptIssues = false) {
-    const { doc, selected, config, exporting } = get()
-    if (!doc || !config || exporting || selected.length === 0) return 'failed'
-    set({ exporting: true, error: null, exportResult: null })
-    try {
-      const report = get().isCheckCurrent() ? get().check.report : await get().runCheck()
-      if (!report) return 'failed' // the check's error is shown on the screen
-      if (report.issues > 0 && !acceptIssues) return 'review'
-      // The job starts once the Save dialog closes; its first progress update shows the bar.
-      set({ job: { kind: 'export', progress: null } })
-      const result = await window.api.exportDocument(doc.file.path, selected, config)
-      if (!result) return 'cancelled'
-      set({ exportResult: result })
-      void get().loadActivity()
-      return 'saved'
-    } catch (e) {
-      if (cleanError(e) === CANCELLED_MESSAGE) {
-        get().notify('Saving stopped. No file was written.')
-        return 'cancelled'
-      }
-      set({ error: cleanError(e) })
-      return 'failed'
-    } finally {
-      set({ exporting: false, job: null })
-    }
-  },
-
-  showInFolder() {
-    const result = get().exportResult
-    if (result) window.api.showInFolder(result.path)
-  },
-
-  dismissExportResult() {
-    set({ exportResult: null })
-  },
-
-  check: idleCheck,
-  isCheckCurrent() {
-    const { check } = get()
-    return check.status === 'done' && check.key !== null && check.key === checkKey(get())
-  },
-
-  runCheck() {
-    const { doc, selected, config } = get()
-    const key = checkKey(get())
-    if (!doc || !config || !key || selected.length === 0) return Promise.resolve(null)
-    if (runningCheck?.key === key) return runningCheck.promise
-    set({ check: { status: 'running', report: null, progress: null, error: null, key } })
-    const promise = window.api
-      .checkDocument(doc.file.path, selected, config)
-      .then((report) => {
-        if (checkKey(get()) === key) set({ check: { status: 'done', report, progress: null, error: null, key } })
-        return report
-      })
-      .catch((e) => {
-        const error = `The content check did not finish. ${cleanError(e)}`
-        if (checkKey(get()) === key) set({ check: { status: 'failed', report: null, progress: null, error, key } })
-        return null
-      })
-      .finally(() => {
-        if (runningCheck?.promise === promise) runningCheck = null
-      })
-    runningCheck = { key, promise }
-    return promise
-  },
-
-  async exportReport(items) {
-    try {
-      const name = await window.api.exportReport(reportToCsv(items))
-      if (name) get().notify(`Saved the report as ${name}`)
-    } catch (e) {
-      set({ error: 'Could not save the report. ' + cleanError(e) })
+      // The theme is applied by the main process either way; only the header's choice would be out of date.
     }
   }
-}))
+  return {
+    pendingFile: null,
+    loading: false,
+    doc: null,
+    lastStep: null,
+    rememberStep(address) {
+      if (get().doc && get().lastStep !== address) set({ lastStep: address })
+    },
+    selected: [],
+    config: null,
+    appInfo: null,
+    error: null,
+
+    async init() {
+      // React's StrictMode runs effects twice in development: listen only once.
+      if (listening) return get().retryStartup()
+      listening = true
+      window.api.onJobProgress((kind, progress) => {
+        // The content check runs alongside the screen, not as the main job.
+        if (kind === 'check') {
+          if (get().check.status === 'running') set({ check: { ...get().check, progress } })
+          return
+        }
+        // Ignore late updates from a job that already finished or was cancelled.
+        if (get().job?.kind === kind) set({ job: { kind, progress } })
+      })
+      await get().retryStartup()
+    },
+
+    startup: { status: 'loading', error: null },
+    async retryStartup() {
+      set({ startup: { status: 'loading', error: null } })
+      try {
+        const [config, appInfo] = await Promise.all([window.api.loadConfig(), window.api.getAppInfo()])
+        set({ config, appInfo, startup: { status: 'ready', error: null } })
+      } catch (e) {
+        set({ startup: { status: 'failed', error: cleanError(e) } })
+        return
+      }
+      // Conveniences: the window works without them, so they don't hold up start-up or fail it.
+      await Promise.all([get().loadActivity(), loadTheme()])
+    },
+
+    theme: 'system',
+    async setTheme(theme) {
+      const previous = get().theme
+      set({ theme })
+      try {
+        await window.api.setTheme(theme)
+      } catch (e) {
+        set({ theme: previous, error: 'Could not change the theme. ' + cleanError(e) })
+      }
+    },
+
+    activity: [],
+    async loadActivity() {
+      try {
+        set({ activity: await window.api.getActivity() })
+      } catch {
+        // Recent activity is a convenience: keep what is shown rather than interrupt with an error.
+      }
+    },
+    async clearActivity() {
+      try {
+        await window.api.clearActivity()
+        set({ activity: [] })
+        get().notify('Recent activity cleared')
+      } catch (e) {
+        set({ error: 'Could not clear recent activity. ' + cleanError(e) })
+      }
+    },
+
+    async openFile(file) {
+      set({ pendingFile: file, loading: true, error: null, job: { kind: 'load', progress: { stage: 'reading' } } })
+      try {
+        const doc = await window.api.openDocument(file.path)
+        // Pre-select visible sections that contain HTML.
+        const selected = doc.sections.filter((s) => s.scan.htmlCells > 0 && s.state === 'visible').map((s) => s.name)
+        set({ ...closedDocument, doc, selected })
+        void get().loadActivity()
+        return true
+      } catch (e) {
+        // Starting a new load closes the previous file in the background, so start from scratch.
+        if (cleanError(e) === CANCELLED_MESSAGE) {
+          set(closedDocument)
+          get().notify(`Stopped opening ${file.name}`)
+        } else {
+          set({ ...closedDocument, error: `Could not open ${file.name}. ${cleanError(e)}` })
+        }
+        return false
+      } finally {
+        set({ loading: false, pendingFile: null, job: null })
+      }
+    },
+
+    async browseForFile(startIn) {
+      if (get().loading) return false
+      try {
+        const file = await window.api.openFileDialog(startIn)
+        return file ? await get().openFile(file) : false
+      } catch (e) {
+        set({ error: cleanError(e) })
+        return false
+      }
+    },
+
+    async openDroppedFile(dropped) {
+      if (get().loading) return false
+      try {
+        return await get().openFile(await window.api.describeDroppedFile(dropped))
+      } catch (e) {
+        set({ error: cleanError(e) })
+        return false
+      }
+    },
+
+    job: null,
+    cancelJob() {
+      const job = get().job
+      if (job) void window.api.cancelJob(job.kind)
+    },
+
+    toggleSection(name) {
+      const { doc, selected } = get()
+      if (!doc) return
+      const wanted = new Set(selected)
+      if (wanted.has(name)) wanted.delete(name)
+      else wanted.add(name)
+      set({ selected: doc.sections.map((s) => s.name).filter((n) => wanted.has(n)) })
+    },
+
+    selectAllSections(all) {
+      const { doc } = get()
+      set({ selected: all && doc ? doc.sections.map((s) => s.name) : [] })
+    },
+
+    setError(error) {
+      set({ error })
+    },
+
+    notice: null,
+    notify(message) {
+      clearTimeout(noticeTimer)
+      set({ notice: message })
+      noticeTimer = setTimeout(() => set({ notice: null }), 3000)
+    },
+
+    updateRule(tag, patch) {
+      const config = get().config
+      if (!config) return
+      // A tag with no rule yet starts from its built-in look (if it has one), so a change only changes one thing.
+      const current = Object.hasOwn(config.rules, tag) ? config.rules[tag] : builtinStyle(tag)
+      const rule = cleanStyle({ ...current, ...patch })
+      saveConfig({ ...config, rules: { ...config.rules, [tag]: rule } })
+    },
+
+    createPlainRule(tag) {
+      const config = get().config
+      if (config && !Object.hasOwn(config.rules, tag)) saveConfig({ ...config, rules: { ...config.rules, [tag]: {} } })
+    },
+
+    removeRule(tag) {
+      const config = get().config
+      if (!config || !Object.hasOwn(config.rules, tag)) return
+      const rules = { ...config.rules }
+      delete rules[tag]
+      saveConfig({ ...config, rules })
+    },
+
+    setUnknownTagAction(unknownTagAction) {
+      const config = get().config
+      if (config) saveConfig({ ...config, unknownTagAction })
+    },
+
+    resetConfig() {
+      saveConfig(defaultConfig())
+      get().notify('Tag styles reset to the defaults')
+    },
+
+    async importConfig() {
+      try {
+        const config = await window.api.importConfig()
+        if (!config) return
+        set({ config }) // already saved by the main process
+        get().notify(`Imported ${Object.keys(config.rules).length} tag rules`)
+      } catch (e) {
+        set({ error: 'Could not import tag styles. ' + cleanError(e) })
+      }
+    },
+
+    async exportConfig() {
+      const config = get().config
+      if (!config) return
+      try {
+        const name = await window.api.exportConfig(config)
+        if (name) get().notify(`Exported tag styles to ${name}`)
+      } catch (e) {
+        set({ error: 'Could not export tag styles. ' + cleanError(e) })
+      }
+    },
+
+    previews: {},
+    async loadPreview(section) {
+      const { doc, previews } = get()
+      if (!doc || previews[section]) return
+      try {
+        const preview = await window.api.getSectionPreview(doc.file.path, section)
+        // Ignore the answer if another file was opened meanwhile.
+        if (get().doc === doc) set({ previews: { ...get().previews, [section]: preview } })
+      } catch (e) {
+        set({ error: `Could not show ${section}. ${cleanError(e)}` })
+      }
+    },
+
+    exporting: false,
+    exportResult: null,
+    async exportDocument(acceptIssues = false) {
+      const { doc, selected, config, exporting } = get()
+      if (!doc || !config || exporting || selected.length === 0) return 'failed'
+      set({ exporting: true, error: null, exportResult: null })
+      try {
+        const report = get().isCheckCurrent() ? get().check.report : await get().runCheck()
+        if (!report) return 'failed' // the check's error is shown on the screen
+        if (report.issues > 0 && !acceptIssues) return 'review'
+        // The job starts once the Save dialog closes; its first progress update shows the bar.
+        set({ job: { kind: 'export', progress: null } })
+        const result = await window.api.exportDocument(doc.file.path, selected, config)
+        if (!result) return 'cancelled'
+        void get().loadActivity()
+        const clean =
+          result.stats.check.issues === 0 && (result.verification === null || result.verification.differences === 0)
+        if (clean) {
+          set({ ...closedDocument, workflowActive: false, lastSaved: result })
+          return 'completed'
+        }
+        set({ exportResult: result })
+        return 'saved'
+      } catch (e) {
+        if (cleanError(e) === CANCELLED_MESSAGE) {
+          get().notify('Saving stopped. No file was written.')
+          return 'cancelled'
+        }
+        set({ error: cleanError(e) })
+        return 'failed'
+      } finally {
+        set({ exporting: false, job: null })
+      }
+    },
+
+    showInFolder() {
+      const result = get().exportResult ?? get().lastSaved
+      if (result) window.api.showInFolder(result.path)
+    },
+
+    dismissExportResult() {
+      set({ exportResult: null })
+    },
+
+    workflowActive: false,
+    startWorkflow() {
+      set({ workflowActive: true, lastSaved: null })
+    },
+    lastSaved: null,
+    dismissLastSaved() {
+      set({ lastSaved: null })
+    },
+
+    check: idleCheck,
+    isCheckCurrent() {
+      const { check } = get()
+      return check.status === 'done' && check.key !== null && check.key === checkKey(get())
+    },
+
+    runCheck() {
+      const { doc, selected, config } = get()
+      const key = checkKey(get())
+      if (!doc || !config || !key || selected.length === 0) return Promise.resolve(null)
+      if (runningCheck?.key === key) return runningCheck.promise
+      set({ check: { status: 'running', report: null, progress: null, error: null, key } })
+      const promise = window.api
+        .checkDocument(doc.file.path, selected, config)
+        .then((report) => {
+          if (checkKey(get()) === key) set({ check: { status: 'done', report, progress: null, error: null, key } })
+          return report
+        })
+        .catch((e) => {
+          const error = `The content check did not finish. ${cleanError(e)}`
+          if (checkKey(get()) === key) set({ check: { status: 'failed', report: null, progress: null, error, key } })
+          return null
+        })
+        .finally(() => {
+          if (runningCheck?.promise === promise) runningCheck = null
+        })
+      runningCheck = { key, promise }
+      return promise
+    },
+
+    async exportReport(items) {
+      try {
+        const name = await window.api.exportReport(reportToCsv(items))
+        if (name) get().notify(`Saved the report as ${name}`)
+      } catch (e) {
+        set({ error: 'Could not save the report. ' + cleanError(e) })
+      }
+    }
+  }
+})
 
 function saveConfig(config: AppConfig) {
   useApp.setState({ config })
