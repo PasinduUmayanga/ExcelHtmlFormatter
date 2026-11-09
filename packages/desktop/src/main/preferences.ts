@@ -14,4 +14,4 @@ export function parsePreferences(data: unknown): Preferences {
  * The window's background before the page paints: the same colour as the sidebar in that theme, so a dark
  * window never flashes white while it loads. Keep in line with `--side` in @hf/ui's tokens.css.
  */
-export const windowBackground = (dark: boolean): string => (dark ? '#11161d' : '#f6f7f9')
+export const windowBackground = (dark: boolean): string => (dark ? '#0b172a' : '#edf3fb')

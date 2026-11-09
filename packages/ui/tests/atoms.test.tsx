@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { Badge, Button, Icon, ICONS, Logo, Spinner, Swatch, TagName } from '../src/design/atoms'
+import { Badge, Button, FileGlyph, glyphKindOf, Icon, ICONS, Logo, Spinner, Swatch, TagName } from '../src/design/atoms'
 import { cx } from '../src/utils/cx'
 
 const html = (node: React.ReactElement) => renderToStaticMarkup(node)
@@ -65,10 +65,14 @@ describe('TagName', () => {
 })
 
 describe('Icon, Spinner and Swatch', () => {
-  it('renders each icon as its character', () => {
-    for (const [name, char] of Object.entries(ICONS)) {
-      expect(html(<Icon name={name as keyof typeof ICONS} />)).toBe(char)
+  it('draws each icon as a decorative line icon at the asked size', () => {
+    for (const name of Object.keys(ICONS)) {
+      const svg = html(<Icon name={name as keyof typeof ICONS} />)
+      expect(svg).toMatch(/^<svg /)
+      expect(svg).toContain('aria-hidden="true"')
+      expect(svg).toContain('width="16"')
     }
+    expect(html(<Icon name="home" size={20} />)).toContain('width="20"')
   })
 
   it('renders a decorative spinner and a colour square', () => {
@@ -98,5 +102,39 @@ describe('Logo', () => {
     const page = readFileSync(join(__dirname, '../../../apps/excel-formatter/index.html'), 'utf8')
     const boot = page.slice(page.indexOf('<div class="boot">'))
     expect(shapes(boot.slice(0, boot.indexOf('</svg>')))).toEqual(shapes(icon))
+  })
+})
+
+describe('FileGlyph', () => {
+  it('draws a decorative labelled page for each kind of file', () => {
+    const excel = html(<FileGlyph kind="excel" size={40} />)
+    expect(excel).toContain('aria-hidden="true"')
+    expect(excel).toContain('width="40"')
+    expect(excel).toContain('>X</text>')
+    expect(html(<FileGlyph kind="word" />)).toContain('>W</text>')
+    expect(html(<FileGlyph kind="pdf" />)).toContain('>PDF</text>')
+    expect(html(<FileGlyph kind="text" />)).toContain('>TXT</text>')
+  })
+
+  it('gives each picture its own gradient, so several on a page keep their colours', () => {
+    const page = html(
+      <>
+        <FileGlyph kind="excel" />
+        <FileGlyph kind="word" />
+      </>
+    )
+    const ids = [...page.matchAll(/linearGradient id="([^"]+)"/g)].map((m) => m[1])
+    expect(ids).toHaveLength(2)
+    expect(new Set(ids).size).toBe(2)
+    for (const id of ids) expect(page).toContain(`url(#${id})`)
+  })
+
+  it('picks the kind from the file name', () => {
+    expect(glyphKindOf('Report.XLSX')).toBe('excel')
+    expect(glyphKindOf('old.xls')).toBe('excel')
+    expect(glyphKindOf('a.docx')).toBe('word')
+    expect(glyphKindOf('a.pdf')).toBe('pdf')
+    expect(glyphKindOf('notes.csv')).toBe('text')
+    expect(glyphKindOf('no-extension')).toBe('text')
   })
 })

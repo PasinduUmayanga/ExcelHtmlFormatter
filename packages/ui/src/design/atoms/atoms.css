@@ -1,25 +1,45 @@
 /* Atoms: Button, Badge (.chip), TagName (.tag), Swatch, Spinner. */
 .btn {
   font: inherit;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 40px;
   border: 1px solid var(--control-border);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
-  padding: 7px 14px;
+  padding: 8px 16px;
   border-radius: var(--radius);
   cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
 }
 /* Links that look like buttons (e.g. Help in the header) */
 a.btn {
-  display: inline-block;
   text-decoration: none;
 }
 .btn:hover:not(:disabled) {
-  border-color: var(--faint);
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
+  /* The prototype's glossy blue: a gradient whose both ends carry white text at 4.5:1 */
+  background: linear-gradient(125deg, var(--accent-fill), var(--accent-fill-end));
+  border-color: var(--accent-fill);
   color: var(--on-accent);
+  font-weight: 600;
+}
+.btn.primary:hover:not(:disabled) {
+  background: linear-gradient(125deg, var(--accent-fill-hover), var(--accent-fill-end));
+  border-color: var(--accent-fill-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }
 .btn:disabled {
   opacity: 0.45;
@@ -65,11 +85,18 @@ a.btn {
   background: none;
   color: var(--accent);
   padding: 0;
+  min-height: 0;
   white-space: nowrap;
 }
+.btn.link:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
 .btn.small {
-  padding: 3px 10px;
-  font-size: 12.5px;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: var(--text-sm);
+  gap: var(--space-2);
   white-space: nowrap;
 }
 .swatch {

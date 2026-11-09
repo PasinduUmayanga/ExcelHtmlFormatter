@@ -46,13 +46,14 @@ export async function answerSaveDialog(app: ElectronApplication, path: string): 
 }
 
 /**
- * Opens a workbook the way users do: Home's "Choose a file →" (which unlocks the workflow), then the Open
+ * Opens a workbook the way users do: on Home, Excel and "Format HTML tags" are chosen, Continue unlocks the
+ * workflow, then the Open
  * screen's browse button. Waits for the sheet list.
  */
 export async function openWorkbook({ app, window }: RunningApp, path: string): Promise<void> {
   await answerOpenDialog(app, path)
-  await window.getByRole('link', { name: 'Home' }).click()
-  await window.getByRole('button', { name: 'Choose a file →' }).click()
+  await window.getByRole('link', { name: 'Home', exact: true }).click()
+  await window.getByRole('button', { name: 'Continue', exact: true }).click()
   await window.waitForURL(/#\/open$/)
   await window.getByRole('button', { name: /click to browse/i }).click()
   await window.waitForURL(/#\/sections$/)

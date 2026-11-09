@@ -1,20 +1,67 @@
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronRight,
+  CircleAlert,
+  CircleCheck,
+  CircleHelp,
+  CircleMinus,
+  CodeXml,
+  FileOutput,
+  Clock,
+  FileText,
+  FolderOpen,
+  House,
+  Info,
+  Layers,
+  Monitor,
+  Moon,
+  Save,
+  ScanText,
+  Settings,
+  SlidersHorizontal,
+  Sun,
+  TriangleAlert,
+  X,
+  type LucideIcon
+} from 'lucide-react'
+
 /**
- * The window's icons. They are characters, so they inherit the text colour and size, and screen readers
- * read them as part of the text (as before; hiding them is a separate, approved-later change).
+ * The window's icons: one line-icon family (lucide, decision R1 of the redesign). Decorative: every icon sits next to
+ * text that says the same, so screen readers skip it. They take the text colour.
  */
 export const ICONS = {
-  warning: '⚠',
-  info: 'ℹ',
-  check: '✓',
-  close: '✕',
-  file: '📄',
-  save: '💾',
-  settings: '⚙',
-  home: '⌂'
-} as const
+  warning: TriangleAlert,
+  info: Info,
+  check: Check,
+  close: X,
+  file: FileText,
+  save: Save,
+  settings: Settings,
+  home: House,
+  workspace: Layers,
+  recent: Clock,
+  profiles: SlidersHorizontal,
+  help: CircleHelp,
+  sun: Sun,
+  moon: Moon,
+  monitor: Monitor,
+  chevron: ChevronRight,
+  next: ArrowRight,
+  back: ArrowLeft,
+  folder: FolderOpen,
+  code: CodeXml,
+  convert: FileOutput,
+  extract: ScanText,
+  passed: CircleCheck,
+  attention: CircleAlert,
+  neutral: CircleMinus
+} satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof ICONS
 
-export function Icon({ name }: { name: IconName }) {
-  return ICONS[name]
+export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
+  const Svg = ICONS[name]
+  return <Svg className="icon" size={size} strokeWidth={2} aria-hidden="true" focusable="false" />
 }

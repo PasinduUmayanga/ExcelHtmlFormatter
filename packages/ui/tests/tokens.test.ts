@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { GLYPH_KINDS } from '../src/design/atoms/FileGlyph'
 
 /** WCAG 2.2 contrast ratio of two #rrggbb colours. */
 function contrast(a: string, b: string): number {
@@ -41,15 +42,33 @@ const TEXT: [string, string][] = [
   ['warn', 'warn-bg'],
   ['bad', 'bg'],
   ['bad', 'bad-bg'],
-  ['on-accent', 'accent'], // primary buttons, pressed toggles
-  ['on-ok', 'ok'] // completed steps
+  ['on-accent', 'accent-fill'], // primary buttons, pressed toggles, the current page in the sidebar
+  ['on-accent', 'accent-fill-hover'],
+  ['on-accent', 'accent-fill-end'], // the dark end of the primary button gradient
+  ['on-ok', 'ok'], // completed steps
+  // Cards, inputs and raised panels (the redesign's --surface levels)
+  ['text', 'surface'],
+  ['text', 'surface-raised'],
+  ['text', 'surface-hover'],
+  ['muted', 'surface'],
+  ['muted', 'surface-raised'],
+  ['faint', 'surface'],
+  ['faint', 'surface-raised'],
+  ['accent', 'surface'],
+  ['ok', 'surface'],
+  ['warn', 'surface'],
+  ['bad', 'surface']
 ]
 /** Boundaries of controls and the focus ring: at least 3:1. */
 const NON_TEXT: [string, string][] = [
   ['control-border', 'bg'],
   ['control-border', 'side'],
   ['accent', 'bg'],
-  ['accent', 'side']
+  ['accent', 'side'],
+  ['control-border', 'surface'],
+  ['accent', 'surface'],
+  ['focus', 'bg'],
+  ['focus', 'surface']
 ]
 
 describe('colour contrast (WCAG 2.2 AA)', () => {
@@ -74,5 +93,12 @@ describe('colour contrast (WCAG 2.2 AA)', () => {
   it('measures contrast correctly', () => {
     expect(contrast('#000000', '#ffffff')).toBeCloseTo(21, 5)
     expect(contrast('#ffffff', '#ffffff')).toBe(1)
+  })
+})
+
+describe('file type pictures', () => {
+  // The white labels can be small (recent activity), so they need the full 4.5:1, not the 3:1 for large text.
+  it.each(Object.entries(GLYPH_KINDS))('white on the %s label is at least 4.5:1', (_kind, { to }) => {
+    expect(contrast('#ffffff', to)).toBeGreaterThanOrEqual(4.5)
   })
 })

@@ -1,66 +1,108 @@
 /*
- * Design tokens: colours (light, and dark), sizes and spacing. Dark applies when the app's theme is Dark, or System
- * on a dark operating system: the main process sets Electron's nativeTheme, which drives prefers-color-scheme.
- * Every text colour has at least 4.5:1 contrast on its background, and --control-border 3:1 (WCAG 2.2 AA);
- * packages/ui/tests/tokens.test.ts checks this.
+ * Design tokens (FormaFlow redesign, docs/design/FormaFlow-Claude-Redesign, colours from the "Blue Shiny Wave"
+ * prototype): deep navy surfaces, electric-blue selection and primary actions, green verification. Light and dark; dark applies when the theme is Dark, or System on
+ * a dark operating system (the main process sets Electron's nativeTheme, which drives prefers-color-scheme).
+ * Every text colour has at least 4.5:1 contrast on the surfaces it is used on, and --control-border 3:1
+ * (WCAG 2.2 AA); packages/ui/tests/tokens.test.ts checks this. The prototype's #258EFF blue carries white text at only
+ * 3.3:1, so filled buttons run from --accent-fill to --accent-fill-end and the brighter blue is kept for links, outlines
+ * and selection.
+ * Keep --side in line with windowBackground() in @hf/desktop and the static startup screen in the app's index.html.
  */
 :root {
-  --bg: #ffffff;
-  --side: #f6f7f9;
-  --line: #e2e5ea;
-  --line2: #cfd4db;
+  /* Surfaces: page, sidebar, cards and inputs, raised and hovered cards */
+  --bg: #f4f7fc;
+  --side: #edf3fb;
+  --surface: #ffffff;
+  --surface-raised: #f7faff;
+  --surface-hover: #e9f1fc;
+  --line: #dfe7f2;
+  --line2: #cbd7e8;
   /* Borders that show where a control is (inputs, buttons, toggles) */
-  --control-border: #858d98;
-  --text: #1c2128;
-  --muted: #5d6672;
-  --faint: #687180;
-  --accent: #1f6feb;
-  --accent-bg: #e8f0fe;
-  --accent-text: #174ea6;
-  --ok: #17702f;
-  --ok-bg: #e6f4ea;
+  --control-border: #73849b;
+  --text: #15253b;
+  --muted: #536987;
+  --faint: #56698a;
+  /* Blue: links, outlines and selection (--accent); filled buttons (--accent-fill) */
+  --accent: #1563d6;
+  --accent-fill: #1a6ff0;
+  --accent-fill-hover: #1565e0;
+  --accent-fill-end: #0b62dc;
+  --accent-bg: #dfedff;
+  --accent-text: #14519f;
+  --focus: #1563d6;
+  --ok: #137a43;
+  --ok-bg: #e3f5ea;
   /* Text on solid accent / ok backgrounds (primary buttons, pressed toggles, completed steps) */
   --on-accent: #ffffff;
   --on-ok: #ffffff;
-  --warn: #875a00;
-  --warn-bg: #fff4d6;
-  --bad: #cf222e;
-  --bad-bg: #ffebe9;
-  --radius: 8px;
-  /* Spacing and text sizes used by the layout helpers (the same values the screens used before). */
+  --warn: #8a5a00;
+  --warn-bg: #fff3d6;
+  --bad: #c62d36;
+  --bad-bg: #ffe9ea;
+  --shadow: 0 8px 24px rgb(15 27 45 / 8%);
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  /* Spacing (4 px steps; 6 is kept for the denser helpers) */
   --space-1: 4px;
   --space-2: 6px;
   --space-3: 8px;
   --space-4: 12px;
   --space-5: 16px;
   --space-6: 20px;
-  --text-xs: 11.5px;
-  --text-sm: 12.5px;
-  --text-md: 13px;
-  --text-lg: 15px;
+  --space-7: 24px;
+  --space-8: 32px;
+  /* Type scale (guide §3.2): captions 12–13, body 14–15, card titles 17, page titles 28 */
+  --font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-title: 28px;
   --mono: Consolas, 'Cascadia Mono', Menlo, monospace;
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --content-pad: 32px;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161b22;
-    --side: #11161d;
-    --line: #2a313b;
-    --line2: #3a434f;
-    --control-border: #6e7681;
-    --text: #e6edf3;
-    --muted: #9aa5b1;
-    --faint: #8b949e;
-    --accent: #4c8dff;
-    --accent-bg: #152a4a;
-    --accent-text: #a8c7ff;
-    --ok: #3fb950;
-    --ok-bg: #12301c;
-    --on-accent: #0d1117;
-    --on-ok: #0d1117;
-    --warn: #d29922;
-    --warn-bg: #33270b;
-    --bad: #f85149;
-    --bad-bg: #3a1214;
+    --bg: #09182b;
+    --side: #0b172a;
+    --surface: #13243b;
+    --surface-raised: #1a304f;
+    --surface-hover: #20385a;
+    --line: #2a3b55;
+    --line2: #34506e;
+    --control-border: #5d7896;
+    --text: #f3f7ff;
+    --muted: #a8bed7;
+    --faint: #8ea4c0;
+    --accent: #2f90ff;
+    --accent-fill: #1a6ff0;
+    --accent-fill-hover: #1565e0;
+    --accent-fill-end: #0b62dc;
+    --accent-bg: #1a4373;
+    --accent-text: #9cc8ff;
+    --focus: #80baff;
+    --ok: #19c876;
+    --ok-bg: #183b35;
+    --on-accent: #ffffff;
+    --on-ok: #0b1320;
+    --warn: #f2b84b;
+    --warn-bg: #493719;
+    --bad: #ff8095;
+    --bad-bg: #4a2330;
+    --shadow: 0 12px 36px rgb(0 0 0 / 22%);
+  }
+}
+@media (max-width: 1100px) {
+  :root {
+    --content-pad: 20px;
   }
 }

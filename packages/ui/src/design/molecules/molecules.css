@@ -36,7 +36,7 @@
 }
 .stat {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 12px 14px;
 }
 .stat .v {
@@ -101,16 +101,25 @@
   overflow: hidden;
 }
 .seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   border: 0;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--muted);
   font: inherit;
-  padding: 5px 12px;
+  min-height: 36px;
+  padding: 6px 14px;
   cursor: pointer;
 }
+.seg button:hover:not(.on) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+/* The chosen option: filled blue, as in the references */
 .seg button.on {
-  background: var(--accent-bg);
-  color: var(--accent-text);
+  background: var(--accent-fill);
+  color: var(--on-accent);
   font-weight: 600;
 }
 .feature {
@@ -118,9 +127,9 @@
   flex-direction: column;
   gap: var(--space-2);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: var(--space-5) 18px;
-  background: var(--bg);
+  background: var(--surface);
 }
 .feature.primary {
   border-color: var(--accent);
@@ -191,4 +200,141 @@ mark {
   background: var(--warn-bg);
   color: var(--text);
   border-radius: 2px;
+}
+/* Breadcrumbs in the header */
+.crumbs ol {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-md);
+}
+.crumbs li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+}
+.crumbs a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.crumbs a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+.crumbs [aria-current='page'] {
+  color: var(--text);
+  font-weight: 600;
+}
+.crumb-home {
+  display: inline-flex;
+}
+/* Cards that behave like radio buttons (Home: file type, action) */
+.radio-cards {
+  display: grid;
+  gap: var(--space-5);
+}
+.radio-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    box-shadow 0.15s;
+}
+.radio-card:hover:not(.unavailable):not(.checked) {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+/* Chosen: blue outline and a faint blue fill (guide §3.3) */
+.radio-card.checked {
+  border: 2px solid var(--accent);
+  padding: calc(var(--space-6) - 1px);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.radio-card.unavailable {
+  cursor: not-allowed;
+}
+.radio-card.unavailable .card-title,
+.radio-card.unavailable .card-desc,
+.radio-card.unavailable .action-icon {
+  opacity: 0.75;
+}
+.card-body {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.25;
+}
+.card-desc {
+  color: var(--muted);
+}
+.check-mark {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--control-border);
+  display: grid;
+  place-items: center;
+}
+.check-mark.on {
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+}
+.action-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+}
+.radio-card.checked .action-icon {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+.radio-dot {
+  flex: none;
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--control-border);
+}
+.radio-dot.on {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 5px, transparent 6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-card {
+    transition: none;
+  }
 }

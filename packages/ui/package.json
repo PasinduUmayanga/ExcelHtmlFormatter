@@ -15,6 +15,7 @@
   "dependencies": {
     "@hf/core": "workspace:*",
     "@tanstack/react-router": "^1.170.46",
+    "lucide-react": "1.61.0",
     "zustand": "^5.1.0"
   },
   "peerDependencies": {

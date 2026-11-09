@@ -5,7 +5,7 @@ import type { ActivityEntry, ElectronApi } from '@hf/core'
 import { useApp } from '../src/state/store'
 import { FeatureCard } from '../src/design/molecules'
 import { describeActivity, formatWhen } from '../src/utils/describeActivity'
-import { EXPORT_TARGETS } from '../src/screens/Dashboard'
+import { activityStatus } from '../src/design/organisms/RecentActivity'
 
 const cells = { singular: 'cell', plural: 'cells' }
 const saved = (patch: Partial<ActivityEntry> = {}): ActivityEntry => ({
@@ -55,13 +55,14 @@ describe('FeatureCard', () => {
       'class="feature primary"'
     )
   })
+})
 
-  it('lists the coming conversions as not available yet', () => {
-    expect(EXPORT_TARGETS.map((t) => [t.id, t.available])).toEqual([
-      ['pdf', false],
-      ['word', false],
-      ['txt', false]
-    ])
+describe('activityStatus', () => {
+  it('reports what was recorded, never more', () => {
+    expect(activityStatus({ ...saved(), kind: 'opened' })).toMatchObject({ label: 'Opened', tone: 'plain' })
+    expect(activityStatus(saved())).toMatchObject({ label: 'Formatted', tone: 'ok' })
+    expect(activityStatus(saved({ check: 'differences', differences: 2 }))).toMatchObject({ tone: 'warn' })
+    expect(activityStatus(saved({ check: 'not-checked' }))).toMatchObject({ label: 'Saved, not checked' })
   })
 })
 

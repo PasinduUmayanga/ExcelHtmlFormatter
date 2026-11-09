@@ -20,6 +20,7 @@ import {
   type TagStyle,
   type UnknownTagAction
 } from '@hf/core'
+import { actionOf, availabilityOf, firstReadyAction, type FileTypeId } from '../features/workflow/registry'
 
 /**
  * App data: the open document, the selection, settings and running jobs.
@@ -116,6 +117,12 @@ export interface AppState {
    * clean save: the file is closed and Home shows `lastSaved`. Going Home in between keeps it unlocked.
    */
   workflowActive: boolean
+  /** Home's choice: the kind of file (step 1) and the action for it (step 2; null when none is chosen or ready) */
+  homeType: FileTypeId
+  homeAction: string | null
+  /** Chooses a file type; keeps the action if it belongs to that type, otherwise picks its first ready action. */
+  setHomeType(type: FileTypeId, appFormatId: string): void
+  setHomeAction(actionId: string | null): void
   /** Unlocks the workflow (Home's "Format an Excel file", "Open again"). Clears Home's save message. */
   startWorkflow(): void
   /** The last clean save, shown on Home until dismissed or the next workflow starts. */
@@ -458,6 +465,16 @@ export const useApp = create<AppState>((set, get) => {
       set({ exportResult: null })
     },
 
+    homeType: 'excel',
+    homeAction: 'format-html',
+    setHomeType(type, appFormatId) {
+      const current = actionOf(get().homeAction)
+      const keep = current?.sourceType === type && availabilityOf(current, appFormatId) === 'ready'
+      set({ homeType: type, homeAction: keep ? current.id : (firstReadyAction(type, appFormatId)?.id ?? null) })
+    },
+    setHomeAction(actionId) {
+      set({ homeAction: actionId })
+    },
     workflowActive: false,
     startWorkflow() {
       set({ workflowActive: true, lastSaved: null })

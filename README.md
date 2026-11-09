@@ -136,6 +136,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Notable changes are listed in [CHANGELOG
 technical design, contracts, security, testing strategy, the user manual, the developer guide, deployment and
 troubleshooting. The original build plan and the first clickable demo are in [docs/history](docs/history/PLAN.md).
 
+**UI redesign (in progress):** the screen designs and implementation contract are in
+[docs/design/FormaFlow-Claude-Redesign](docs/design/FormaFlow-Claude-Redesign/CLAUDE_IMPLEMENTATION_GUIDE.md); what the
+app really supports, and the phase plan, are in the [redesign audit](docs/design/formaflow-audit.md).
+
 ## License
 
 Not decided yet (decision D10 in [docs/roadmap.md](docs/roadmap.md)). Until a license is added, all rights are

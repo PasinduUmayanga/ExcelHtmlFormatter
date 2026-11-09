@@ -16,7 +16,7 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 ## Current numbers (2026-11-09)
 
 - Unit/integration: **298 tests** — core 132, adapter-excel 57, ui 88, desktop 21.
-- End-to-end: **11 tests** — start-up failure and Try again; start state (Home, Coming soon cards, workflow locked, also by address); Help (keyboard, search, links between topics,
+- End-to-end: **11 tests** — start-up failure and Try again; start state (Home: file type and action choice, Coming soon actions, workflow locked, also by address); Help (keyboard, search, links between topics,
   About details); theme (applies everywhere, survives a restart,
   dark window background); Home (Continue mid-workflow, entries after a save,
   Open again starts in the right folder, Clear survives a restart); open → analyse → set style → preview → export (back on Home with the summary, workflow locked, saved file checked, original
