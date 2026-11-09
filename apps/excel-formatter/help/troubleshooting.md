@@ -2,6 +2,11 @@
 
 What a message means and what to do about it.
 
+## "Your settings could not be loaded"
+
+FormaFlow couldn't read its settings when starting. Click **Try again**. If it keeps happening, close FormaFlow and
+start it again. Your tag styles are kept in FormaFlow's settings folder and aren't changed by this.
+
 ## The file can't be opened
 
 - **"This file could not be read as an Excel workbook":** open it in Excel and save it again as `.xlsx`. Older `.xls` files and password-protected workbooks aren't supported.

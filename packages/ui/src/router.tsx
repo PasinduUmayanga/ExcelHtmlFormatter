@@ -72,13 +72,23 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
   // Home (the start screen): start or continue, coming features, tools and recent activity.
   const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Dashboard })
 
-  const openRoute = createRoute({ getParentRoute: () => rootRoute, path: '/open', component: OpenFile })
+  // The workflow is unlocked from Home; while it is locked its screens send the user there.
+  const start = () => (useApp.getState().workflowActive ? '/open' : '/')
+
+  const openRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/open',
+    beforeLoad: () => {
+      if (!useApp.getState().workflowActive) throw redirect({ to: '/' })
+    },
+    component: OpenFile
+  })
 
   const sectionsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/sections',
     beforeLoad: () => {
-      if (!canVisit(useApp.getState(), 'sections')) throw redirect({ to: '/open' })
+      if (!canVisit(useApp.getState(), 'sections')) throw redirect({ to: start() })
     },
     component: SelectSections
   })
@@ -86,7 +96,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
   /** Shared guard for the two per-section screens. */
   function guardSection(section: string, screen: 'analysis' | 'preview') {
     const state = useApp.getState()
-    if (!canVisit(state, 'sections')) throw redirect({ to: '/open' })
+    if (!canVisit(state, 'sections')) throw redirect({ to: start() })
     if (!canVisit(state, screen)) throw redirect({ to: '/sections' })
     if (!state.selected.includes(section)) {
       const first = state.selected[0]
@@ -125,7 +135,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     }),
     beforeLoad: ({ params, search }) => {
       const state = useApp.getState()
-      if (!canVisit(state, 'sections')) throw redirect({ to: '/open' })
+      if (!canVisit(state, 'sections')) throw redirect({ to: start() })
       if (!canVisit(state, 'preview')) throw redirect({ to: '/sections' })
       const known = state.doc!.sections.some((s) => s.name === params.section)
       // The saved-file view needs a saved file; the content check needs a selected section.

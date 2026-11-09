@@ -29,7 +29,8 @@ export function Sidebar() {
 
   const step = (id: Step, i: number, label: string, link: (children: ReactNode, className: string) => ReactNode) => {
     const done = currentIndex > i
-    const enabled = id === 'open' || canVisit(state, id)
+    // Locked until the workflow is started from Home (and again after a clean save).
+    const enabled = id === 'open' ? state.workflowActive : canVisit(state, id)
     const className = `nav ${current === id ? 'active' : ''} ${done ? 'done' : ''}`
     const children = (
       <>

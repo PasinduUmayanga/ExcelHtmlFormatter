@@ -56,6 +56,14 @@ count opening tags per section, remembering the first cell and a sample for prev
   `writeJsonSafely` in order. Recorded after `document:open` succeeds and after `document:export` finishes (with the
   verification result). The UI reloads it after an open or a save (`loadActivity`) and remembers the last document
   screen (`lastStep`, set by `AppLayout`) for Home's Continue.
+- **Startup (FR-30):** `apps/excel-formatter/index.html` contains a static startup screen inside `#root` (inline styles
+  and the mark; no script), replaced when React renders. The store's `startup` (`loading` / `ready` / `failed`) is set
+  by `retryStartup()` (settings and app info; activity and theme load after, without failing start-up); `AppLayout`
+  shows `templates/StartupScreen` until it is `ready`. `init()` registers the job-progress listener only once.
+- **Workflow lock (FR-29):** store `workflowActive` (set by `startWorkflow()` from Home, cleared by a clean save in
+  `exportDocument`, which returns `'completed'` and moves the result to `lastSaved`). `canVisit` requires it; the
+  router's guards send locked screens (including `#/open`) to `/`. A save with known issues or differences returns
+  `'saved'` and keeps the document open.
 - **Settings folder:** `startDesktopApp({ userDataFolder })` sets `userData` to that folder inside the system's
   app-data folder before the app is ready (`userDataPath()` in `src/main/userData.ts`), unless `--user-data-dir` was
   given. The Excel app passes `'Excel HTML Formatter'` ([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).

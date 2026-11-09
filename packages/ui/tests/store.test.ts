@@ -48,10 +48,20 @@ beforeEach(() => {
     onJobProgress: vi.fn(() => () => {}),
     loadConfig: vi.fn(async () => defaultConfig()),
     getAppInfo: vi.fn(async () => ({ version: '1', platform: 'win32', configPath: 'c' })),
-    saveConfig: vi.fn(async () => {})
+    saveConfig: vi.fn(async () => {}),
+    showInFolder: vi.fn(async () => {}),
+    getActivity: vi.fn(async () => [])
   } as unknown as typeof api
   ;(window as unknown as { api: typeof api }).api = api
-  useApp.setState({ doc, selected: ['Sheet'], config: defaultConfig(), exportResult: null, error: null })
+  useApp.setState({
+    doc,
+    selected: ['Sheet'],
+    config: defaultConfig(),
+    exportResult: null,
+    error: null,
+    workflowActive: true,
+    lastSaved: null
+  })
 })
 afterEach(() => {
   useApp.setState({
@@ -105,21 +115,48 @@ describe('content check (store)', () => {
 })
 
 describe('saving (store)', () => {
-  it('checks first, then saves when nothing is wrong', async () => {
-    expect(await useApp.getState().exportDocument()).toBe('saved')
+  it('checks first; a clean save closes the file, ends the workflow and keeps the result for Home', async () => {
+    useApp.setState({ workflowActive: true, lastSaved: null })
+    expect(await useApp.getState().exportDocument()).toBe('completed')
     expect(api.checkDocument).toHaveBeenCalledTimes(1)
-    expect(useApp.getState().exportResult).toBe(saved)
-    // A current check is reused
-    expect(await useApp.getState().exportDocument()).toBe('saved')
+    expect(useApp.getState()).toMatchObject({ doc: null, selected: [], workflowActive: false, lastSaved: saved })
+    expect(useApp.getState().exportResult).toBeNull()
+    useApp.getState().showInFolder()
+    expect(api.showInFolder).toHaveBeenCalledWith('C:/y.xlsx')
+    // Starting the next file clears Home's message; closing it does too
+    useApp.getState().startWorkflow()
+    expect(useApp.getState()).toMatchObject({ workflowActive: true, lastSaved: null })
+    useApp.setState({ lastSaved: saved })
+    useApp.getState().dismissLastSaved()
+    expect(useApp.getState().lastSaved).toBeNull()
+  })
+
+  it('reuses a current check', async () => {
+    await useApp.getState().runCheck()
+    expect(await useApp.getState().exportDocument()).toBe('completed')
     expect(api.checkDocument).toHaveBeenCalledTimes(1)
   })
 
-  it('stops for review when the check finds issues, and saves anyway when confirmed', async () => {
+  it('stops for review when the check finds issues; saving anyway keeps the file open', async () => {
     api.checkDocument.mockResolvedValue(withIssue)
+    api.exportDocument.mockResolvedValue({ ...saved, stats: { ...saved.stats, check: withIssue } })
+    useApp.setState({ workflowActive: true })
     expect(await useApp.getState().exportDocument()).toBe('review')
     expect(api.exportDocument).not.toHaveBeenCalled()
     expect(await useApp.getState().exportDocument(true)).toBe('saved')
     expect(api.exportDocument).toHaveBeenCalledTimes(1)
+    expect(useApp.getState()).toMatchObject({ doc, workflowActive: true, lastSaved: null })
+    expect(useApp.getState().exportResult?.stats.check.issues).toBe(1)
+  })
+
+  it('keeps the file open when the saved file has differences, and ends when its check was stopped', async () => {
+    const differences = { compared: 2, differences: 1, items: [], truncated: false }
+    api.exportDocument.mockResolvedValueOnce({ ...saved, verification: differences })
+    expect(await useApp.getState().exportDocument()).toBe('saved')
+    expect(useApp.getState().doc).toBe(doc)
+    api.exportDocument.mockResolvedValueOnce({ ...saved, verification: null })
+    expect(await useApp.getState().exportDocument()).toBe('completed')
+    expect(useApp.getState().doc).toBeNull()
   })
 
   it('handles a cancelled dialog, a stopped save and a failed check', async () => {

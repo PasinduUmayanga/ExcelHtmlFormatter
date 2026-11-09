@@ -88,11 +88,15 @@ describe('Logo', () => {
     expect(html(<Logo />)).toContain('width="28"')
   })
 
-  it('matches the app icon', async () => {
+  it('matches the app icon and the startup screen', async () => {
     const { readFileSync } = await import('node:fs')
     const { join } = await import('node:path')
     const icon = readFileSync(join(__dirname, '../../../apps/excel-formatter/build/icon.svg'), 'utf8')
     const shapes = (svg: string) => [...svg.matchAll(/ d="([^"]+)"/g)].map((m) => m[1])
     expect(shapes(html(<Logo />))).toEqual(shapes(icon))
+    // The static startup screen in index.html draws it too (before the app's code runs).
+    const page = readFileSync(join(__dirname, '../../../apps/excel-formatter/index.html'), 'utf8')
+    const boot = page.slice(page.indexOf('<div class="boot">'))
+    expect(shapes(boot.slice(0, boot.indexOf('</svg>')))).toEqual(shapes(icon))
   })
 })

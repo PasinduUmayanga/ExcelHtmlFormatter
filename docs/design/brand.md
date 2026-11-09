@@ -14,6 +14,7 @@ arrow: text flows through the page and comes out formatted.
 | App icon      | `apps/excel-formatter/build/icon.png` (1024 × 1024) | Made by `pnpm --filter excel-formatter icon`; electron-builder makes the `.ico` and `.icns` from it |
 | In the window | `packages/ui/src/design/atoms/Logo.tsx`             | Next to the name in the sidebar; a unit test keeps its shapes equal to `icon.svg`                   |
 | Favicon       | `apps/excel-formatter/index.html`                   | The same SVG, inline                                                                                |
+| Startup       | `apps/excel-formatter/index.html` (`.boot`)         | The static startup screen; a unit test checks its shapes too                                        |
 
 Keep the three files' shapes identical. In the SVG source, never put two hyphens in a row inside a comment: that makes
 the file invalid XML and the icon script fails.

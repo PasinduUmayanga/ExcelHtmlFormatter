@@ -49,6 +49,8 @@ export function PreviewExport() {
 
   const save = async () => {
     const outcome = await exportDocument()
+    // A clean save ends the workflow: Home shows what was saved.
+    if (outcome === 'completed') navigate({ to: '/' })
     if (outcome === 'review') {
       const first = useApp.getState().check.report?.items.find((i) => i.severity === 'issue')
       navigate({

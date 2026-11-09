@@ -40,7 +40,15 @@ export interface AppState {
   appInfo: AppInfo | null
   error: string | null
 
+  /** Starts the app: listens for job progress (once) and loads what the screens need (see `startup`). */
   init(): Promise<void>
+  /**
+   * Start-up: the settings and app details every screen needs. 'loading' until they arrive (the window shows
+   * the startup screen), 'failed' with a message if they can't be read (the startup screen offers Try again).
+   */
+  startup: { status: 'loading' | 'ready' | 'failed'; error: string | null }
+  /** Loads the settings and app details again (Try again on the startup screen). */
+  retryStartup(): Promise<void>
   /** Opens a file. Resolves to true when it is ready to show. */
   openFile(file: PickedFile): Promise<boolean>
   /**
@@ -94,11 +102,25 @@ export interface AppState {
   /**
    * Saves the formatted copy. Checks the content first (unless a current check exists); if the check
    * finds issues, nothing is saved and 'review' is returned, unless `acceptIssues` is set
-   * ("Save anyway", decision E7).
+   * ("Save anyway", decision E7). A clean save (no known issues, and the saved file matches or its check was
+   * stopped) closes the file, ends the workflow and returns 'completed'; a save with problems returns 'saved'
+   * and keeps the file open so the problems can be reviewed.
    */
-  exportDocument(acceptIssues?: boolean): Promise<'saved' | 'review' | 'cancelled' | 'failed'>
+  exportDocument(acceptIssues?: boolean): Promise<'completed' | 'saved' | 'review' | 'cancelled' | 'failed'>
+  /** Shows the last saved file in its folder (the open document's save, or the one Home reports). */
   showInFolder(): void
   dismissExportResult(): void
+
+  /*
+   * The workflow (Open file → Preview & export) is unlocked by picking an item on Home, and ends with a
+   * clean save: the file is closed and Home shows `lastSaved`. Going Home in between keeps it unlocked.
+   */
+  workflowActive: boolean
+  /** Unlocks the workflow (Home's "Format an Excel file", "Open again"). Clears Home's save message. */
+  startWorkflow(): void
+  /** The last clean save, shown on Home until dismissed or the next workflow starts. */
+  lastSaved: ExportResult | null
+  dismissLastSaved(): void
 
   /* Content check (checks A and D, before saving) */
   check: ContentCheck
@@ -132,10 +154,10 @@ let runningCheck: { key: string; promise: Promise<ContentReport | null> } | null
 
 /** Which screens can be visited right now (used by route guards and the sidebar). */
 export function canVisit(
-  state: Pick<AppState, 'doc' | 'loading' | 'selected'>,
+  state: Pick<AppState, 'doc' | 'loading' | 'selected' | 'workflowActive'>,
   screen: 'sections' | 'analysis' | 'preview'
 ): boolean {
-  if (state.loading || !state.doc) return false
+  if (!state.workflowActive || state.loading || !state.doc) return false
   return screen === 'sections' || state.selected.length > 0
 }
 
@@ -166,6 +188,9 @@ export const cleanError = (e: unknown) => String((e as Error)?.message ?? e).rep
 
 const closedDocument = { doc: null, lastStep: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
 
+/** True once the job-progress listener is registered (it must be registered only once). */
+let listening = false
+
 export const useApp = create<AppState>((set, get) => {
   /** Shows the saved theme in the header (main already applied it before the window opened). */
   const loadTheme = async () => {
@@ -189,6 +214,9 @@ export const useApp = create<AppState>((set, get) => {
     error: null,
 
     async init() {
+      // React's StrictMode runs effects twice in development: listen only once.
+      if (listening) return get().retryStartup()
+      listening = true
       window.api.onJobProgress((kind, progress) => {
         // The content check runs alongside the screen, not as the main job.
         if (kind === 'check') {
@@ -198,12 +226,20 @@ export const useApp = create<AppState>((set, get) => {
         // Ignore late updates from a job that already finished or was cancelled.
         if (get().job?.kind === kind) set({ job: { kind, progress } })
       })
+      await get().retryStartup()
+    },
+
+    startup: { status: 'loading', error: null },
+    async retryStartup() {
+      set({ startup: { status: 'loading', error: null } })
       try {
         const [config, appInfo] = await Promise.all([window.api.loadConfig(), window.api.getAppInfo()])
-        set({ config, appInfo })
+        set({ config, appInfo, startup: { status: 'ready', error: null } })
       } catch (e) {
-        set({ error: 'Could not load settings: ' + cleanError(e) })
+        set({ startup: { status: 'failed', error: cleanError(e) } })
+        return
       }
+      // Conveniences: the window works without them, so they don't hold up start-up or fail it.
       await Promise.all([get().loadActivity(), loadTheme()])
     },
 
@@ -392,8 +428,14 @@ export const useApp = create<AppState>((set, get) => {
         set({ job: { kind: 'export', progress: null } })
         const result = await window.api.exportDocument(doc.file.path, selected, config)
         if (!result) return 'cancelled'
-        set({ exportResult: result })
         void get().loadActivity()
+        const clean =
+          result.stats.check.issues === 0 && (result.verification === null || result.verification.differences === 0)
+        if (clean) {
+          set({ ...closedDocument, workflowActive: false, lastSaved: result })
+          return 'completed'
+        }
+        set({ exportResult: result })
         return 'saved'
       } catch (e) {
         if (cleanError(e) === CANCELLED_MESSAGE) {
@@ -408,12 +450,21 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     showInFolder() {
-      const result = get().exportResult
+      const result = get().exportResult ?? get().lastSaved
       if (result) window.api.showInFolder(result.path)
     },
 
     dismissExportResult() {
       set({ exportResult: null })
+    },
+
+    workflowActive: false,
+    startWorkflow() {
+      set({ workflowActive: true, lastSaved: null })
+    },
+    lastSaved: null,
+    dismissLastSaved() {
+      set({ lastSaved: null })
     },
 
     check: idleCheck,

@@ -3,7 +3,7 @@ import { useApp } from '../store'
 import { useFormatterApp } from '../router'
 import { Badge, Button } from '../design/atoms'
 import { FeatureCard } from '../design/molecules'
-import { RecentActivity } from '../design/organisms'
+import { RecentActivity, SaveSummary } from '../design/organisms'
 import { ScreenTemplate } from '../design/templates'
 
 /**
@@ -19,12 +19,14 @@ export const EXPORT_TARGETS: readonly { id: string; title: string; description: 
 /** Home: start or continue, see what is coming, open the tools, and recent activity. */
 export function Dashboard() {
   const { format } = useFormatterApp()
-  const { doc, lastStep, browseForFile, loading } = useApp()
+  const { doc, lastStep, loading, startWorkflow, lastSaved, showInFolder, dismissLastSaved } = useApp()
   const navigate = useNavigate()
   const router = useRouter()
 
-  const browse = async () => {
-    if (await browseForFile()) navigate({ to: '/sections' })
+  // Picking this unlocks the workflow; the Open screen has drag-and-drop and the reading progress.
+  const start = () => {
+    startWorkflow()
+    navigate({ to: '/open' })
   }
 
   return (
@@ -32,6 +34,8 @@ export function Dashboard() {
       title={`Welcome to ${format.appName}`}
       intro="Turn HTML tags in your documents into real formatting. Your original files are never changed."
     >
+      {lastSaved && <SaveSummary result={lastSaved} onShow={showInFolder} onDismiss={dismissLastSaved} />}
+
       <h2 className="section-title">Start</h2>
       <div className="cards">
         {doc && (
@@ -51,8 +55,8 @@ export function Dashboard() {
           title={format.text.openTitle}
           description={format.text.openHint}
           action={
-            <Button variant={doc ? 'default' : 'primary'} disabled={loading} onClick={() => void browse()}>
-              Choose a file…
+            <Button variant={doc ? 'default' : 'primary'} disabled={loading} onClick={start}>
+              Choose a file →
             </Button>
           }
         />

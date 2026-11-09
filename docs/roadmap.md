@@ -68,7 +68,7 @@ Rebranding and UX work, one approval per phase. Decisions B1–B10 were approved
 | FF-4  | Light/Dark/System theme, saved preference, contrast fixes        | ✅ [ADR 0014](architecture/adr/0014-theme-preference.md)       |
 | FF-5  | Help Center (from the Markdown docs, searchable)                 | ✅ [ADR 0015](architecture/adr/0015-help-center-markdown.md)   |
 | FF-6  | Logo concepts, choice and integration                            | ✅ concept A, page in flow ([brand](design/brand.md))          |
-| FF-7  | Startup loading screen with error and retry                      | 📝                                                             |
+| FF-7  | Startup loading screen with error and retry                      | ✅                                                             |
 | FF-8  | Pre-export review (always), Passed/Warnings/Failed, structure    | 📝                                                             |
 | FF-9  | Final testing, documentation and regression                      | 📝                                                             |
 

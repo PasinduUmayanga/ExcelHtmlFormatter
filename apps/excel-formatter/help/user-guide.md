@@ -4,7 +4,7 @@ Each step of FormaFlow in detail, from opening a workbook to checking the saved 
 
 ## Home
 
-**Choose a file…** opens a workbook. When a file is open, **Continue** takes you back to the step you were on. Convert to PDF, Word and text are marked **Coming soon**: they can't be used yet.
+**Choose a file →** starts the workflow and opens the Open screen. When a file is open, **Continue** takes you back to the step you were on. The workflow steps in the sidebar are locked until you start one of these. Convert to PDF, Word and text are marked **Coming soon**: they can't be used yet.
 
 **Recent activity** lists the last 10 files you opened and saved, and whether each saved file checked out. **Open again** opens the file dialog in that folder. The list stays on this computer; **Clear** empties it.
 
@@ -37,11 +37,10 @@ Pick a tag, then choose bold, italic, underline, strikethrough, font colour, siz
 
 The preview shows how the cells will look. Switch to **Original HTML** to compare with the source text.
 
-Before saving, FormaFlow runs the content check (see [the content check](#the-content-check)). If nothing is lost, **Save formatted file…** asks where to save the new copy. You can't save over the original. When saving is done:
+Before saving, FormaFlow runs the content check (see [the content check](#the-content-check)). If nothing is lost, **Save formatted file…** asks where to save the new copy. You can't save over the original. When saving is done, FormaFlow reads the new file back to check it:
 
-- the summary says how many cells were formatted, and which links were added or left out;
-- **Verified: the saved file matches** means FormaFlow read the new file back and found the converted cells as expected, and every other cell unchanged;
-- **Show in folder** opens the folder with the new file selected.
+- If everything is fine, the file is closed and you're back on **Home**. A message there says what was saved: how many cells were formatted, which links were added or left out, and **Verified: the saved file matches** (the converted cells are as expected and every other cell is unchanged). **Show in folder** opens the folder with the new file selected. The workflow steps lock again until you start the next file.
+- If you saved with known issues, or the saved file has differences, you stay on Preview with the file open, so you can review them.
 
 ## The content check
 

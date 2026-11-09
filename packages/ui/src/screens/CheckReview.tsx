@@ -87,6 +87,7 @@ export function CheckReview() {
     setConfirming(false)
     const outcome = await exportDocument(true)
     if (outcome === 'saved') navigate({ to: '/preview/$section', params: { section } })
+    if (outcome === 'completed') navigate({ to: '/' })
   }
 
   return (

@@ -10,6 +10,7 @@ import {
   launchApp,
   openWorkbook,
   recordOpenDialogFolder,
+  WORKFLOW_STEPS,
   SAMPLE,
   screenTitle,
   type RunningApp
@@ -39,9 +40,15 @@ test('starts on Home with the document steps locked', async () => {
     await expect(window.getByRole('region', { name }).getByRole('button')).toBeDisabled()
   }
   await expect(window.locator('.recent')).toContainText('Nothing yet')
-  for (const step of ['Select sheets', 'Tag analysis', 'Preview & export']) {
+  // The whole workflow is locked until an item is picked on Home, also when typing an address.
+  for (const step of WORKFLOW_STEPS) {
     await expect(window.locator('.nav', { hasText: step })).toHaveAttribute('aria-disabled', 'true')
   }
+  await window.evaluate(() => (location.hash = '#/open'))
+  await expect(window).toHaveURL(/#\/$/)
+  await window.getByRole('button', { name: 'Choose a file →' }).click()
+  await expect(window).toHaveURL(/#\/open$/)
+  await expect(window.locator('.nav', { hasText: 'Open file' })).not.toHaveAttribute('aria-disabled')
 })
 
 test('open → analyse → set a style → preview → export a formatted copy', async () => {
@@ -81,11 +88,20 @@ test('open → analyse → set a style → preview → export a formatted copy',
   const target = join(dir, 'formatted.xlsx')
   await answerSaveDialog(app, target)
   await window.getByRole('button', { name: /Save formatted file/ }).click()
+  // A clean save ends the workflow: back on Home with the summary, and the steps locked again.
+  await expect(window).toHaveURL(/#\/$/, { timeout: 30_000 })
   const success = window.locator('.success')
-  await expect(success).toContainText('41 cells formatted in 4 sheets, 9 set to wrap text', { timeout: 30_000 })
+  await expect(success).toContainText('Saved formatted.xlsx')
+  await expect(success).toContainText('41 cells formatted in 4 sheets, 9 set to wrap text')
   await expect(success).toContainText('2 links added, 2 links not added')
   await expect(success).toContainText('1 cell highlighted')
   await expect(success).toContainText('Verified: the saved file matches')
+  for (const step of WORKFLOW_STEPS) {
+    await expect(window.locator('.nav', { hasText: step })).toHaveAttribute('aria-disabled', 'true')
+  }
+  await expect(window.getByRole('button', { name: 'Continue →' })).toHaveCount(0)
+  await success.getByRole('button', { name: 'Dismiss' }).click()
+  await expect(success).toHaveCount(0)
 
   // The saved file has real rich text, links and fill, and the original is byte-for-byte unchanged.
   const saved = new ExcelJS.Workbook()
@@ -140,8 +156,10 @@ test('a content issue stops the save until "Save anyway", with a CSV report', as
   await answerSaveDialog(app, target)
   await window.getByRole('button', { name: /Save anyway \(1 issue\)/ }).click()
   await window.getByRole('alertdialog').getByRole('button', { name: 'Save anyway' }).click()
+  // A save with a known issue keeps the file open on Preview, so the issue can still be reviewed.
   await expect(window).toHaveURL(/#\/preview\/Long$/)
   await expect(window.locator('.success')).toContainText('Saved with 1 known issue', { timeout: 30_000 })
+  await expect(window.locator('.nav', { hasText: 'Preview & export' })).not.toHaveAttribute('aria-disabled')
   await expect(window.locator('.success')).toContainText('Verified: the saved file matches')
   expect(existsSync(target)).toBe(true)
 })
@@ -212,39 +230,46 @@ test('Cancel while checking the saved file keeps the file and skips only the che
   })
   await window.getByRole('button', { name: /Save formatted file/ }).click()
 
-  await expect(window.locator('.success')).toContainText('Saved verified.xlsx', { timeout: 30_000 })
+  // The file is saved, so this is a completed save: Home says the saved file wasn't checked.
+  await expect(window).toHaveURL(/#\/$/, { timeout: 30_000 })
+  await expect(window.locator('.success')).toContainText('Saved verified.xlsx')
   await expect(window.locator('.success')).toContainText('The saved file was not checked (stopped).')
   expect(existsSync(target)).toBe(true)
 })
 
-test('Home lists recent activity, opens again in that folder, and Clear survives a restart', async () => {
+test('Home: Continue mid-workflow, recent activity, Open again in that folder, Clear survives a restart', async () => {
   const { app, window, dir } = run
   await openWorkbook(run, SAMPLE)
   await window.getByRole('button', { name: 'Analyse tags →' }).click()
   await window.getByRole('button', { name: 'Preview result →' }).click()
   await expect(window.locator('.check-chip')).toContainText('complete', { timeout: 30_000 })
+
+  // Going Home mid-workflow keeps it unlocked; Continue returns to the screen the user was on.
+  await window.getByRole('link', { name: 'Home' }).click()
+  await expect(window.locator('.nav', { hasText: 'Preview & export' })).not.toHaveAttribute('aria-disabled')
+  await window.getByRole('button', { name: 'Continue →' }).click()
+  await expect(window).toHaveURL(/#\/preview\/Products$/)
+
   await answerSaveDialog(app, join(dir, 'formatted.xlsx'))
   await window.getByRole('button', { name: /Save formatted file/ }).click()
-  await expect(window.locator('.success')).toContainText('Verified', { timeout: 30_000 })
+  await expect(window).toHaveURL(/#\/$/, { timeout: 30_000 })
+  await expect(window.locator('.success')).toContainText('Verified')
 
-  await window.getByRole('link', { name: 'Home' }).click()
   const rows = window.locator('.activity li')
   await expect(rows).toHaveCount(2)
   await expect(rows.nth(0)).toContainText('formatted.xlsx')
   await expect(rows.nth(0)).toContainText('41 cells formatted · saved file verified')
   await expect(rows.nth(1)).toContainText('product_catalog.xlsx')
   await expect(rows.nth(1)).toContainText('Opened')
-  // Continue returns to the screen the user was on.
-  await window.getByRole('button', { name: 'Continue →' }).click()
-  await expect(window).toHaveURL(/#\/preview\/Products$/)
 
-  await window.getByRole('link', { name: 'Home' }).click()
+  // Open again unlocks the workflow and starts the dialog in that folder.
   const folder = await recordOpenDialogFolder(app)
   await rows
     .nth(0)
     .getByRole('button', { name: /Open again/ })
     .click()
   await expect.poll(folder).toBe(dir)
+  await expect(window.locator('.nav', { hasText: 'Open file' })).not.toHaveAttribute('aria-disabled')
 
   await window.getByRole('button', { name: 'Clear' }).click()
   await expect(window.locator('.recent')).toContainText('Nothing yet')
@@ -320,13 +345,40 @@ test('Help: topics by keyboard, search, links between topics and About', async (
   await expect(screenTitle(window)).toHaveText('Help')
 })
 
-test('reloading a document screen goes back to Open (route guards)', async () => {
+test('start-up: a failure to load the settings shows Try again, which recovers', async () => {
+  const { app, window } = run
+  await expect(screenTitle(window)).toHaveText('Welcome to FormaFlow')
+  // Make loading the settings fail, then start the window again.
+  await app.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('config:load')
+    ipcMain.handle('config:load', () => {
+      throw new Error('Disk not ready')
+    })
+  })
+  await window.reload()
+  const alert = window.getByRole('alert')
+  await expect(alert).toContainText('Your settings could not be loaded.')
+  await expect(alert).toContainText('Disk not ready')
+  await expect(window.locator('aside')).toHaveCount(0)
+
+  // Settings readable again: Try again opens the app.
+  await app.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('config:load')
+    ipcMain.handle('config:load', () => ({ version: 2, profileName: 'Default', unknownTagAction: 'strip', rules: {} }))
+  })
+  await alert.getByRole('button', { name: 'Try again' }).click()
+  await expect(screenTitle(window)).toHaveText('Welcome to FormaFlow')
+  await expect(window.locator('aside')).toContainText('Profile: Default')
+})
+
+test('reloading a document screen goes back to Home with the workflow locked (route guards)', async () => {
   const { window } = run
   await openWorkbook(run, SAMPLE)
   await window.getByRole('button', { name: 'Analyse tags →' }).click()
   await window.getByRole('button', { name: 'Preview result →' }).click()
   await expect(window).toHaveURL(/#\/preview\/Products$/)
   await window.reload()
-  await expect(screenTitle(window)).toHaveText('Open an Excel file')
-  await expect(window).toHaveURL(/#\/open$/)
+  await expect(screenTitle(window)).toHaveText('Welcome to FormaFlow')
+  await expect(window).toHaveURL(/#\/$/)
+  await expect(window.locator('.nav', { hasText: 'Open file' })).toHaveAttribute('aria-disabled', 'true')
 })
