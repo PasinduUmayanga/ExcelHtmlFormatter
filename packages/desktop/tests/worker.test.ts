@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { Worker } from 'node:worker_threads'
-import { CANCELLED_MESSAGE, defaultConfig, type DocumentSummary, type FormatAdapter, type JobProgress } from '@hf/core'
+import { once } from 'node:events'
+import {
+  CANCELLED_MESSAGE,
+  defaultConfig,
+  emptyReport,
+  type DocumentSummary,
+  type FormatAdapter,
+  type JobProgress
+} from '@hf/core'
 import { handleRequest, type WorkerState } from '../src/worker/handler'
 import { JobWorker } from '../src/main/workerClient'
 import { friendlyWorkerError, type WorkerMessage } from '../src/protocol'
@@ -39,11 +47,25 @@ const fakeAdapter: FormatAdapter<FakeDoc, string> = {
       sections: sections.map((name) => ({ name, converted: 1 })),
       converted: sections.length,
       withLineBreaks: 0,
-      unknownTags: []
+      unknownTags: [],
+      linksAdded: 0,
+      linksSkipped: 0,
+      highlighted: 0,
+      check: emptyReport()
     }
   },
   async write(doc, path) {
     files[path] = { ...doc, written: path }
+  },
+  check(_doc, sections, _options, onProgress) {
+    onProgress?.({ stage: 'checking', done: 1, total: 1 })
+    return { ...emptyReport(), checked: sections.length, complete: sections.length }
+  },
+  snapshot: (doc) => structuredClone(doc.sections),
+  verify(saved, snapshot, sections) {
+    const before = snapshot as Record<string, string>
+    const changed = Object.keys(before).filter((s) => !sections.includes(s) && saved.sections[s] !== before[s])
+    return { compared: Object.keys(saved.sections).length, differences: changed.length, items: [], truncated: false }
   }
 }
 
@@ -76,6 +98,25 @@ describe('handleRequest (worker logic, with any format adapter)', () => {
     expect(sent[sent.length - 1]).toMatchObject({ id: 3, kind: 'result', result: { converted: 1 } })
     expect(files['out.fake']).toMatchObject({ sections: { One: 'x', Two: 'plain' }, written: 'out.fake' })
     expect(state.doc!.sections.One).toBe('<b>x</b>')
+  })
+
+  it('checks the open document, then verifies a saved file against the original', async () => {
+    const state: WorkerState<FakeDoc> = { doc: structuredClone(files['a.fake']) }
+    const config = defaultConfig()
+    const checked = await run({ id: 6, type: 'check', sections: ['One'], config }, state)
+    expect(checked[checked.length - 1]).toMatchObject({ kind: 'result', result: { checked: 1, complete: 1 } })
+    expect(state.doc!.sections.One).toBe('<b>x</b>')
+
+    await run({ id: 7, type: 'export', source: 'a.fake', target: 'v.fake', sections: ['One'], config }, state)
+    files['v.fake'].sections.Two = 'tampered'
+    const verified = await run({ id: 8, type: 'verify', target: 'v.fake', sections: ['One'], config }, state)
+    expect((verified[0] as { progress: JobProgress }).progress.stage).toBe('verifying')
+    expect(verified[verified.length - 1]).toMatchObject({ kind: 'result', result: { compared: 2, differences: 1 } })
+    // The snapshot is used once: a second verify has nothing to compare with.
+    const again = await run({ id: 9, type: 'verify', target: 'v.fake', sections: ['One'], config }, state)
+    expect(again).toEqual([{ id: 9, kind: 'error', message: 'There is no saved file to check.' }])
+    const noDoc = await run({ id: 10, type: 'check', sections: ['One'], config }, { doc: null })
+    expect(noDoc).toEqual([{ id: 10, kind: 'error', message: 'Please open the file again.' }])
   })
 
   it('turns failures into an error for that request', async () => {
@@ -114,11 +155,34 @@ describe('JobWorker (main-process side of a worker thread)', () => {
   })
 
   it('Cancel stops the thread and rejects the running request', async () => {
-    const worker = new JobWorker(echoWorker)
+    let thread!: Worker
+    const worker = new JobWorker(() => (thread = echoWorker()))
+    const exited = once(thread, 'exit')
     const pending = worker.request({ type: 'preview', section: 'slow' })
     worker.terminate()
     await expect(pending).rejects.toThrow(CANCELLED_MESSAGE)
     await expect(worker.request({ type: 'preview', section: 'A' })).rejects.toThrow(CANCELLED_MESSAGE)
+    // Wait for the thread to really end, so its exit handling always runs before the test finishes
+    // (otherwise coverage depends on timing and differs between machines).
+    await exited
+  })
+
+  it('reports a thread that stops by itself', async () => {
+    const worker = new JobWorker(() => new Worker(`process.exit(3)`, { eval: true }))
+    await expect(worker.request({ type: 'preview', section: 'A' })).rejects.toThrow(
+      'The background task stopped unexpectedly. Please try again.'
+    )
+  })
+
+  it('reports a thread that crashes', async () => {
+    const crashing = () =>
+      new Worker(`require('node:worker_threads').parentPort.on('message', () => { throw new Error('boom') })`, {
+        eval: true
+      })
+    const worker = new JobWorker(crashing)
+    await expect(worker.request({ type: 'preview', section: 'A' })).rejects.toThrow(
+      'Something went wrong while processing the file: boom'
+    )
   })
 })
 

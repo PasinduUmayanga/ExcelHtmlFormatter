@@ -1,4 +1,4 @@
-import { BUILTIN_TAGS, defaultConfig } from './defaultRules'
+import { BUILTIN_TAGS, builtinRules, defaultConfig, SETTINGS_VERSION } from './defaultRules'
 import type { AppConfig, TagStyle, UnknownTagAction } from './types'
 
 export const TAG_NAME_RE = /^[a-z][a-z0-9-]*$/
@@ -51,6 +51,10 @@ export function sanitizeStyle(input: unknown): TagStyle {
 /**
  * Checks a config read from disk or imported by the user.
  * Throws if it is not a tag-style config at all; otherwise drops anything invalid.
+ *
+ * Settings from before version 2 get the built-in looks added as rules, once, and only for tags
+ * that have no rule yet: a user's own rule is never replaced (decision E4). From version 2 on,
+ * nothing is added, so a rule the user deleted stays deleted.
  */
 export function validateConfig(input: unknown): AppConfig {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
@@ -64,12 +68,16 @@ export function validateConfig(input: unknown): AppConfig {
   const rules: Record<string, TagStyle> = {}
   for (const [name, style] of Object.entries(raw.rules as Record<string, unknown>)) {
     const tag = normalizeTagName(name)
-    if (tag && !(tag in BUILTIN_TAGS)) rules[tag] = sanitizeStyle(style)
+    if (tag && !Object.hasOwn(BUILTIN_TAGS, tag)) rules[tag] = sanitizeStyle(style)
+  }
+  const version = typeof raw.version === 'number' && Number.isInteger(raw.version) ? raw.version : 1
+  if (version < SETTINGS_VERSION) {
+    for (const [tag, style] of Object.entries(builtinRules())) if (!Object.hasOwn(rules, tag)) rules[tag] = style
   }
   const action: UnknownTagAction = raw.unknownTagAction === 'keep' ? 'keep' : 'strip'
   const profileName =
     typeof raw.profileName === 'string' && raw.profileName.trim()
       ? raw.profileName.trim().slice(0, 60)
       : base.profileName
-  return { profileName, unknownTagAction: action, rules }
+  return { version: SETTINGS_VERSION, profileName, unknownTagAction: action, rules }
 }

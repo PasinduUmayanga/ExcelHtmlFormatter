@@ -7,7 +7,10 @@ describe('isConfigured', () => {
     expect(isConfigured('b', DEFAULT_RULES)).toBe(true)
     expect(isConfigured('br', DEFAULT_RULES)).toBe(true)
     expect(isConfigured('p', {})).toBe(true)
-    expect(isConfigured('mark', DEFAULT_RULES)).toBe(false)
+    expect(isConfigured('mark', DEFAULT_RULES)).toBe(true)
+    expect(isConfigured('h1', {})).toBe(true)
+    expect(isConfigured('custom', DEFAULT_RULES)).toBe(false)
+    expect(isConfigured('toString', {})).toBe(false)
   })
 })
 
@@ -36,7 +39,19 @@ describe('describeStyle', () => {
   })
 
   it('returns null for a tag with no rule, and "No changes" for an empty rule', () => {
-    expect(describeStyle('mark', DEFAULT_RULES)).toBeNull()
-    expect(describeStyle('span', { span: {} })).toEqual({ parts: ['No changes'], color: undefined })
+    expect(describeStyle('custom', DEFAULT_RULES)).toBeNull()
+    expect(describeStyle('toString', {})).toBeNull()
+    expect(describeStyle('custom', { custom: {} })).toEqual({ parts: ['No changes'], color: undefined })
+  })
+
+  it('falls back to the built-in look when a styled tag has no rule', () => {
+    expect(describeStyle('h1', {})).toEqual({ parts: ['Bold', '18 pt'], color: undefined, fallback: true })
+    expect(describeStyle('span', {})).toEqual({ parts: ['No changes'], color: undefined, fallback: true })
+    expect(describeStyle('h1', { h1: { italic: true } })).toEqual({ parts: ['Italic'], color: undefined })
+  })
+
+  it('marks structural tags as built in', () => {
+    expect(describeStyle('li', {})?.builtin).toBeTruthy()
+    expect(describeStyle('hr', {})?.builtin).toBeTruthy()
   })
 })

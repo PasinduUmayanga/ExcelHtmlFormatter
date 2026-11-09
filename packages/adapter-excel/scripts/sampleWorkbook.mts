@@ -43,6 +43,33 @@ export function buildSampleWorkbook(): ExcelJS.Workbook {
     ['Energy', 'E = mc<sup>2</sup>', '<span style="color:red">Important</span> constant']
   ])
 
+  // Every supported tag, plus the tricky cases (F2): unsafe and extra links, nested lists, tables,
+  // whole-cell and partial highlight, valid and invalid inline CSS.
+  const formatting = wb.addWorksheet('Formatting')
+  formatting.addRows([
+    ['Case', 'HTML'],
+    ['Headings', '<h1>Title</h1><h3>Subtitle</h3>Body text'],
+    ['Bulleted list', '<ul><li>One<ul><li>Two<ul><li>Three</li></ul></li></ul></li><li>Back to one</li></ul>'],
+    ['Numbered list', '<ol start="3"><li>Third</li><li>Fourth</li></ol>'],
+    [
+      'Table',
+      '<table><tr><th>Size</th><th>Price</th></tr><tr><td>Small</td><td>1,200</td></tr><tr><td>Large</td><td>2,000</td></tr></table>'
+    ],
+    ['Link', 'Visit <a href="https://example.com/tea">our shop</a>'],
+    ['Unsafe link', 'Do not <a href="javascript:alert(1)">click this</a>'],
+    ['Two links', '<a href="https://example.com/a">First</a> and <a href="https://example.com/b">second</a>'],
+    ['Whole cell marked', '<mark>Sold out</mark>'],
+    ['Part marked', 'Only <mark>this part</mark> is marked'],
+    [
+      'Inline styles',
+      '<span style="color:#1a7f37;font-weight:bold">Valid CSS</span> and <span style="color:notacolor;font-size:huge">invalid CSS</span>'
+    ],
+    ['Quote and code', '<blockquote>Quoted text</blockquote>Run <code>npm test</code>'],
+    ['Preformatted', '<pre>Name   Qty\nTea    2</pre>'],
+    ['Deleted and rule', '<del>Old price</del> New price<hr>Footer'],
+    ['Paragraphs', '<p>First paragraph.</p><p>Second <strong>strong</strong> and <em>em</em>.</p>']
+  ])
+
   const summary = wb.addWorksheet('Summary')
   summary.addRows([
     ['Metric', 'Value'],

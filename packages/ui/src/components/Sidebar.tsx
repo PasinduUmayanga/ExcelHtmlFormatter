@@ -13,9 +13,12 @@ export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const params = useParams({ strict: false }) as { section?: string }
 
+  // The content check (/check) belongs to the Preview & export step.
   const current: Step | 'settings' | null = pathname.startsWith('/settings')
     ? 'settings'
-    : (ORDER.find((s) => pathname.startsWith('/' + s)) ?? null)
+    : pathname.startsWith('/check')
+      ? 'preview'
+      : (ORDER.find((s) => pathname.startsWith('/' + s)) ?? null)
   const currentIndex = current && current !== 'settings' ? ORDER.indexOf(current) : -1
   // Keep the section the user is looking at; otherwise start at the first selected one.
   const section = params.section && selected.includes(params.section) ? params.section : selected[0]

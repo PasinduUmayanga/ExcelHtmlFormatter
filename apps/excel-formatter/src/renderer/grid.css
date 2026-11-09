@@ -46,6 +46,11 @@
 .grid td.html {
   background: color-mix(in srgb, var(--accent-bg) 35%, transparent);
 }
+/* Excel fills a cell yellow when all its text is highlighted (<mark>); it can't highlight part of a cell. */
+.grid td.html.filled {
+  background: #ffff00;
+  color: #1f2328;
+}
 .grid td.code {
   font-size: 11.5px;
 }

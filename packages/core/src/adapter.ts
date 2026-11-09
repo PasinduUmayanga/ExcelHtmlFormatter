@@ -1,5 +1,6 @@
 import type { ConvertOptions } from './htmlToRuns'
 import type { DocumentSummary, ExportStats, JobProgress, PickedFile } from './types'
+import type { ContentReport, SaveVerification } from './verify/report'
 
 export type ProgressCallback = (progress: JobProgress) => void
 
@@ -21,6 +22,27 @@ export interface FormatAdapter<Doc = unknown, Preview = unknown> {
   convert(doc: Doc, sections: string[], options: ConvertOptions, onProgress?: ProgressCallback): ExportStats
   /** Writes the document safely: never leaves a half-written file behind. */
   write(doc: Doc, path: string): Promise<void>
+  /**
+   * The content proof for the chosen sections, without changing `doc` (checks A and D).
+   * Uses the same conversion as `convert`, so the result matches what a save would produce.
+   */
+  check(doc: Doc, sections: string[], options: ConvertOptions, onProgress?: ProgressCallback): ContentReport
+  /**
+   * Records the original document before `convert` changes it: whatever `verify` needs to tell
+   * that untouched items stayed the same. Opaque to the shell, which only passes it back.
+   */
+  snapshot(doc: Doc): unknown
+  /**
+   * Compares a saved file, read back from disk, with the snapshot of the original (checks B and C):
+   * converted items must hold the converted text, and everything else must be unchanged.
+   */
+  verify(
+    saved: Doc,
+    snapshot: unknown,
+    sections: string[],
+    options: ConvertOptions,
+    onProgress?: ProgressCallback
+  ): SaveVerification
 }
 
 /** Passes on at most one progress update every `intervalMs` (plus any update marked `force`). */

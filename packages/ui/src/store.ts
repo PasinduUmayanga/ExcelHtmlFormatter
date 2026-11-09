@@ -3,10 +3,13 @@
 import { create } from 'zustand'
 import {
   CANCELLED_MESSAGE,
+  builtinStyle,
   cleanStyle,
   defaultConfig,
+  reportToCsv,
   type AppConfig,
   type AppInfo,
+  type ContentReport,
   type DocumentSummary,
   type ExportResult,
   type JobKind,
@@ -66,10 +69,44 @@ export interface AppState {
   loadPreview(section: string): Promise<void>
   exporting: boolean
   exportResult: ExportResult | null
-  exportDocument(): Promise<void>
+  /**
+   * Saves the formatted copy. Checks the content first (unless a current check exists); if the check
+   * finds issues, nothing is saved and 'review' is returned, unless `acceptIssues` is set
+   * ("Save anyway", decision E7).
+   */
+  exportDocument(acceptIssues?: boolean): Promise<'saved' | 'review' | 'cancelled' | 'failed'>
   showInFolder(): void
   dismissExportResult(): void
+
+  /* Content check (checks A and D, before saving) */
+  check: ContentCheck
+  /** Checks the selected sections with the current settings. Resolves to null if the check failed. */
+  runCheck(): Promise<ContentReport | null>
+  /** True if the last check matches the open file, selection and settings */
+  isCheckCurrent(): boolean
+  /** Saves the check report (or the saved file's differences) as CSV */
+  exportReport(items: ContentReport['items']): Promise<void>
 }
+
+export interface ContentCheck {
+  status: 'idle' | 'running' | 'done' | 'failed'
+  report: ContentReport | null
+  progress: JobProgress | null
+  error: string | null
+  /** What the report was made for (file, selection, settings), to tell when it is out of date */
+  key: string | null
+}
+
+const idleCheck: ContentCheck = { status: 'idle', report: null, progress: null, error: null, key: null }
+
+/** Identifies what a check covers: a new file, selection or settings needs a new check. */
+function checkKey(state: Pick<AppState, 'doc' | 'selected' | 'config'>): string | null {
+  if (!state.doc || !state.config) return null
+  return JSON.stringify([state.doc.file.path, state.selected, state.config.rules, state.config.unknownTagAction])
+}
+
+/** The running check, shared so a second request waits for the first instead of starting another. */
+let runningCheck: { key: string; promise: Promise<ContentReport | null> } | null = null
 
 /** Which screens can be visited right now (used by route guards and the sidebar). */
 export function canVisit(
@@ -105,7 +142,7 @@ let noticeTimer: ReturnType<typeof setTimeout> | undefined
 /** Main-process errors arrive as "Error invoking remote method 'x': Error: <message>". */
 export const cleanError = (e: unknown) => String((e as Error)?.message ?? e).replace(/^.*Error: /, '')
 
-const closedDocument = { doc: null, selected: [], previews: {}, exportResult: null }
+const closedDocument = { doc: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
 
 export const useApp = create<AppState>((set, get) => ({
   pendingFile: null,
@@ -118,6 +155,11 @@ export const useApp = create<AppState>((set, get) => ({
 
   async init() {
     window.api.onJobProgress((kind, progress) => {
+      // The content check runs alongside the screen, not as the main job.
+      if (kind === 'check') {
+        if (get().check.status === 'running') set({ check: { ...get().check, progress } })
+        return
+      }
       // Ignore late updates from a job that already finished or was cancelled.
       if (get().job?.kind === kind) set({ job: { kind, progress } })
     })
@@ -185,18 +227,20 @@ export const useApp = create<AppState>((set, get) => ({
   updateRule(tag, patch) {
     const config = get().config
     if (!config) return
-    const rule = cleanStyle({ ...config.rules[tag], ...patch })
+    // A tag with no rule yet starts from its built-in look (if it has one), so a change only changes one thing.
+    const current = Object.hasOwn(config.rules, tag) ? config.rules[tag] : builtinStyle(tag)
+    const rule = cleanStyle({ ...current, ...patch })
     saveConfig({ ...config, rules: { ...config.rules, [tag]: rule } })
   },
 
   createPlainRule(tag) {
     const config = get().config
-    if (config && !config.rules[tag]) saveConfig({ ...config, rules: { ...config.rules, [tag]: {} } })
+    if (config && !Object.hasOwn(config.rules, tag)) saveConfig({ ...config, rules: { ...config.rules, [tag]: {} } })
   },
 
   removeRule(tag) {
     const config = get().config
-    if (!config?.rules[tag]) return
+    if (!config || !Object.hasOwn(config.rules, tag)) return
     const rules = { ...config.rules }
     delete rules[tag]
     saveConfig({ ...config, rules })
@@ -249,18 +293,27 @@ export const useApp = create<AppState>((set, get) => ({
 
   exporting: false,
   exportResult: null,
-  async exportDocument() {
+  async exportDocument(acceptIssues = false) {
     const { doc, selected, config, exporting } = get()
-    if (!doc || !config || exporting || selected.length === 0) return
+    if (!doc || !config || exporting || selected.length === 0) return 'failed'
     set({ exporting: true, error: null, exportResult: null })
     try {
+      const report = get().isCheckCurrent() ? get().check.report : await get().runCheck()
+      if (!report) return 'failed' // the check's error is shown on the screen
+      if (report.issues > 0 && !acceptIssues) return 'review'
       // The job starts once the Save dialog closes; its first progress update shows the bar.
       set({ job: { kind: 'export', progress: null } })
       const result = await window.api.exportDocument(doc.file.path, selected, config)
-      if (result) set({ exportResult: result })
+      if (!result) return 'cancelled'
+      set({ exportResult: result })
+      return 'saved'
     } catch (e) {
-      if (cleanError(e) === CANCELLED_MESSAGE) get().notify('Saving stopped. No file was written.')
-      else set({ error: cleanError(e) })
+      if (cleanError(e) === CANCELLED_MESSAGE) {
+        get().notify('Saving stopped. No file was written.')
+        return 'cancelled'
+      }
+      set({ error: cleanError(e) })
+      return 'failed'
     } finally {
       set({ exporting: false, job: null })
     }
@@ -273,6 +326,45 @@ export const useApp = create<AppState>((set, get) => ({
 
   dismissExportResult() {
     set({ exportResult: null })
+  },
+
+  check: idleCheck,
+  isCheckCurrent() {
+    const { check } = get()
+    return check.status === 'done' && check.key !== null && check.key === checkKey(get())
+  },
+
+  runCheck() {
+    const { doc, selected, config } = get()
+    const key = checkKey(get())
+    if (!doc || !config || !key || selected.length === 0) return Promise.resolve(null)
+    if (runningCheck?.key === key) return runningCheck.promise
+    set({ check: { status: 'running', report: null, progress: null, error: null, key } })
+    const promise = window.api
+      .checkDocument(doc.file.path, selected, config)
+      .then((report) => {
+        if (checkKey(get()) === key) set({ check: { status: 'done', report, progress: null, error: null, key } })
+        return report
+      })
+      .catch((e) => {
+        const error = `The content check did not finish. ${cleanError(e)}`
+        if (checkKey(get()) === key) set({ check: { status: 'failed', report: null, progress: null, error, key } })
+        return null
+      })
+      .finally(() => {
+        if (runningCheck?.promise === promise) runningCheck = null
+      })
+    runningCheck = { key, promise }
+    return promise
+  },
+
+  async exportReport(items) {
+    try {
+      const name = await window.api.exportReport(reportToCsv(items))
+      if (name) get().notify(`Saved the report as ${name}`)
+    } catch (e) {
+      set({ error: 'Could not save the report. ' + cleanError(e) })
+    }
   }
 }))
 

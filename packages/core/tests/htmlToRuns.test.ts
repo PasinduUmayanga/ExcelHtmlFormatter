@@ -54,8 +54,8 @@ describe('htmlToRuns: basics', () => {
   })
 
   it('applies custom rules with color, size and font', () => {
-    const rules = { ...DEFAULT_RULES, mark: { bold: true, color: '#C00000', size: 14, font: 'Arial' } }
-    expect(convert('<mark>hot</mark>', { rules }).runs).toEqual([
+    const rules = { ...DEFAULT_RULES, hot: { bold: true, color: '#C00000', size: 14, font: 'Arial' } }
+    expect(convert('<hot>hot</hot>', { rules }).runs).toEqual([
       { text: 'hot', style: { bold: true, color: '#C00000', size: 14, font: 'Arial' } }
     ])
   })
@@ -173,18 +173,18 @@ describe('htmlToRuns: entities', () => {
 
 describe('htmlToRuns: tags with no rule', () => {
   it('strips them by default, keeping the text and the outer style', () => {
-    const r = convert('<b>a <mark>b</mark></b> <span style="color:red">c</span>')
+    const r = convert('<b>a <mark2>b</mark2></b> <x-span title="t">c</x-span>')
     expect(r.runs).toEqual([
       { text: 'a b', style: { bold: true } },
       { text: ' c', style: {} }
     ])
-    expect(r.unknownTags).toEqual(['mark', 'span'])
+    expect(r.unknownTags).toEqual(['mark2', 'x-span'])
   })
 
   it('keeps them as visible text when asked', () => {
-    const r = convert('a <mark>b</mark> c', { unknownTagAction: 'keep' })
-    expect(r.plainText).toBe('a <mark>b</mark> c')
-    expect(r.unknownTags).toEqual(['mark'])
+    const r = convert('a <custom>b</custom> c', { unknownTagAction: 'keep' })
+    expect(r.plainText).toBe('a <custom>b</custom> c')
+    expect(r.unknownTags).toEqual(['custom'])
   })
 
   it('reports an unknown tag only once', () => {
@@ -196,8 +196,8 @@ describe('htmlToRuns: tags with no rule', () => {
   })
 
   it('stops reporting a tag once it has a rule', () => {
-    const rules = { ...DEFAULT_RULES, mark: { bold: true } }
-    const r = convert('<mark>x</mark>', { rules })
+    const rules = { ...DEFAULT_RULES, custom: { bold: true } }
+    const r = convert('<custom>x</custom>', { rules })
     expect(r.unknownTags).toEqual([])
     expect(r.runs).toEqual([{ text: 'x', style: { bold: true } }])
   })
