@@ -6,7 +6,9 @@ import type { ElectronApi, JobKind, JobProgress } from '@hf/core'
 /** Exposes the typed API as `window.api`. The window never gets direct access to Node or files. */
 export function exposeApi(): void {
   const api: ElectronApi = {
-    openFileDialog: () => ipcRenderer.invoke('file:open'),
+    openFileDialog: (startIn) => ipcRenderer.invoke('file:open', startIn),
+    getActivity: () => ipcRenderer.invoke('activity:list'),
+    clearActivity: () => ipcRenderer.invoke('activity:clear'),
     describeDroppedFile: (file) => ipcRenderer.invoke('file:describe', webUtils.getPathForFile(file)),
     openDocument: (path) => ipcRenderer.invoke('document:open', path),
     getSectionPreview: (path, section) => ipcRenderer.invoke('document:preview', path, section),

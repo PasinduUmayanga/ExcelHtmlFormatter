@@ -9,7 +9,8 @@ export const ICONS = {
   close: '✕',
   file: '📄',
   save: '💾',
-  settings: '⚙'
+  settings: '⚙',
+  home: '⌂'
 } as const
 
 export type IconName = keyof typeof ICONS

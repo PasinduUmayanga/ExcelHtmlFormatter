@@ -1,16 +1,24 @@
 import { useEffect } from 'react'
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useRouterState } from '@tanstack/react-router'
 import { useApp } from '../../store'
 import { Sidebar } from '../organisms'
 import { Icon } from '../atoms'
 
+const DOCUMENT_SCREENS = /^\/(sections|analysis|preview|check)(\/|\?|$)/
+
 /** The window frame shared by every screen: sidebar, error banner, current screen, toast. */
 export function AppLayout() {
-  const { error, setError, init, notice } = useApp()
+  const { error, setError, init, notice, rememberStep } = useApp()
+  const href = useRouterState({ select: (s) => s.location.href })
 
   useEffect(() => {
     init()
   }, [init])
+
+  // Remember the last document screen, so Home's "Continue" returns to it.
+  useEffect(() => {
+    if (DOCUMENT_SCREENS.test(href)) rememberStep(href)
+  }, [href, rememberStep])
 
   return (
     <div className="app">

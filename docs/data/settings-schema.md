@@ -1,6 +1,7 @@
 # Stored data: the tag-style settings file
 
-Last reviewed: 2026-11-09. There is no database. The app stores exactly one file per app: the tag styles.
+Last reviewed: 2026-11-09. There is no database. The app stores two files in its settings folder: the tag styles
+(`config.json`, below) and the recent activity (`activity.json`, at the end of this page).
 
 - **Location:** `<Electron userData>/config.json`. On Windows: `%APPDATA%\Excel HTML Formatter\config.json`. On macOS:
   `~/Library/Application Support/Excel HTML Formatter/config.json`. The folder keeps the product's earlier name

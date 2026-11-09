@@ -13,6 +13,22 @@ flowchart LR
   T -- Done --> A & P
 ```
 
+## F0. Home (FR-25, FR-26)
+
+The start screen ([ADR 0013](../architecture/adr/0013-recent-activity.md)):
+
+- **Start:** "Continue with <file>" (only when a file is open; returns to the last document screen visited) and the
+  format's open card ("Choose a file…" opens the dialog, then Select sheets).
+- **Coming soon:** Convert to PDF, Word and text, shown as unavailable (disabled button "Not available yet"); listed in
+  `EXPORT_TARGETS` (`screens/Dashboard.tsx`).
+- **Tools:** Tag styles.
+- **Recent activity:** the last 10 opens and saves, newest first: file name, what happened (saves: source file, items
+  formatted, saved-file check result), folder, time. **Open again** opens the Open dialog in that folder; **Clear**
+  empties the list (kept across restarts).
+
+**Acceptance:** e2e "starts on Home…" and "Home lists recent activity…"; unit `ui/tests/dashboard.test.tsx`,
+`desktop/tests/activity.test.ts`.
+
 ## F1. Open file (FR-01, FR-02, FR-09)
 
 - Click the drop area for the Open dialog (filtered to `.xlsx`), or drop a file on it.
@@ -72,7 +88,8 @@ wrap text, and that the original is unchanged; e2e overwrite refusal; e2e Cancel
 ## F6. Navigation (FR-11)
 
 Addresses, guards and search parameters: [SAD §4](../architecture/SAD.md#4-window-routes-state-composition).
-A reload loses the open document and returns to Open. **Acceptance:** unit `ui/tests/router.test.ts`; e2e reload test.
+The app starts on Home (`#/`); the sidebar's **Home** link returns there. A reload loses the open document and
+returns to Open. **Acceptance:** unit `ui/tests/router.test.ts`; e2e reload test.
 
 ## F7. Errors and messages (NFR-08)
 

@@ -26,7 +26,11 @@ Last reviewed: 2026-11-09 · Changes to anything here need a review with the `re
 ## IPC rules
 
 Every handler validates its arguments: types (`typeof`), allowed values (`'load' | 'export'`), file paths against
-the allow-lists, settings with `validateConfig`, target ≠ original (case-insensitive). See the table in
+the allow-lists, settings with `validateConfig`, target ≠ original (case-insensitive). Recent activity is recorded by
+the main process only; the window can read and clear it. The Open dialog starts in a window-supplied folder only if
+that folder is in the activity list, and the user still picks the file
+([ADR 0013](architecture/adr/0013-recent-activity.md)). `activity.json` stores file names and folders (no file
+content) on the user's computer until they clear it. See the table in
 [contracts](api/contracts.md#electronapi-window--main).
 
 ## Development practices

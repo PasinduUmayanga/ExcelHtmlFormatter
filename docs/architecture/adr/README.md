@@ -26,6 +26,7 @@ An ADR records one important decision: the context, what was decided, and what f
 | [0008](0008-playwright-electron-e2e.md)             | Playwright for end-to-end tests of the Electron app            | Accepted |
 | [0011](0011-atomic-design-in-ui.md)                 | Atomic Design inside `@hf/ui` (not a separate package)         | Accepted |
 | [0012](0012-formaflow-product-name.md)              | Product name FormaFlow; `appId` and settings folder unchanged  | Accepted |
+| [0013](0013-recent-activity.md)                     | Recent activity recorded by the main process; read/clear only  | Accepted |
 
 0009 and 0010 are reserved for the content-model and link-policy decisions of the F2 formatting work (to be written).
 

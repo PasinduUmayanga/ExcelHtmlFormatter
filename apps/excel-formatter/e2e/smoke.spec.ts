@@ -5,7 +5,15 @@ import ExcelJS from 'exceljs'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { answerSaveDialog, launchApp, openWorkbook, SAMPLE, screenTitle, type RunningApp } from './fixtures'
+import {
+  answerSaveDialog,
+  launchApp,
+  openWorkbook,
+  recordOpenDialogFolder,
+  SAMPLE,
+  screenTitle,
+  type RunningApp
+} from './fixtures'
 
 let run: RunningApp
 test.beforeEach(async () => {
@@ -17,14 +25,20 @@ test.afterEach(async () => {
 
 const hash = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex')
 
-test('starts on Open with the document steps locked', async () => {
+test('starts on Home with the document steps locked', async () => {
   const { app, window, dir } = run
   await expect(window).toHaveTitle('FormaFlow')
   await expect(window.locator('.brand')).toContainText('FormaFlow')
   // The test's own settings folder wins over the kept "Excel HTML Formatter" folder.
   expect(await app.evaluate(({ app }) => app.getPath('userData'))).toBe(join(dir, 'user-data'))
-  await expect(screenTitle(window)).toHaveText('Open an Excel file')
-  await expect(window).toHaveURL(/#\/open$/)
+  await expect(screenTitle(window)).toHaveText('Welcome to FormaFlow')
+  await expect(window).toHaveURL(/index\.html(#\/)?$/)
+  // Conversions that don't exist yet are shown, but can't be used.
+  for (const name of ['Convert to PDF', 'Convert to Word', 'Convert to text']) {
+    await expect(window.getByRole('region', { name })).toContainText('Coming soon')
+    await expect(window.getByRole('region', { name }).getByRole('button')).toBeDisabled()
+  }
+  await expect(window.locator('.recent')).toContainText('Nothing yet')
   for (const step of ['Select sheets', 'Tag analysis', 'Preview & export']) {
     await expect(window.locator('.nav', { hasText: step })).toHaveAttribute('aria-disabled', 'true')
   }
@@ -201,6 +215,42 @@ test('Cancel while checking the saved file keeps the file and skips only the che
   await expect(window.locator('.success')).toContainText('Saved verified.xlsx', { timeout: 30_000 })
   await expect(window.locator('.success')).toContainText('The saved file was not checked (stopped).')
   expect(existsSync(target)).toBe(true)
+})
+
+test('Home lists recent activity, opens again in that folder, and Clear survives a restart', async () => {
+  const { app, window, dir } = run
+  await openWorkbook(run, SAMPLE)
+  await window.getByRole('button', { name: 'Analyse tags →' }).click()
+  await window.getByRole('button', { name: 'Preview result →' }).click()
+  await expect(window.locator('.check-chip')).toContainText('complete', { timeout: 30_000 })
+  await answerSaveDialog(app, join(dir, 'formatted.xlsx'))
+  await window.getByRole('button', { name: /Save formatted file/ }).click()
+  await expect(window.locator('.success')).toContainText('Verified', { timeout: 30_000 })
+
+  await window.getByRole('link', { name: 'Home' }).click()
+  const rows = window.locator('.activity li')
+  await expect(rows).toHaveCount(2)
+  await expect(rows.nth(0)).toContainText('formatted.xlsx')
+  await expect(rows.nth(0)).toContainText('41 cells formatted · saved file verified')
+  await expect(rows.nth(1)).toContainText('product_catalog.xlsx')
+  await expect(rows.nth(1)).toContainText('Opened')
+  // Continue returns to the screen the user was on.
+  await window.getByRole('button', { name: 'Continue →' }).click()
+  await expect(window).toHaveURL(/#\/preview\/Products$/)
+
+  await window.getByRole('link', { name: 'Home' }).click()
+  const folder = await recordOpenDialogFolder(app)
+  await rows
+    .nth(0)
+    .getByRole('button', { name: /Open again/ })
+    .click()
+  await expect.poll(folder).toBe(dir)
+
+  await window.getByRole('button', { name: 'Clear' }).click()
+  await expect(window.locator('.recent')).toContainText('Nothing yet')
+  await app.close()
+  run = await launchApp(dir)
+  await expect(run.window.locator('.recent')).toContainText('Nothing yet')
 })
 
 test('reloading a document screen goes back to Open (route guards)', async () => {

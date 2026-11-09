@@ -16,21 +16,23 @@ All calls return promises. Errors from the main process arrive as `Error invokin
 the UI strips the prefix (`cleanError`). A cancelled job rejects with `CANCELLED_MESSAGE` (`'Cancelled by the user.'`),
 which the UI treats as a normal outcome, not an error.
 
-| Method                                   | IPC channel          | Validation in main                                                                             | Result                                         |
-| ---------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `openFileDialog()`                       | `file:open`          | Dialog filtered to the format's file types                                                     | `PickedFile \| null`                           |
-| `describeDroppedFile(file)`              | `file:describe`      | Path is a string, extension allowed, is a file                                                 | `PickedFile`                                   |
-| `openDocument(path)`                     | `document:open`      | Path must be one the user picked                                                               | `DocumentSummary`                              |
-| `getSectionPreview(path, section)`       | `document:preview`   | Must match the open document; section is a string                                              | Format-specific preview data                   |
-| `exportDocument(path, sections, config)` | `document:export`    | Picked path; sections are strings; settings validated; target ≠ original; one export at a time | `ExportResult \| null` (null = Save cancelled) |
-| `cancelJob(kind)`                        | `job:cancel`         | Only `'load'` or `'export'`                                                                    | —                                              |
-| `onJobProgress(listener)`                | event `job:progress` | Sent only to the window that started the job                                                   | Unsubscribe function                           |
-| `showInFolder(path)`                     | `shell:showInFolder` | Only files this app saved                                                                      | —                                              |
-| `loadConfig()`                           | `config:load`        | Damaged/missing file → defaults                                                                | `AppConfig`                                    |
-| `saveConfig(config)`                     | `config:save`        | `validateConfig`; atomic write                                                                 | —                                              |
-| `exportConfig(config)`                   | `config:export`      | `validateConfig`; Save dialog                                                                  | File name or `null`                            |
-| `importConfig()`                         | `config:import`      | Valid JSON + `validateConfig`; saved as current                                                | `AppConfig \| null`                            |
-| `getAppInfo()`                           | `app:info`           | —                                                                                              | `{ version, platform, configPath }`            |
+| Method                                   | IPC channel          | Validation in main                                                                                       | Result                                         |
+| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `openFileDialog(startIn?)`               | `file:open`          | Dialog filtered to the format's file types; `startIn` used only if it is a folder from the activity list | `PickedFile \| null`                           |
+| `getActivity()`                          | `activity:list`      | — (read only; entries are recorded by main, ADR 0013)                                                    | `ActivityEntry[]` (newest first, ≤ 10)         |
+| `clearActivity()`                        | `activity:clear`     | —                                                                                                        | —                                              |
+| `describeDroppedFile(file)`              | `file:describe`      | Path is a string, extension allowed, is a file                                                           | `PickedFile`                                   |
+| `openDocument(path)`                     | `document:open`      | Path must be one the user picked                                                                         | `DocumentSummary`                              |
+| `getSectionPreview(path, section)`       | `document:preview`   | Must match the open document; section is a string                                                        | Format-specific preview data                   |
+| `exportDocument(path, sections, config)` | `document:export`    | Picked path; sections are strings; settings validated; target ≠ original; one export at a time           | `ExportResult \| null` (null = Save cancelled) |
+| `cancelJob(kind)`                        | `job:cancel`         | Only `'load'` or `'export'`                                                                              | —                                              |
+| `onJobProgress(listener)`                | event `job:progress` | Sent only to the window that started the job                                                             | Unsubscribe function                           |
+| `showInFolder(path)`                     | `shell:showInFolder` | Only files this app saved                                                                                | —                                              |
+| `loadConfig()`                           | `config:load`        | Damaged/missing file → defaults                                                                          | `AppConfig`                                    |
+| `saveConfig(config)`                     | `config:save`        | `validateConfig`; atomic write                                                                           | —                                              |
+| `exportConfig(config)`                   | `config:export`      | `validateConfig`; Save dialog                                                                            | File name or `null`                            |
+| `importConfig()`                         | `config:import`      | Valid JSON + `validateConfig`; saved as current                                                          | `AppConfig \| null`                            |
+| `getAppInfo()`                           | `app:info`           | —                                                                                                        | `{ version, platform, configPath }`            |
 
 ## `FormatAdapter<Doc, Preview>`
 

@@ -93,7 +93,8 @@ sequenceDiagram
 
 | Address                            | Screen                   | Guard                                               |
 | ---------------------------------- | ------------------------ | --------------------------------------------------- |
-| `#/` → `#/open`                    | Open a file              | —                                                   |
+| `#/`                               | Home (start screen)      | —                                                   |
+| `#/open`                           | Open a file              | —                                                   |
 | `#/sections`                       | Select sections (sheets) | needs an open document                              |
 | `#/analysis/$section`              | Tag analysis             | needs a selection; unknown section → first selected |
 | `#/preview/$section?view=original` | Preview & export         | same as analysis                                    |

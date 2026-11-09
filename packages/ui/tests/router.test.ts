@@ -30,8 +30,8 @@ async function visit(path: string) {
 afterEach(() => useApp.setState({ doc: null, selected: [], loading: false, exportResult: null }))
 
 describe('routes and guards (TanStack Router)', () => {
-  it('starts on /open', async () => {
-    expect((await visit('/')).path).toBe('/open')
+  it('starts on Home (/), which needs no open file', async () => {
+    expect((await visit('/')).path).toBe('/')
   })
 
   it('sends every document screen back to /open when no file is open', async () => {

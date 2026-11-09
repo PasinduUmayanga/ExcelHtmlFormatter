@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Home** screen (the new start screen): open a file or continue with the open one, planned conversions to PDF, Word
+  and text shown as "Coming soon", Tag styles, and **Recent activity** (last 10 opens and saves with the saved file's
+  check result, Open again, Clear). Activity is recorded by the main process and stored on this computer (ADR 0013).
 - ESLint, Prettier, EditorConfig and `.gitattributes`. ESLint rules enforce the package boundaries (ADR 0007).
 - End-to-end tests with Playwright against the real built app (`pnpm test:e2e`, ADR 0008).
 - Coverage reports with per-package floors (`pnpm test:coverage`).

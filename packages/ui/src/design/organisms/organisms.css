@@ -332,3 +332,34 @@ input[type='color'] {
     grid-template-columns: 1fr;
   }
 }
+/* Home: recent activity */
+.recent {
+  margin-top: 28px;
+}
+.recent h2 {
+  margin: 0;
+}
+.activity {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.activity li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.activity li:last-child {
+  border-bottom: 0;
+}
+.activity-main {
+  min-width: 0;
+}
+.recent .placeholder {
+  margin-top: var(--space-4);
+}
