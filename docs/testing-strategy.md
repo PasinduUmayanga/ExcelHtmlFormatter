@@ -15,7 +15,7 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 
 ## Current numbers (2026-11-09)
 
-- Unit/integration: **288 tests** — core 132, adapter-excel 57, ui 78, desktop 21.
+- Unit/integration: **290 tests** — core 132, adapter-excel 57, ui 80, desktop 21.
 - End-to-end: **10 tests** — start state (Home, Coming soon cards); Help (keyboard, search, links between topics,
   About details); theme (applies everywhere, survives a restart,
   dark window background); recent activity (entries after a save, Continue,

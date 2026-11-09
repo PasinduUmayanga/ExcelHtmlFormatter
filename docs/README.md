@@ -9,6 +9,7 @@ All project documentation lives here. Start with the [Software Architecture](arc
 | -------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------- |
 | [requirements/SRS.md](requirements/SRS.md)                     | Requirements (`FR-xx`, `NFR-xx`) and constraints                         | Everyone          |
 | [design/FDS.md](design/FDS.md)                                 | Screens, workflows, business rules, acceptance criteria                  | Product, QA, devs |
+| [design/brand.md](design/brand.md)                             | The FormaFlow mark, its files and colours, how to use it                 | Design, devs      |
 | [architecture/SAD.md](architecture/SAD.md)                     | Packages, boundaries, runtime view, diagrams                             | Devs, reviewers   |
 | [architecture/adr/](architecture/adr/README.md)                | Architecture Decision Records: why things are the way they are           | Devs, reviewers   |
 | [technical/TDS.md](technical/TDS.md)                           | Implementation details: IPC, worker protocol, conversion rules, build    | Devs              |

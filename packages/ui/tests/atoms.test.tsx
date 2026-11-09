@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { Badge, Button, Icon, ICONS, Spinner, Swatch, TagName } from '../src/design/atoms'
+import { Badge, Button, Icon, ICONS, Logo, Spinner, Swatch, TagName } from '../src/design/atoms'
 import { cx } from '../src/design/cx'
 
 const html = (node: React.ReactElement) => renderToStaticMarkup(node)
@@ -74,5 +74,25 @@ describe('Icon, Spinner and Swatch', () => {
   it('renders a decorative spinner and a colour square', () => {
     expect(html(<Spinner />)).toBe('<span class="spinner" aria-hidden="true"></span>')
     expect(html(<Swatch color="#C00000" />)).toBe('<span class="swatch" style="background:#C00000"></span>')
+  })
+})
+
+describe('Logo', () => {
+  it('draws the FormaFlow mark at the asked size, hidden from screen readers (the name is always next to it)', () => {
+    const out = html(<Logo size={40} />)
+    expect(out).toMatch(
+      /^<svg class="logo" viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" focusable="false"/
+    )
+    expect(out).toContain('fill="#1F6FEB"')
+    expect(out).toContain('stroke="#0B8277"')
+    expect(html(<Logo />)).toContain('width="28"')
+  })
+
+  it('matches the app icon', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const icon = readFileSync(join(__dirname, '../../../apps/excel-formatter/build/icon.svg'), 'utf8')
+    const shapes = (svg: string) => [...svg.matchAll(/ d="([^"]+)"/g)].map((m) => m[1])
+    expect(shapes(html(<Logo />))).toEqual(shapes(icon))
   })
 })

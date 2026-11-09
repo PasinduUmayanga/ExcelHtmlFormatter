@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- FormaFlow **logo** ("page in flow", chosen from three concepts): new app icon, the mark next to the name in the
+  sidebar, and a favicon. See `docs/design/brand.md`.
 - **Help Center** (Help in the header and on Home): Getting started, User guide, FAQs, Troubleshooting and About, with
   search. Written in Markdown in `apps/excel-formatter/help/` and shown without HTML; About shows the version and
   settings file (ADR 0015).
