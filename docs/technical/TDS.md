@@ -40,6 +40,12 @@ count opening tags per section, remembering the first cell and a sample for prev
 
 ## 3. Jobs, workers and progress (`@hf/desktop`)
 
+- **Help Center** ([ADR 0015](../architecture/adr/0015-help-center-markdown.md)): topics come from the app
+  (`FormatterAppConfig.help`, e.g. `apps/excel-formatter/src/renderer/help.ts` importing `help/*.md?raw`).
+  `src/help/markdown.ts` parses to blocks and inlines; `src/help/search.ts` splits topics into sections at `##`
+  headings and ranks matches (words in titles and headings count 3, in text 1; every word must appear);
+  `useHelp()` parses once per app. Screens `Help` (`#/help?q=`) and `HelpTopic` (`#/help/$topic?section=`); the
+  `Markdown` molecule draws blocks and hands Help links to the screen. Headings get anchors (`slug`).
 - **Theme** ([ADR 0014](../architecture/adr/0014-theme-preference.md)): `src/main/preferences.ts` (`parsePreferences`,
   `isTheme`, `windowBackground`). On `whenReady` the saved theme is set as `nativeTheme.themeSource` before the window
   is created; the window background follows `nativeTheme.shouldUseDarkColors` (also on `updated`). The window's CSS

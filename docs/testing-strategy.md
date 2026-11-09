@@ -15,8 +15,9 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 
 ## Current numbers (2026-11-09)
 
-- Unit/integration: **277 tests** — core 132, adapter-excel 57, ui 67, desktop 21.
-- End-to-end: **9 tests** — start state (Home, Coming soon cards); theme (applies everywhere, survives a restart,
+- Unit/integration: **288 tests** — core 132, adapter-excel 57, ui 78, desktop 21.
+- End-to-end: **10 tests** — start state (Home, Coming soon cards); Help (keyboard, search, links between topics,
+  About details); theme (applies everywhere, survives a restart,
   dark window background); recent activity (entries after a save, Continue,
   Open again starts in the right folder, Clear survives a restart); open → analyse → set style → preview → export (saved file checked, original
   unchanged); a content issue stops the save until "Save anyway", with a CSV report; refuse to overwrite the original;

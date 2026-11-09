@@ -278,6 +278,48 @@ test('the theme choice applies to the whole app and survives a restart', async (
   await expect.poll(() => run.window.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(false)
 })
 
+test('Help: topics by keyboard, search, links between topics and About', async () => {
+  const { window } = run
+  // From the header, by keyboard.
+  await window.getByRole('link', { name: 'Help' }).focus()
+  await window.keyboard.press('Enter')
+  await expect(screenTitle(window)).toHaveText('Help')
+  for (const name of ['Getting started', 'User guide', 'FAQs', 'Troubleshooting', 'About']) {
+    await expect(window.getByRole('region', { name })).toBeVisible()
+  }
+
+  const search = window.getByRole('searchbox', { name: 'Search help' })
+  await search.fill('wrap')
+  await expect(window).toHaveURL(/#\/help\?q=wrap$/)
+  await expect(window.getByRole('status').filter({ hasText: 'for “wrap”' })).toBeVisible()
+  const lineBreaks = window.getByRole('link', { name: 'User guide › Line breaks, lists and tables' })
+  await expect(lineBreaks).toBeVisible()
+  await expect(window.locator('.help-excerpt mark').first()).toHaveText(/wrap/i)
+  await lineBreaks.click()
+  await expect(window).toHaveURL(/#\/help\/user-guide\?section=line-breaks-lists-and-tables$/)
+  await expect(window.locator('#line-breaks-lists-and-tables')).toBeInViewport()
+
+  // Back keeps the search; a search with no match says so.
+  await window.goBack()
+  await expect(search).toHaveValue('wrap')
+  await search.fill('zzzz')
+  await expect(window.getByRole('status').filter({ hasText: 'No results for “zzzz”' })).toBeVisible()
+
+  // A link inside a topic goes to another topic's section; About shows the real app details.
+  await window.getByRole('link', { name: 'Open FAQs' }).click()
+  await window.locator('.markdown').getByRole('link', { name: 'Tag styles' }).click()
+  await expect(window).toHaveURL(/#\/help\/user-guide\?section=tag-styles$/)
+  await window.getByRole('link', { name: 'Help' }).click()
+  await window.getByRole('link', { name: 'Open About' }).click()
+  await expect(window.locator('.app-details')).toContainText('0.1.0')
+  await expect(window.locator('.app-details')).toContainText('config.json')
+
+  // Home links here too.
+  await window.getByRole('link', { name: 'Home' }).click()
+  await window.getByRole('button', { name: 'Open help' }).click()
+  await expect(screenTitle(window)).toHaveText('Help')
+})
+
 test('reloading a document screen goes back to Open (route guards)', async () => {
   const { window } = run
   await openWorkbook(run, SAMPLE)

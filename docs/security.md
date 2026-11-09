@@ -29,7 +29,9 @@ Every handler validates its arguments: types (`typeof`), allowed values (`'load'
 the allow-lists, settings with `validateConfig`, target ≠ original (case-insensitive). Recent activity is recorded by
 the main process only; the window can read and clear it. The Open dialog starts in a window-supplied folder only if
 that folder is in the activity list, and the user still picks the file
-([ADR 0013](architecture/adr/0013-recent-activity.md)). `setTheme` accepts only `system`, `light` or `dark`. `activity.json` stores file names and folders (no file
+([ADR 0013](architecture/adr/0013-recent-activity.md)). `setTheme` accepts only `system`, `light` or `dark`.
+Help text is Markdown parsed into data and rendered as React elements: never as HTML, and only links between Help
+topics are followed ([ADR 0015](architecture/adr/0015-help-center-markdown.md)). `activity.json` stores file names and folders (no file
 content) on the user's computer until they clear it. See the table in
 [contracts](api/contracts.md#electronapi-window--main).
 

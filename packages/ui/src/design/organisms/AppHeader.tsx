@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { ThemeChoice } from '@hf/core'
 import { useApp } from '../../store'
 import { SegmentedControl } from '../molecules'
@@ -8,11 +9,14 @@ const THEMES = [
   ['system', 'System']
 ] as const satisfies readonly (readonly [ThemeChoice, string])[]
 
-/** The bar above every screen: app-wide controls (the theme; Help joins it later). */
+/** The bar above every screen: app-wide controls (Help and the theme). */
 export function AppHeader() {
   const { theme, setTheme } = useApp()
   return (
     <header className="app-header">
+      <Link to="/help" search={{ q: undefined }} className="btn small">
+        Help
+      </Link>
       <span className="muted text-sm" aria-hidden>
         Theme
       </span>

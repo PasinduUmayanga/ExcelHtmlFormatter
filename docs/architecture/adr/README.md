@@ -28,6 +28,7 @@ An ADR records one important decision: the context, what was decided, and what f
 | [0012](0012-formaflow-product-name.md)              | Product name FormaFlow; `appId` and settings folder unchanged      | Accepted |
 | [0013](0013-recent-activity.md)                     | Recent activity recorded by the main process; read/clear only      | Accepted |
 | [0014](0014-theme-preference.md)                    | Theme chosen in the app, applied by the main process (nativeTheme) | Accepted |
+| [0015](0015-help-center-markdown.md)                | Help Center from Markdown in the app, rendered without HTML        | Accepted |
 
 0009 and 0010 are reserved for the content-model and link-policy decisions of the F2 formatting work (to be written).
 

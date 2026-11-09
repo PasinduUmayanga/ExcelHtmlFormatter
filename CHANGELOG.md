@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Help Center** (Help in the header and on Home): Getting started, User guide, FAQs, Troubleshooting and About, with
+  search. Written in Markdown in `apps/excel-formatter/help/` and shown without HTML; About shows the version and
+  settings file (ADR 0015).
 - **Theme:** Light, Dark or System from a new header bar; applied to the window, dialogs and menus, remembered, and
   no white flash when a dark window opens (ADR 0014).
 - **Home** screen (the new start screen): open a file or continue with the open one, planned conversions to PDF, Word

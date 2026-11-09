@@ -66,6 +66,15 @@ describe('routes and guards (TanStack Router)', () => {
     expect(router.state.matches.at(-1)?.params).toEqual({ section: 'Q1 & Q2 (draft)' })
   })
 
+  it('opens Help without a file, keeping only a sensible search and section', async () => {
+    expect(await visit('/help?q=wrap')).toEqual({ path: '/help', search: { q: 'wrap' } })
+    expect((await visit(`/help?q=${'x'.repeat(201)}`)).search).toEqual({})
+    expect(await visit('/help/faq?section=links')).toEqual({ path: '/help/faq', search: { section: 'links' } })
+    for (const bad of ['%3Cscript%3E', 'A%20B', 'x'.repeat(81)]) {
+      expect((await visit(`/help/faq?section=${bad}`)).search).toEqual({})
+    }
+  })
+
   it('validates search settings', async () => {
     useApp.setState({ doc, selected: ['Team'] })
     expect((await visit('/preview/Team?view=original')).search).toEqual({ view: 'original' })

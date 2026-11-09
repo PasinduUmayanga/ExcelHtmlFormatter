@@ -79,6 +79,11 @@ export function Dashboard() {
             </Button>
           }
         />
+        <FeatureCard
+          title="Help"
+          description="Guides, answers to common questions and what to do when something goes wrong."
+          action={<Button onClick={() => navigate({ to: '/help', search: { q: undefined } })}>Open help</Button>}
+        />
       </div>
 
       <RecentActivity />

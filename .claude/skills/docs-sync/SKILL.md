@@ -10,21 +10,21 @@ home; elsewhere, link to it rather than copying.
 
 ## Which documents a change touches
 
-| Change                                                                   | Update                                                                                              |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| User-visible behaviour, screen or text                                   | `docs/design/FDS.md`, `docs/user-manual.md`, root `README.md` features (if notable), `CHANGELOG.md` |
-| New or changed requirement                                               | `docs/requirements/SRS.md` (new `FR-xx`/`NFR-xx`), FDS acceptance criteria                          |
-| Package, boundary, route or runtime structure                            | `docs/architecture/SAD.md`, `tools/lint/config.js` (boundaries), `AGENTS.md` map, ADR               |
-| Contract (`ElectronApi`, `FormatAdapter`, `FormatInfo`, worker protocol) | `docs/api/contracts.md`, ADR, `docs/technical/TDS.md`                                               |
-| Settings file format                                                     | `docs/data/settings-schema.md`, `validateConfig` tests                                              |
-| Implementation detail (conversion rules, jobs, build)                    | `docs/technical/TDS.md`                                                                             |
-| Security property (IPC validation, sandbox, CSP, file access)            | `docs/security.md`, ADR                                                                             |
-| Tests, coverage floors, tools                                            | `docs/testing-strategy.md`                                                                          |
-| Commands, versions, prerequisites                                        | root `README.md`, `docs/developer-guide.md`, `AGENTS.md` commands                                   |
-| Build, CI, packaging, release                                            | `docs/operations/deployment.md`                                                                     |
-| A new known problem and its fix                                          | `docs/operations/troubleshooting.md`                                                                |
-| Task started/finished                                                    | `docs/roadmap.md` status                                                                            |
-| Architectural decision                                                   | new ADR in `docs/architecture/adr/` + index                                                         |
+| Change                                                                   | Update                                                                                                                             |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| User-visible behaviour, screen or text                                   | `docs/design/FDS.md`, Help topics `apps/<app>/help/*.md` (the user manual), root `README.md` features (if notable), `CHANGELOG.md` |
+| New or changed requirement                                               | `docs/requirements/SRS.md` (new `FR-xx`/`NFR-xx`), FDS acceptance criteria                                                         |
+| Package, boundary, route or runtime structure                            | `docs/architecture/SAD.md`, `tools/lint/config.js` (boundaries), `AGENTS.md` map, ADR                                              |
+| Contract (`ElectronApi`, `FormatAdapter`, `FormatInfo`, worker protocol) | `docs/api/contracts.md`, ADR, `docs/technical/TDS.md`                                                                              |
+| Settings file format                                                     | `docs/data/settings-schema.md`, `validateConfig` tests                                                                             |
+| Implementation detail (conversion rules, jobs, build)                    | `docs/technical/TDS.md`                                                                                                            |
+| Security property (IPC validation, sandbox, CSP, file access)            | `docs/security.md`, ADR                                                                                                            |
+| Tests, coverage floors, tools                                            | `docs/testing-strategy.md`                                                                                                         |
+| Commands, versions, prerequisites                                        | root `README.md`, `docs/developer-guide.md`, `AGENTS.md` commands                                                                  |
+| Build, CI, packaging, release                                            | `docs/operations/deployment.md`                                                                                                    |
+| A new known problem and its fix                                          | `docs/operations/troubleshooting.md`                                                                                               |
+| Task started/finished                                                    | `docs/roadmap.md` status                                                                                                           |
+| Architectural decision                                                   | new ADR in `docs/architecture/adr/` + index                                                                                        |
 
 ## Steps
 

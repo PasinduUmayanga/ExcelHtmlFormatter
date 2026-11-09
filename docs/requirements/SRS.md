@@ -30,6 +30,7 @@ DOCX, TXT, HTML and Markdown ([roadmap](../roadmap.md)).
 | FR-25 | The app starts on a Home screen with the main action (open a file), a way back to the open file, the tools, and the conversions that are planned but not available yet (clearly marked as unavailable).                                                    | Must               |
 | FR-26 | Home lists the last 10 files opened and saved, with each save's check result; the user can open the dialog again in that folder and clear the list. Stored only on this computer.                                                                          | Should             |
 | FR-27 | The user can choose a Light, Dark or System theme from the header; the choice applies to the whole app, is remembered, and the window opens in it without a flash. All text meets WCAG 2.2 AA contrast (4.5:1) and control boundaries 3:1, in both themes. | Should             |
+| FR-28 | A Help Center covers Getting started, User guide, FAQs, Troubleshooting and About. Topics can be searched; results show where the words were found. Help never opens websites or runs content from its files.                                              | Should             |
 | FR-12 | (Planned, Phase 3–4) Export the formatted content to PDF, DOCX, TXT, HTML and Markdown, warning about formatting the target can't hold.                                                                                                                    | Could (pending D1) |
 
 ## 3. Non-functional requirements

@@ -8,9 +8,12 @@ import {
   type RouterHistory
 } from '@tanstack/react-router'
 import type { ConvertOptions, FormatInfo } from '@hf/core'
+import type { HelpSource } from './help/search'
 import { canVisit, useApp } from './store'
 import { AppLayout } from './design/templates'
 import { Dashboard } from './screens/Dashboard'
+import { Help } from './screens/Help'
+import { HelpTopic } from './screens/HelpTopic'
 import { OpenFile } from './screens/OpenFile'
 import { SelectSections } from './screens/SelectSections'
 import { TagAnalysis } from './screens/TagAnalysis'
@@ -32,6 +35,8 @@ export interface PreviewProps {
 export interface FormatterAppConfig {
   format: FormatInfo
   Preview: ComponentType<PreviewProps>
+  /** Help Center topics, in order (Markdown, ADR 0015). Leave out for no topics. */
+  help?: readonly HelpSource[]
 }
 
 const AppConfigContext = createContext<FormatterAppConfig | null>(null)
@@ -143,6 +148,27 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     component: TagStyles
   })
 
+  const helpRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/help',
+    // Always return every key: TanStack keeps the raw value of any key left out.
+    validateSearch: (search: { q?: unknown }): { q?: string } => ({
+      q: typeof search.q === 'string' && search.q.length <= 200 ? search.q : undefined
+    }),
+    component: Help
+  })
+
+  const helpTopicRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/help/$topic',
+    // Always return every key. `section` is a heading anchor (letters, digits, hyphens).
+    validateSearch: (search: { section?: unknown }): { section?: string } => ({
+      section:
+        typeof search.section === 'string' && /^[a-z0-9-]{1,80}$/.test(search.section) ? search.section : undefined
+    }),
+    component: HelpTopic
+  })
+
   const routeTree = rootRoute.addChildren([
     indexRoute,
     openRoute,
@@ -150,7 +176,9 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     analysisRoute,
     previewRoute,
     checkRoute,
-    settingsRoute
+    settingsRoute,
+    helpRoute,
+    helpTopicRoute
   ])
   return createRouter({ routeTree, history: options.history ?? createHashHistory() })
 }

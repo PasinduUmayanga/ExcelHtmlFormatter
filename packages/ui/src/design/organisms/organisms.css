@@ -363,3 +363,29 @@ input[type='color'] {
 .recent .placeholder {
   margin-top: var(--space-4);
 }
+/* Help: search results */
+.help-results {
+  margin-bottom: 28px;
+}
+.help-result-list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.help-result-list li {
+  padding: var(--space-4) 14px;
+  border-bottom: 1px solid var(--line);
+}
+.help-result-list li:last-child {
+  border-bottom: 0;
+}
+.help-result-title {
+  color: var(--accent);
+  font-weight: 600;
+}
+.help-excerpt {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+}

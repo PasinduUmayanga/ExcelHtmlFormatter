@@ -36,6 +36,15 @@ system live. The choice applies at once to the window, dialogs and menus, is rem
 it ([ADR 0014](../architecture/adr/0014-theme-preference.md)). **Acceptance:** e2e "the theme choice applies…";
 unit `ui/tests/theme.test.ts`, `ui/tests/tokens.test.ts` (contrast), `desktop/tests/preferences.test.ts`.
 
+## F0c. Help Center (FR-28)
+
+**Help** in the header (and a card on Home) opens `#/help`: a search box and the topics (Getting started, User guide,
+FAQs, Troubleshooting, About). Typing searches titles, headings and text; each result names the topic and section,
+with an excerpt and the words highlighted; the count is announced. A topic page (`#/help/$topic`) lists its sections,
+then the text; links to other topics open them at the right section. About adds the version, platform and settings
+file. Web addresses are shown, not opened ([ADR 0015](../architecture/adr/0015-help-center-markdown.md)).
+**Acceptance:** e2e "Help: topics by keyboard…"; unit `ui/tests/help.test.tsx`, router test for `?q` and `?section`.
+
 ## F1. Open file (FR-01, FR-02, FR-09)
 
 - Click the drop area for the Open dialog (filtered to `.xlsx`), or drop a file on it.
