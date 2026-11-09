@@ -38,3 +38,9 @@ defaults depend on names:
 - **Copy the settings to a new "FormaFlow" folder on first start:** more code (copy, conflict and failure handling)
   for a folder name few users see; can still be done later.
 - **New `appId`:** a clean identity, but two installs side by side and no upgrade path.
+
+## Note (2026-11-10)
+
+The GitHub repository was renamed from `ExcelHtmlFormatter` to `FormaFlow` and the root package from `html-formatter`
+to `formaflow`. The decision above is unchanged: `appId`, the `@hf/*` and `excel-formatter` package names and the
+settings folder stay as they are.

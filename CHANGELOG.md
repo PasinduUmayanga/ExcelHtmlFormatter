@@ -31,6 +31,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The repository is now `PasinduUmayanga/FormaFlow` (was `ExcelHtmlFormatter`; GitHub redirects the old address) and
+  the root package is `formaflow`. `appId` and the settings folder are unchanged (ADR 0012).
 - `@hf/ui` keeps only components in its Atomic Design levels: state, hooks, Help logic, helpers and shared styles moved
   to `state/`, `hooks/`, `features/help/`, `utils/` and `styles/` (ADR 0016). Nothing users see changed.
 - The workflow starts from Home: its steps are locked until you choose a file, open again or continue there. A clean

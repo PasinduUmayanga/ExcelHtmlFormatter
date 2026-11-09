@@ -13,7 +13,7 @@ Last reviewed: 2026-11-09. How to set up, change, test and extend the project. A
 | Editor  | Any; VS Code works well | `.editorconfig` is respected; run Prettier on save if you like                    |
 
 ```bash
-git clone <repo> && cd <repo>
+git clone https://github.com/PasinduUmayanga/FormaFlow.git && cd FormaFlow
 pnpm install          # Electron's download script is the only install script allowed (pnpm-workspace.yaml)
 pnpm check            # should pass on a fresh clone
 pnpm dev              # Excel app with live reload

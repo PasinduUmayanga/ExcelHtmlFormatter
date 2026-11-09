@@ -1,5 +1,5 @@
 {
-  "name": "html-formatter",
+  "name": "formaflow",
   "private": true,
   "description": "Desktop apps that turn HTML tags inside documents into real formatting. One app per file format, built from shared packages.",
   "packageManager": "pnpm@12.18.0",
