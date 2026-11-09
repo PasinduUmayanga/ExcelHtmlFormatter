@@ -7,7 +7,7 @@ Last reviewed: 2026-11-09 · Authoritative for **what** the product must do. Beh
 
 Users receive spreadsheets (and later other documents) whose text contains HTML tags, e.g.
 `<b>my name</b> is <i>pasindu</i>`. The product turns those tags into real formatting in a **new** file, with styles
-the user chooses per tag. Scope today: `.xlsx` → `.xlsx` (Excel HTML Formatter). Planned: export/conversion to PDF,
+the user chooses per tag. Scope today: `.xlsx` → `.xlsx` (FormaFlow for Excel). Planned: export/conversion to PDF,
 DOCX, TXT, HTML and Markdown ([roadmap](../roadmap.md)).
 
 **Users:** office users preparing documents. They need no technical knowledge.
@@ -27,6 +27,8 @@ DOCX, TXT, HTML and Markdown ([roadmap](../roadmap.md)).
 | FR-09 | Opening and saving show progress and can be cancelled; a cancelled save leaves no file behind.                                                                                                                                                            | Must               |
 | FR-10 | After saving, the user can open the file's folder.                                                                                                                                                                                                        | Should             |
 | FR-11 | Every screen has its own address; back/forward work; screens that need a file or selection are not reachable without one.                                                                                                                                 | Should             |
+| FR-25 | The app starts on a Home screen with the main action (open a file), a way back to the open file, the tools, and the conversions that are planned but not available yet (clearly marked as unavailable).                                                   | Must               |
+| FR-26 | Home lists the last 10 files opened and saved, with each save's check result; the user can open the dialog again in that folder and clear the list. Stored only on this computer.                                                                         | Should             |
 | FR-12 | (Planned, Phase 3–4) Export the formatted content to PDF, DOCX, TXT, HTML and Markdown, warning about formatting the target can't hold.                                                                                                                   | Could (pending D1) |
 
 ## 3. Non-functional requirements

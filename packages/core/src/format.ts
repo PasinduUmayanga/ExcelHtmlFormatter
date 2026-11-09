@@ -6,8 +6,10 @@
 export interface FormatInfo {
   /** Short id, e.g. "excel" */
   id: string
-  /** Shown in the window title and sidebar, e.g. "Excel HTML Formatter" */
+  /** Shown in the window title and sidebar, e.g. "FormaFlow" */
   appName: string
+  /** Optional short description under the name in the sidebar, e.g. "HTML → Excel formatting" */
+  tagline?: string
   /** File types for the Open dialog and drag-and-drop */
   fileTypes: { name: string; extensions: string[] }[]
   /** Added to the original name when saving, e.g. "_formatted" -> "report_formatted.xlsx" */

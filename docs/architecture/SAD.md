@@ -11,7 +11,7 @@ There is no server and no database; the only stored data is the tag-style settin
 
 ```mermaid
 flowchart LR
-  user([User]) -->|opens .xlsx, sets tag styles| app[Excel HTML Formatter<br/>Electron desktop app]
+  user([User]) -->|opens .xlsx, sets tag styles| app[FormaFlow<br/>Electron desktop app]
   app -->|reads| src[(Original file)]
   app -->|writes new file| out[(Formatted copy)]
   app <-->|reads/writes| cfg[(config.json<br/>tag styles)]
@@ -93,7 +93,8 @@ sequenceDiagram
 
 | Address                            | Screen                   | Guard                                               |
 | ---------------------------------- | ------------------------ | --------------------------------------------------- |
-| `#/` → `#/open`                    | Open a file              | —                                                   |
+| `#/`                               | Home (start screen)      | —                                                   |
+| `#/open`                           | Open a file              | —                                                   |
 | `#/sections`                       | Select sections (sheets) | needs an open document                              |
 | `#/analysis/$section`              | Tag analysis             | needs a selection; unknown section → first selected |
 | `#/preview/$section?view=original` | Preview & export         | same as analysis                                    |

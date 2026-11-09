@@ -4,10 +4,13 @@ Last reviewed: 2026-11-09
 
 ## Build outputs
 
-| Command (repo root) | Runs on | Output in `apps/excel-formatter/dist`                                                                      |
-| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `pnpm dist:excel`   | Windows | `Excel-HTML-Formatter-Setup-<version>.exe` (NSIS, per-user), `Excel-HTML-Formatter-<version>-portable.exe` |
-| `pnpm dist:excel`   | macOS   | `Excel-HTML-Formatter-<version>-mac-universal.dmg` (ad-hoc signed)                                         |
+| Command (repo root) | Runs on | Output in `apps/excel-formatter/dist`                                                |
+| ------------------- | ------- | ------------------------------------------------------------------------------------ |
+| `pnpm dist:excel`   | Windows | `FormaFlow-Setup-<version>.exe` (NSIS, per-user), `FormaFlow-<version>-portable.exe` |
+| `pnpm dist:excel`   | macOS   | `FormaFlow-<version>-mac-universal.dmg` (ad-hoc signed)                              |
+
+`appId` stays `com.pasindu.excelhtmlformatter` after the FormaFlow rename, so new installers upgrade the installed app
+([ADR 0012](../architecture/adr/0012-formaflow-product-name.md)).
 
 `dist` runs only after build, type-check, tests and lint pass (Turborepo `dependsOn`). Packaging config:
 `apps/excel-formatter/electron-builder.yml`. Measured sizes (Windows, 0.1.0): installer about 124 MB, portable about

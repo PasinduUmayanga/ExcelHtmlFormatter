@@ -103,12 +103,41 @@ export interface AppInfo {
 }
 
 /**
+ * One recent action, for the Home screen's Recent activity. Recorded by the main process only
+ * (the window can read and clear the list, never add to it). Stored on this computer.
+ */
+export interface ActivityEntry {
+  kind: 'opened' | 'saved'
+  /** The file's name, e.g. "report.xlsx" (for 'saved': the new file) */
+  fileName: string
+  /** The folder that holds the file */
+  folder: string
+  /** When it happened (ISO 8601) */
+  at: string
+  /** 'saved' only: the name of the file it was made from */
+  sourceName?: string
+  /** 'saved' only: how many items were formatted */
+  converted?: number
+  /** 'saved' only: the result of checking the saved file (not-checked: the check was stopped) */
+  check?: 'verified' | 'differences' | 'not-checked'
+  /** 'saved' only: differences found when checking the saved file */
+  differences?: number
+}
+
+/**
  * The API the preload script exposes to the UI as `window.api`. The same for every format;
  * only the preview data is format-specific (`unknown` here, typed by each app).
  */
 export interface ElectronApi {
-  /** Shows the Open dialog. Resolves to null if the user cancels. */
-  openFileDialog(): Promise<PickedFile | null>
+  /**
+   * Shows the Open dialog. Resolves to null if the user cancels. `startIn` opens the dialog in that folder,
+   * but only if it is a folder from the recent activity (anything else is ignored).
+   */
+  openFileDialog(startIn?: string): Promise<PickedFile | null>
+  /** Recent actions, newest first (at most 10). */
+  getActivity(): Promise<ActivityEntry[]>
+  /** Empties the recent actions list. */
+  clearActivity(): Promise<void>
   /** For drag-and-drop: turns a dropped File into a PickedFile (rejects unsupported file types). */
   describeDroppedFile(file: File): Promise<PickedFile>
   /** Reads a file picked above and scans every section for HTML tags. */

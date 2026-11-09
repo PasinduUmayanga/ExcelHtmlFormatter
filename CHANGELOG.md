@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Home** screen (the new start screen): open a file or continue with the open one, planned conversions to PDF, Word
+  and text shown as "Coming soon", Tag styles, and **Recent activity** (last 10 opens and saves with the saved file's
+  check result, Open again, Clear). Activity is recorded by the main process and stored on this computer (ADR 0013).
 - ESLint, Prettier, EditorConfig and `.gitattributes`. ESLint rules enforce the package boundaries (ADR 0007).
 - End-to-end tests with Playwright against the real built app (`pnpm test:e2e`, ADR 0008).
 - Coverage reports with per-package floors (`pnpm test:coverage`).
@@ -19,6 +22,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Renamed the app to **FormaFlow** (window, sidebar with a tagline, installers, shortcuts, documentation). Settings stay
+  in the existing "Excel HTML Formatter" folder and the installer upgrades the old app (ADR 0012).
 - The window's code is organised by Atomic Design (ADR 0011): design tokens, atoms, molecules, organisms and templates
   in `packages/ui/src/design/`, screens built on `ScreenTemplate`, no fixed inline styles, and component tests
   (`@hf/ui` coverage floors raised). Nothing users see changed.

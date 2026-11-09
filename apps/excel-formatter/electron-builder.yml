@@ -1,6 +1,7 @@
 # Packaging for Windows and macOS. From the repo root: pnpm dist:excel (on Windows -> .exe, on a Mac -> .dmg)
+# appId stays as it was before the FormaFlow rename, so new versions upgrade the installed app (ADR 0012).
 appId: com.pasindu.excelhtmlformatter
-productName: Excel HTML Formatter
+productName: FormaFlow
 copyright: Copyright © 2026 Pasindu
 
 directories:
@@ -30,10 +31,10 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: Excel HTML Formatter
-  artifactName: Excel-HTML-Formatter-Setup-${version}.${ext}
+  shortcutName: FormaFlow
+  artifactName: FormaFlow-Setup-${version}.${ext}
 portable:
-  artifactName: Excel-HTML-Formatter-${version}-portable.${ext}
+  artifactName: FormaFlow-${version}-portable.${ext}
 
 # ---------- macOS ----------
 mac:
@@ -48,4 +49,4 @@ mac:
   identity: '-'
   hardenedRuntime: false
 dmg:
-  artifactName: Excel-HTML-Formatter-${version}-mac-universal.${ext}
+  artifactName: FormaFlow-${version}-mac-universal.${ext}

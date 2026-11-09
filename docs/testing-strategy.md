@@ -15,8 +15,9 @@ Last reviewed: 2026-11-09 · Decisions: [ADR 0008](architecture/adr/0008-playwri
 
 ## Current numbers (2026-11-09)
 
-- Unit/integration: **254 tests** — core 132, adapter-excel 57, ui 53, desktop 12.
-- End-to-end: **7 tests** — start state; open → analyse → set style → preview → export (saved file checked, original
+- Unit/integration: **268 tests** — core 132, adapter-excel 57, ui 61, desktop 18.
+- End-to-end: **8 tests** — start state (Home, Coming soon cards); recent activity (entries after a save, Continue,
+  Open again starts in the right folder, Clear survives a restart); open → analyse → set style → preview → export (saved file checked, original
   unchanged); a content issue stops the save until "Save anyway", with a CSV report; refuse to overwrite the original;
   Cancel during a 60,000-cell export leaves no file; Cancel while checking the saved file keeps the file; reload
   returns to Open.

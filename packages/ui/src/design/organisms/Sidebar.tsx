@@ -15,12 +15,15 @@ export function Sidebar() {
   const params = useParams({ strict: false }) as { section?: string }
 
   // The content check (/check) belongs to the Preview & export step.
-  const current: Step | 'settings' | null = pathname.startsWith('/settings')
-    ? 'settings'
-    : pathname.startsWith('/check')
-      ? 'preview'
-      : (ORDER.find((s) => pathname.startsWith('/' + s)) ?? null)
-  const currentIndex = current && current !== 'settings' ? ORDER.indexOf(current) : -1
+  const current: Step | 'settings' | 'home' | null =
+    pathname === '/'
+      ? 'home'
+      : pathname.startsWith('/settings')
+        ? 'settings'
+        : pathname.startsWith('/check')
+          ? 'preview'
+          : (ORDER.find((s) => pathname.startsWith('/' + s)) ?? null)
+  const currentIndex = current && current !== 'settings' && current !== 'home' ? ORDER.indexOf(current) : -1
   // Keep the section the user is looking at; otherwise start at the first selected one.
   const section = params.section && selected.includes(params.section) ? params.section : selected[0]
 
@@ -45,7 +48,16 @@ export function Sidebar() {
 
   return (
     <aside>
-      <div className="brand">{format.appName}</div>
+      <div className="brand">
+        {format.appName}
+        {format.tagline && <div className="brand-tagline">{format.tagline}</div>}
+      </div>
+      <Link to="/" className={`nav ${current === 'home' ? 'active' : ''}`}>
+        <span className="num">
+          <Icon name="home" />
+        </span>
+        Home
+      </Link>
       <div className="navlabel">Workflow</div>
       {step('open', 0, 'Open file', (c, cls) => (
         <Link key="open" to="/open" className={cls}>

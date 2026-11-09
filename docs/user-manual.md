@@ -1,15 +1,16 @@
-# User Manual — Excel HTML Formatter
+# User Manual — FormaFlow
 
 Last reviewed: 2026-11-09
 
-Excel HTML Formatter turns HTML tags inside Excel cells into real formatting. For example, a cell containing
+FormaFlow (called Excel HTML Formatter before 2026-11-09) turns HTML tags inside Excel cells into real formatting. For example, a cell containing
 `<b>my name</b> is <i>pasindu</i>` becomes "**my name** is _pasindu_". Your original file is never changed: the app
 always saves a new copy.
 
 ## Installing
 
-- **Windows:** run `Excel-HTML-Formatter-Setup-<version>.exe` (installs for your user only, no admin rights), or run
-  `Excel-HTML-Formatter-<version>-portable.exe` from any folder without installing.
+- **Windows:** run `FormaFlow-Setup-<version>.exe` (installs for your user only, no admin rights), or run
+  `FormaFlow-<version>-portable.exe` from any folder without installing. Installing FormaFlow over Excel HTML Formatter
+  upgrades it and keeps your tag styles.
 - **macOS:** open the `.dmg` and drag the app to Applications.
 
 The app isn't code-signed yet, so the first launch shows a warning:
@@ -18,6 +19,11 @@ The app isn't code-signed yet, so the first launch shows a warning:
 - **macOS** ("can't be opened"): open **System Settings → Privacy & Security** and click **Open Anyway**.
 
 ## Using the app
+
+The app starts on **Home**. Click **Choose a file…** to begin, or **Continue** to go back to the file you have open.
+Convert to PDF, Word and text are shown as **Coming soon**: they can't be used yet. **Recent activity** lists the
+last 10 files you opened and saved, with whether the saved file checked out. **Open again** opens the file dialog in
+that folder. The list is kept on this computer only; **Clear** empties it. The sidebar's **Home** link brings you back.
 
 1. **Open file.** Drop an `.xlsx` file on the window, or click it to browse. A progress bar shows while the file is
    read; **Cancel** stops it.

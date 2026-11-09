@@ -7,6 +7,7 @@ import {
   cleanStyle,
   defaultConfig,
   reportToCsv,
+  type ActivityEntry,
   type AppConfig,
   type AppInfo,
   type ContentReport,
@@ -29,6 +30,9 @@ export interface AppState {
   pendingFile: PickedFile | null
   loading: boolean
   doc: DocumentSummary | null
+  /** The last document screen visited (an in-app address), for Home's "Continue". Null when no file is open. */
+  lastStep: string | null
+  rememberStep(address: string): void
   /** Names of the sections the user ticked, in document order. */
   selected: string[]
   config: AppConfig | null
@@ -38,8 +42,17 @@ export interface AppState {
   init(): Promise<void>
   /** Opens a file. Resolves to true when it is ready to show. */
   openFile(file: PickedFile): Promise<boolean>
-  /** Asks for a file with the Open dialog, then opens it. False when cancelled, busy or it failed. */
-  browseForFile(): Promise<boolean>
+  /**
+   * Asks for a file with the Open dialog, then opens it. False when cancelled, busy or it failed.
+   * `startIn`: a folder from the recent activity to start the dialog in.
+   */
+  browseForFile(startIn?: string): Promise<boolean>
+  /** Recent actions for the Home screen, newest first (recorded by the main process). */
+  activity: ActivityEntry[]
+  /** Reloads the recent actions. A failure leaves the list as it was (it is only a convenience). */
+  loadActivity(): Promise<void>
+  /** Empties the recent actions list. */
+  clearActivity(): Promise<void>
   /** Opens a file dropped on the window. False when busy or it failed. */
   openDroppedFile(file: File): Promise<boolean>
   toggleSection(name: string): void
@@ -146,12 +159,16 @@ let noticeTimer: ReturnType<typeof setTimeout> | undefined
 /** Main-process errors arrive as "Error invoking remote method 'x': Error: <message>". */
 export const cleanError = (e: unknown) => String((e as Error)?.message ?? e).replace(/^.*Error: /, '')
 
-const closedDocument = { doc: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
+const closedDocument = { doc: null, lastStep: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
 
 export const useApp = create<AppState>((set, get) => ({
   pendingFile: null,
   loading: false,
   doc: null,
+  lastStep: null,
+  rememberStep(address) {
+    if (get().doc && get().lastStep !== address) set({ lastStep: address })
+  },
   selected: [],
   config: null,
   appInfo: null,
@@ -173,6 +190,25 @@ export const useApp = create<AppState>((set, get) => ({
     } catch (e) {
       set({ error: 'Could not load settings: ' + cleanError(e) })
     }
+    await get().loadActivity()
+  },
+
+  activity: [],
+  async loadActivity() {
+    try {
+      set({ activity: await window.api.getActivity() })
+    } catch {
+      // Recent activity is a convenience: keep what is shown rather than interrupt with an error.
+    }
+  },
+  async clearActivity() {
+    try {
+      await window.api.clearActivity()
+      set({ activity: [] })
+      get().notify('Recent activity cleared')
+    } catch (e) {
+      set({ error: 'Could not clear recent activity. ' + cleanError(e) })
+    }
   },
 
   async openFile(file) {
@@ -182,6 +218,7 @@ export const useApp = create<AppState>((set, get) => ({
       // Pre-select visible sections that contain HTML.
       const selected = doc.sections.filter((s) => s.scan.htmlCells > 0 && s.state === 'visible').map((s) => s.name)
       set({ ...closedDocument, doc, selected })
+      void get().loadActivity()
       return true
     } catch (e) {
       // Starting a new load closes the previous file in the background, so start from scratch.
@@ -197,10 +234,10 @@ export const useApp = create<AppState>((set, get) => ({
     }
   },
 
-  async browseForFile() {
+  async browseForFile(startIn) {
     if (get().loading) return false
     try {
-      const file = await window.api.openFileDialog()
+      const file = await window.api.openFileDialog(startIn)
       return file ? await get().openFile(file) : false
     } catch (e) {
       set({ error: cleanError(e) })
@@ -331,6 +368,7 @@ export const useApp = create<AppState>((set, get) => ({
       const result = await window.api.exportDocument(doc.file.path, selected, config)
       if (!result) return 'cancelled'
       set({ exportResult: result })
+      void get().loadActivity()
       return 'saved'
     } catch (e) {
       if (cleanError(e) === CANCELLED_MESSAGE) {

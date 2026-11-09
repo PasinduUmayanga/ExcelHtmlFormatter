@@ -67,3 +67,18 @@ th.pick {
 .save-note {
   max-width: 360px;
 }
+/* Home */
+.section-title,
+.recent h2 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+.section-title {
+  margin: 0 0 var(--space-4);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: 28px;
+}

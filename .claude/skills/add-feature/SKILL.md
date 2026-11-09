@@ -1,6 +1,6 @@
 ---
 name: add-feature
-description: Add or change a screen, route, UI component or user-facing workflow in the HTML Formatter apps (packages/ui, and IPC in packages/desktop when needed). Use for any UI or workflow change.
+description: Add or change a screen, route, UI component or user-facing workflow in the FormaFlow apps (packages/ui, and IPC in packages/desktop when needed). Use for any UI or workflow change.
 ---
 
 # Add or change a feature

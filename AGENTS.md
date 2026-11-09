@@ -6,7 +6,8 @@ details live in `docs/`. If something here disagrees with the code, the code win
 ## What this project is
 
 Desktop apps (Electron) that turn HTML tags inside documents (`<b>x</b>`) into real formatting. One app per file format,
-built from shared packages. Today: **Excel HTML Formatter** (`apps/excel-formatter`). Planned: export/conversion to
+built from shared packages. Today: **FormaFlow** for Excel (`apps/excel-formatter`; called Excel HTML Formatter
+before ADR 0012). Planned: export/conversion to
 PDF, DOCX, TXT, HTML, Markdown — see `docs/roadmap.md` (phases need Tech Lead approval before work starts).
 
 ## Map

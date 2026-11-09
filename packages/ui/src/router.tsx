@@ -10,6 +10,7 @@ import {
 import type { ConvertOptions, FormatInfo } from '@hf/core'
 import { canVisit, useApp } from './store'
 import { AppLayout } from './design/templates'
+import { Dashboard } from './screens/Dashboard'
 import { OpenFile } from './screens/OpenFile'
 import { SelectSections } from './screens/SelectSections'
 import { TagAnalysis } from './screens/TagAnalysis'
@@ -63,13 +64,8 @@ export function useFormatterApp(): FormatterAppConfig {
 export function createFormatterRouter(options: { history?: RouterHistory } = {}) {
   const rootRoute = createRootRoute({ component: AppLayout })
 
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    beforeLoad: () => {
-      throw redirect({ to: '/open' })
-    }
-  })
+  // Home (the start screen): start or continue, coming features, tools and recent activity.
+  const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Dashboard })
 
   const openRoute = createRoute({ getParentRoute: () => rootRoute, path: '/open', component: OpenFile })
 

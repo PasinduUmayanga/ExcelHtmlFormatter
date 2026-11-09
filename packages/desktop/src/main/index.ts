@@ -14,6 +14,7 @@ import {
   type DocumentSummary,
   type ExportResult,
   type ExportStats,
+  type ActivityEntry,
   type FormatInfo,
   type JobKind,
   type JobProgress,
@@ -21,6 +22,8 @@ import {
 } from '@hf/core'
 import { JobWorker } from './workerClient'
 import { reportText, sectionList, unreadableSave } from './ipcChecks'
+import { userDataPath } from './userData'
+import { addActivity, knownFolder, parseActivity } from './activity'
 
 export interface DesktopAppOptions {
   /** Names, file types and words for this format */
@@ -32,6 +35,11 @@ export interface DesktopAppOptions {
   createWorker: (options: WorkerOptions) => Worker
   /** Window icon for Windows/Linux (macOS uses the .icns in the app bundle) */
   icon?: string
+  /**
+   * Settings folder name inside the system's app-data folder, when it differs from the product name
+   * (e.g. the name before a rename). Leave out to use Electron's default.
+   */
+  userDataFolder?: string
   /** Built preload and window files, relative to the built main.js (defaults match electron-vite) */
   preloadPath?: string
   rendererHtmlPath?: string
@@ -40,10 +48,37 @@ export interface DesktopAppOptions {
 /** Starts the app: one window, the IPC API from @hf/desktop/preload, and background workers. */
 export function startDesktopApp(options: DesktopAppOptions): void {
   const { format } = options
+  // Must happen before the app is ready, before anything reads or writes the settings folder.
+  const settingsFolder = userDataPath(
+    app.getPath('appData'),
+    options.userDataFolder,
+    app.commandLine.hasSwitch('user-data-dir')
+  )
+  if (settingsFolder) app.setPath('userData', settingsFolder)
   const preloadPath = options.preloadPath ?? join(__dirname, '../preload/preload.js')
   const rendererHtmlPath = options.rendererHtmlPath ?? join(__dirname, '../renderer/index.html')
   const extensions = format.fileTypes.flatMap((t) => t.extensions.map((e) => e.toLowerCase()))
   const configPath = () => join(app.getPath('userData'), 'config.json')
+  const activityPath = () => join(app.getPath('userData'), 'activity.json')
+
+  /*
+   * Recent activity: read once, then kept in memory. Writes run one at a time, in order. A failure to
+   * record activity never fails the open or save it describes.
+   */
+  let activity: Promise<ActivityEntry[]> | null = null
+  const loadActivity = () =>
+    (activity ??= readFile(activityPath(), 'utf8')
+      .then((json) => parseActivity(JSON.parse(json)))
+      .catch(() => []))
+  function updateActivity(change: (list: ActivityEntry[]) => ActivityEntry[]): Promise<void> {
+    const next = loadActivity().then(change)
+    activity = next
+    return next.then((list) => writeJsonSafely(activityPath(), list))
+  }
+  const recordActivity = (entry: ActivityEntry) =>
+    updateActivity((list) => addActivity(list, entry)).catch((e: Error) =>
+      console.warn('Could not record recent activity:', e.message)
+    )
 
   /** Only files the user picked (dialog or drag-and-drop) may be read. */
   const pickedFiles = new Map<string, PickedFile>()
@@ -120,12 +155,13 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     return file
   }
 
-  ipcMain.handle('file:open', async (event): Promise<PickedFile | null> => {
+  ipcMain.handle('file:open', async (event, startIn: unknown): Promise<PickedFile | null> => {
     const win = BrowserWindow.fromWebContents(event.sender)
     const dialogOptions: Electron.OpenDialogOptions = {
       title: format.text.openTitle,
       properties: ['openFile'],
-      filters: format.fileTypes
+      filters: format.fileTypes,
+      defaultPath: knownFolder(await loadActivity(), startIn)
     }
     const result = win ? await dialog.showOpenDialog(win, dialogOptions) : await dialog.showOpenDialog(dialogOptions)
     if (result.canceled || result.filePaths.length === 0) return null
@@ -158,6 +194,12 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     try {
       const summary = await worker.request<DocumentSummary>({ type: 'load', file }, progressTo(event.sender, 'load'))
       if (session?.worker === worker) session.loading = false
+      void recordActivity({
+        kind: 'opened',
+        fileName: file.name,
+        folder: dirname(file.path),
+        at: new Date().toISOString()
+      })
       return summary
     } catch (e) {
       worker.terminate()
@@ -261,6 +303,16 @@ export function startDesktopApp(options: DesktopAppOptions): void {
           const message = (e as Error).message
           verification = message === CANCELLED_MESSAGE ? null : unreadableSave(message)
         }
+        void recordActivity({
+          kind: 'saved',
+          fileName: basename(target),
+          folder: dirname(target),
+          at: new Date().toISOString(),
+          sourceName: file.name,
+          converted: stats.converted,
+          check: verification === null ? 'not-checked' : verification.differences ? 'differences' : 'verified',
+          differences: verification?.differences ?? 0
+        })
         return { path: target, fileName: basename(target), stats, verification }
       } finally {
         worker.terminate('Finished.')
@@ -272,6 +324,11 @@ export function startDesktopApp(options: DesktopAppOptions): void {
   ipcMain.handle('shell:showInFolder', (_e, path: unknown) => {
     if (typeof path === 'string' && savedFiles.has(path)) shell.showItemInFolder(path)
   })
+
+  /* ---------- Recent activity (read and clear only: the main process records it) ---------- */
+
+  ipcMain.handle('activity:list', (): Promise<ActivityEntry[]> => loadActivity())
+  ipcMain.handle('activity:clear', (): Promise<void> => updateActivity(() => []))
 
   /* ---------- Tag-style settings ---------- */
 
