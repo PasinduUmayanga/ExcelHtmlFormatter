@@ -45,6 +45,8 @@ const TEXT: [string, string][] = [
   ['on-accent', 'accent-fill'], // primary buttons, pressed toggles, the current page in the sidebar
   ['on-accent', 'accent-fill-hover'],
   ['on-accent', 'accent-fill-end'], // the dark end of the primary button gradient
+  ['on-accent', 'nav-active'], // the current page in the sidebar
+  ['on-accent', 'nav-active-end'],
   ['on-ok', 'ok'], // completed steps
   // Cards, inputs and raised panels (the redesign's --surface levels)
   ['text', 'surface'],

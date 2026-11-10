@@ -14,9 +14,15 @@ import { AppLayout } from './design/templates'
 import { Dashboard } from './screens/Dashboard'
 import { Help } from './screens/Help'
 import { HelpTopic } from './screens/HelpTopic'
-import { OpenFile } from './screens/OpenFile'
-import { SelectSections } from './screens/SelectSections'
-import { TagAnalysis } from './screens/TagAnalysis'
+import { Upload } from './screens/Upload'
+import { Configure } from './screens/Configure'
+import { Complete } from './screens/Complete'
+import { Workspace } from './screens/Workspace'
+import { RecentFiles } from './screens/RecentFiles'
+import { Favorites } from './screens/Favorites'
+import { Templates } from './screens/Templates'
+import { Preferences } from './screens/Preferences'
+import { Automation } from './screens/Automation'
 import { PreviewExport } from './screens/PreviewExport'
 import { TagStyles } from './screens/TagStyles'
 import { CheckReview } from './screens/CheckReview'
@@ -54,16 +60,17 @@ export function useFormatterApp(): FormatterAppConfig {
 /**
  * The route tree shared by every formatter app:
  *
- *   /                      -> /open
- *   /open                  open a file
- *   /sections              choose sections (sheets, …)
- *   /analysis/$section     tags found in one section
- *   /preview/$section      result preview (?view=original shows the raw HTML)
+ *   /                      Home: choose the file type and action
+ *   /upload                choose or drop a file (workflow step 3)
+ *   /configure             step 4: choose sections (sheets, …) and see their tags (?tab=tags&section=X)
+ *   /preview/$section      step 5: processing and preview, side by side (?view=formatted|original shows one)
  *   /check/$section        content check: issues side by side with the original (?cell=C7 selects one;
  *                          ?saved=true shows the differences found in the saved file instead)
+ *   /complete              step 6: export and complete (what was saved, Open file, New task)
+ *   /workspace /recent /favorites /templates /preferences /automation   the sidebar's pages
  *   /settings              tag styles (?tag=b opens one tag, ?back=/analysis/X adds a "Done" button)
  *
- * Guards send the user back to /open or /sections when there is nothing to show.
+ * Guards send the user back to /upload or /configure when there is nothing to show.
  * Hash history is used because the packaged app is loaded from a file:// address.
  */
 export function createFormatterRouter(options: { history?: RouterHistory } = {}) {
@@ -73,54 +80,50 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
   const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Dashboard })
 
   // The workflow is unlocked from Home; while it is locked its screens send the user there.
-  const start = () => (useApp.getState().workflowActive ? '/open' : '/')
+  const start = () => (useApp.getState().workflowActive ? '/upload' : '/')
 
-  const openRoute = createRoute({
+  const uploadRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: '/open',
+    path: '/upload',
     beforeLoad: () => {
       if (!useApp.getState().workflowActive) throw redirect({ to: '/' })
     },
-    component: OpenFile
+    component: Upload
   })
 
-  const sectionsRoute = createRoute({
+  const configureRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: '/sections',
+    path: '/configure',
+    // Always return every key: TanStack keeps the raw value of any key left out.
+    validateSearch: (search: { tab?: unknown; section?: unknown }): { tab?: 'tags'; section?: string } => ({
+      tab: search.tab === 'tags' ? 'tags' : undefined,
+      section: typeof search.section === 'string' && search.section.length <= 200 ? search.section : undefined
+    }),
     beforeLoad: () => {
       if (!canVisit(useApp.getState(), 'sections')) throw redirect({ to: start() })
     },
-    component: SelectSections
+    component: Configure
   })
 
-  /** Shared guard for the two per-section screens. */
-  function guardSection(section: string, screen: 'analysis' | 'preview') {
+  /** Guard for the per-section preview. */
+  function guardSection(section: string) {
     const state = useApp.getState()
     if (!canVisit(state, 'sections')) throw redirect({ to: start() })
-    if (!canVisit(state, screen)) throw redirect({ to: '/sections' })
+    if (!canVisit(state, 'preview')) throw redirect({ to: '/configure', search: {} })
     if (!state.selected.includes(section)) {
-      const first = state.selected[0]
-      throw screen === 'analysis'
-        ? redirect({ to: '/analysis/$section', params: { section: first } })
-        : redirect({ to: '/preview/$section', params: { section: first } })
+      throw redirect({ to: '/preview/$section', params: { section: state.selected[0] }, search: {} })
     }
   }
-
-  const analysisRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/analysis/$section',
-    beforeLoad: ({ params }) => guardSection(params.section, 'analysis'),
-    component: TagAnalysis
-  })
 
   const previewRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/preview/$section',
     // Always return every key: TanStack keeps the raw value of any key left out.
-    validateSearch: (search: { view?: string }): { view?: 'original' } => ({
-      view: search.view === 'original' ? 'original' : undefined
+    // No view: original and formatted side by side.
+    validateSearch: (search: { view?: string }): { view?: 'original' | 'formatted' } => ({
+      view: search.view === 'original' || search.view === 'formatted' ? search.view : undefined
     }),
-    beforeLoad: ({ params }) => guardSection(params.section, 'preview'),
+    beforeLoad: ({ params }) => guardSection(params.section),
     component: PreviewExport
   })
 
@@ -136,7 +139,7 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     beforeLoad: ({ params, search }) => {
       const state = useApp.getState()
       if (!canVisit(state, 'sections')) throw redirect({ to: start() })
-      if (!canVisit(state, 'preview')) throw redirect({ to: '/sections' })
+      if (!canVisit(state, 'preview')) throw redirect({ to: '/configure', search: {} })
       const known = state.doc!.sections.some((s) => s.name === params.section)
       // The saved-file view needs a saved file; the content check needs a selected section.
       if (search.saved ? !state.exportResult?.verification || !known : !state.selected.includes(params.section)) {
@@ -146,13 +149,37 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
     component: CheckReview
   })
 
+  // Export & complete: before a save it needs something to save; after a clean save it shows what was saved.
+  const completeRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/complete',
+    beforeLoad: () => {
+      const state = useApp.getState()
+      if (state.lastSaved && !state.doc) return
+      if (!canVisit(state, 'sections')) throw redirect({ to: start() })
+      if (!canVisit(state, 'preview')) throw redirect({ to: '/configure', search: {} })
+    },
+    component: Complete
+  })
+
+  const workspaceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/workspace', component: Workspace })
+  const recentRoute = createRoute({ getParentRoute: () => rootRoute, path: '/recent', component: RecentFiles })
+  const favoritesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/favorites', component: Favorites })
+  const templatesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/templates', component: Templates })
+  const preferencesRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/preferences',
+    component: Preferences
+  })
+  const automationRoute = createRoute({ getParentRoute: () => rootRoute, path: '/automation', component: Automation })
+
   const settingsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/settings',
     // Always return every key: TanStack keeps the raw value of any key left out.
     validateSearch: (search: { tag?: string; back?: string }): { tag?: string; back?: string } => ({
       tag: typeof search.tag === 'string' && search.tag ? search.tag : undefined,
-      // Only in-app paths ("/analysis/…"), never a full URL or a protocol-relative "//host".
+      // Only in-app paths ("/configure?…"), never a full URL or a protocol-relative "//host".
       back: typeof search.back === 'string' && /^\/(?!\/)/.test(search.back) ? search.back : undefined
     }),
     component: TagStyles
@@ -181,11 +208,17 @@ export function createFormatterRouter(options: { history?: RouterHistory } = {})
 
   const routeTree = rootRoute.addChildren([
     indexRoute,
-    openRoute,
-    sectionsRoute,
-    analysisRoute,
+    uploadRoute,
+    configureRoute,
     previewRoute,
     checkRoute,
+    completeRoute,
+    workspaceRoute,
+    recentRoute,
+    favoritesRoute,
+    templatesRoute,
+    preferencesRoute,
+    automationRoute,
     settingsRoute,
     helpRoute,
     helpTopicRoute

@@ -80,7 +80,7 @@ These real stages feed the redesign's Process, Compare & Verify and Export scree
 - `packages/ui/src/styles/tokens.css`: light and dark colours, radius, spacing 4–20 px, text sizes 11.5–15 px;
   `--control-border`, `--on-accent`, `--on-ok`; contrast checked by `ui/tests/tokens.test.ts`.
 - Before the redesign: body text 14 px Segoe UI, headings 20 px, Unicode characters as icons. Phase 1 (2026-11-10) moved to the guide's navy and blue tokens, a 14–28 px type scale (Segoe UI Variable) and lucide line icons.
-- `@hf/ui` runtime dependencies: `@hf/core`, `@tanstack/react-router`, `zustand`, and since Phase 1 `lucide-react` 1.61.0 (ISC, decision R1; the newest release at least two weeks old) (React as a peer).
+- `@hf/ui` runtime dependencies: `@hf/core`, `@tanstack/react-router`, `zustand`, and since Phase 1 `lucide-react` 1.61.0 (ISC, decision R1; the newest release at least two weeks old), since P1 `@fontsource-variable/inter` 5.3.0 (SIL OFL 1.1; Inter bundled so it looks the same everywhere) (React as a peer).
 - **Scale:** the reference images appear to be captured at 125–150 % Windows display scaling, so their text looks
   larger at the same window size. The redesign follows the guide's type scale (body 14–16 px, page headings 26–36 px),
   not the mockups' pixels.

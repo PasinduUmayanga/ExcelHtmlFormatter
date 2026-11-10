@@ -40,7 +40,7 @@ export function Dashboard() {
   const start = () => {
     if (!ready) return
     startWorkflow()
-    navigate({ to: '/open' })
+    navigate({ to: '/upload' })
   }
 
   return (
@@ -51,7 +51,7 @@ export function Dashboard() {
           <h1>
             Welcome to <span className="brand-word">FormaFlow</span>
           </h1>
-          <p className="sub">Turn HTML tags in your documents into real formatting.</p>
+          <p className="sub">Format, convert and prepare your documents with confidence.</p>
         </div>
         <HeroArt />
       </header>
@@ -66,7 +66,7 @@ export function Dashboard() {
           <span>
             You're working on <b>{doc.file.name}</b>. Pick up where you left off.
           </span>
-          <Button variant="primary" small onClick={() => router.history.push(lastStep ?? '/sections')}>
+          <Button variant="primary" small onClick={() => router.history.push(lastStep ?? '/configure')}>
             Continue →
           </Button>
         </div>
@@ -151,7 +151,7 @@ export function Dashboard() {
         <QuickActions />
       </div>
 
-      <RecentActivity />
+      <RecentActivity limit={5} />
     </div>
   )
 }

@@ -1,21 +1,20 @@
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { capitalize, defaultConfig, describeStyle, isConfigured, sortedTags } from '@hf/core'
-import { useApp } from '../state/store'
-import { useFormatterApp } from '../router'
-import { useEditTag } from '../hooks/useEditTag'
-import { RichText, Stat } from '../design/molecules'
-import { Badge, Button, Swatch, TagName } from '../design/atoms'
-import { MissingStylesBanner, SectionTabs } from '../design/organisms'
-import { ScreenTemplate } from '../design/templates'
+import { useApp } from '../../state/store'
+import { useFormatterApp } from '../../router'
+import { useEditTag } from '../../hooks/useEditTag'
+import { RichText, Stat } from '../molecules'
+import { Badge, Button, Swatch, TagName } from '../atoms'
+import { MissingStylesBanner } from './MissingStylesBanner'
 
 const fallbackConfig = defaultConfig()
-const route = getRouteApi('/analysis/$section')
 
-export function TagAnalysis() {
+/**
+ * Configure › Tag Styles for one section: the formatting tags found in it, how often, and the style each one will
+ * get, with Set style / Edit (opens Tag styles on that tag and comes back here).
+ */
+export function SectionTags({ name }: { name: string }) {
   const { format } = useFormatterApp()
-  const { section: name } = route.useParams()
   const { doc, config } = useApp()
-  const navigate = useNavigate()
   const editTag = useEditTag()
   const section = doc?.sections.find((s) => s.name === name)
   if (!doc || !section) return null
@@ -28,22 +27,7 @@ export function TagAnalysis() {
   const tagList = (list: string[]) => list.map((t) => `<${t}>`).join(', ')
 
   return (
-    <ScreenTemplate
-      title="Tag analysis"
-      intro={
-        <>The formatting tags found in each selected {format.section.singular}, and the style each one will get.</>
-      }
-      footer={
-        <>
-          <Button onClick={() => navigate({ to: '/sections' })}>← Back</Button>
-          <Button variant="primary" onClick={() => navigate({ to: '/preview/$section', params: { section: name } })}>
-            Preview result →
-          </Button>
-        </>
-      }
-    >
-      <SectionTabs screen="analysis" current={name} />
-
+    <>
       <div className="stats">
         <Stat value={section.scan.htmlCells} label={`${capitalize(unit.plural)} with HTML`} />
         <Stat value={tags.length} label="Different tags" />
@@ -115,6 +99,6 @@ export function TagAnalysis() {
           </table>
         </div>
       )}
-    </ScreenTemplate>
+    </>
   )
 }

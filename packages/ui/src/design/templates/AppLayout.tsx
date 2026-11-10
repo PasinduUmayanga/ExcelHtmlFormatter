@@ -6,7 +6,7 @@ import { Icon } from '../atoms'
 import { useFormatterApp } from '../../router'
 import { StartupScreen } from './StartupScreen'
 
-const DOCUMENT_SCREENS = /^\/(sections|analysis|preview|check)(\/|\?|$)/
+const DOCUMENT_SCREENS = /^\/(upload|configure|preview|check|complete)(\/|\?|$)/
 
 /** The window frame shared by every screen: sidebar, error banner, current screen, toast. */
 export function AppLayout() {

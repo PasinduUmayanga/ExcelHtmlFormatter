@@ -5,7 +5,7 @@ import type { FormatInfo } from '@hf/core'
 export const excelFormat: FormatInfo = {
   id: 'excel',
   appName: 'FormaFlow',
-  tagline: 'Document Processing Workspace',
+  tagline: 'Document Processing Suite',
   fileTypes: [{ name: 'Excel workbook', extensions: ['xlsx'] }],
   outputSuffix: '_formatted',
   outputExtension: 'xlsx',

@@ -201,7 +201,6 @@ mark {
   color: var(--text);
   border-radius: 2px;
 }
-/* Breadcrumbs in the header */
 .crumbs ol {
   display: flex;
   align-items: center;

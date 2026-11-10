@@ -2,25 +2,30 @@ import { useNavigate } from '@tanstack/react-router'
 import { Icon, type IconName } from '../atoms'
 
 /**
- * Home's shortcuts (prototype "Quick Actions"), only to things that exist: the recent files further down, Tag styles
- * (Formatting Profiles) and Help.
+ * Home's shortcuts (prototype "Quick Actions"), only to things that exist: Recent Files, Formatting Profiles and
+ * Templates.
  */
 export function QuickActions() {
   const navigate = useNavigate()
-  const showRecent = () => {
-    const heading = document.getElementById('recent-title')
-    heading?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    heading?.focus({ preventScroll: true })
-  }
   const items: { icon: IconName; title: string; hint: string; run: () => void }[] = [
-    { icon: 'recent', title: 'Open recent', hint: 'Pick up a recent file', run: showRecent },
+    {
+      icon: 'recent',
+      title: 'Open recent',
+      hint: 'Pick up a recent file',
+      run: () => void navigate({ to: '/recent' })
+    },
     {
       icon: 'profiles',
       title: 'Formatting Profiles',
       hint: 'Manage tag styles',
       run: () => void navigate({ to: '/settings' })
     },
-    { icon: 'help', title: 'Help & guides', hint: 'How FormaFlow works', run: () => void navigate({ to: '/help' }) }
+    {
+      icon: 'templates',
+      title: 'Use a Template',
+      hint: 'Start with a saved setup',
+      run: () => void navigate({ to: '/templates' })
+    }
   ]
   return (
     <section className="quick" aria-labelledby="quick-title">

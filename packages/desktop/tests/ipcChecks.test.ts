@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_REPORT_CHARS, reportText, sectionList, unreadableSave } from '../src/main/ipcChecks'
+import { MAX_REPORT_CHARS, outputFileName, reportText, sectionList, unreadableSave } from '../src/main/ipcChecks'
 
 describe('IPC argument checks', () => {
   it('accepts a non-empty list of section names only', () => {
@@ -24,5 +24,24 @@ describe('IPC argument checks', () => {
         { kind: 'saved', severity: 'issue', saved: 'The saved file could not be read back to check it: disk gone' }
       ]
     })
+  })
+})
+
+describe('outputFileName (Export screen name for the Save dialog)', () => {
+  it('keeps a typed name and adds the extension once', () => {
+    expect(outputFileName('Report final', 'x_formatted', 'xlsx')).toBe('Report final.xlsx')
+    expect(outputFileName('Report.XLSX', 'x_formatted', 'xlsx')).toBe('Report.xlsx')
+  })
+
+  it('keeps only a name: no folders, no characters files cannot have', () => {
+    expect(outputFileName('C:\\Windows\\evil', 'x', 'xlsx')).toBe('evil.xlsx')
+    expect(outputFileName('../../up/a:b*c?.xlsx', 'x', 'xlsx')).toBe('abc.xlsx')
+    expect(outputFileName('name. . ', 'x', 'xlsx')).toBe('name.xlsx')
+  })
+
+  it('falls back to the usual name when nothing usable was typed', () => {
+    for (const bad of [undefined, 42, '', '   ', '<>|', '.xlsx']) {
+      expect(outputFileName(bad, 'catalog_formatted', 'xlsx')).toBe('catalog_formatted.xlsx')
+    }
   })
 })

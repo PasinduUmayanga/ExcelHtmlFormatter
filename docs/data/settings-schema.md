@@ -1,8 +1,9 @@
 # Stored data: the tag-style settings file
 
-Last reviewed: 2026-11-09. There is no database. The app stores three files in its settings folder: the tag styles
-(`config.json`, below), the recent activity (`activity.json`) and window preferences (`preferences.json`), both at the
-end of this page.
+Last reviewed: 2026-11-09. There is no database. The app stores these files in its settings folder: the active profile's tag styles
+(`config.json`, below), the other formatting profiles (`profiles.json`), templates (`templates.json`), the recent
+activity (`activity.json`), favourites (`favorites.json`) and window preferences (`preferences.json`), at the end of
+this page.
 
 - **Location:** `<Electron userData>/config.json`. On Windows: `%APPDATA%\Excel HTML Formatter\config.json`. On macOS:
   `~/Library/Application Support/Excel HTML Formatter/config.json`. The folder keeps the product's earlier name
@@ -54,3 +55,33 @@ uses them.
 `{ "theme": "system" | "light" | "dark" }`, written by `setTheme` (temporary file, then rename). Missing, damaged or
 unknown values mean `"system"` ([ADR 0014](../architecture/adr/0014-theme-preference.md)). Kept apart from
 `config.json` so the theme is not part of exported tag styles.
+
+## Formatting profiles: `profiles.json` (ADR 0018)
+
+`config.json` is the **active** profile, unchanged. The others:
+
+```json
+{ "version": 1, "profiles": [{ "version": 2, "profileName": "Client A", "unknownTagAction": "strip", "rules": {} }] }
+```
+
+Each entry is read like `config.json` (`validateConfig`); entries with a name already used (ignoring case) or the
+active profile's name are dropped. At most 30 profiles in all. A missing or damaged file means only the active profile.
+
+## Templates: `templates.json` (ADR 0018)
+
+```json
+{
+  "version": 1,
+  "templates": [
+    { "name": "Weekly", "fileType": "excel", "action": "format-html", "profile": "Default", "sheets": "all" }
+  ]
+}
+```
+
+`sheets`: `html` ticks the visible sections with HTML when the file opens (the usual choice), `all` ticks every
+section. Names up to 60 characters, unique ignoring case; at most 30. Invalid entries are dropped.
+
+## Favourites: `favorites.json` (ADR 0017)
+
+A list of `{ "fileName", "folder", "at" }`, newest first, at most 50. Only files from the recent activity can be
+starred; clearing the activity keeps them.

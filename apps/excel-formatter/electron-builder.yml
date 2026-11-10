@@ -14,6 +14,10 @@ files:
   - package.json
   - '!**/*.map'
 asar: true
+# The workbook behind "Load sample" on the Upload screen (ADR 0017), outside the asar so it can be read as a file.
+extraResources:
+  - from: ../../packages/adapter-excel/samples/product_catalog.xlsx
+    to: samples/product_catalog.xlsx
 # No native modules, so nothing needs rebuilding for Electron.
 npmRebuild: false
 

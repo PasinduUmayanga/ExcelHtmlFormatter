@@ -15,6 +15,8 @@ import {
   type ExportResult,
   type ExportStats,
   type ActivityEntry,
+  type FavoriteFile,
+  type WorkflowTemplate,
   type FormatInfo,
   type Preferences,
   type JobKind,
@@ -22,9 +24,12 @@ import {
   type PickedFile
 } from '@hf/core'
 import { JobWorker } from './workerClient'
-import { reportText, sectionList, unreadableSave } from './ipcChecks'
+import { outputFileName, reportText, sectionList, unreadableSave } from './ipcChecks'
 import { userDataPath } from './userData'
 import { addActivity, knownFolder, parseActivity } from './activity'
+import { parseFavorites, toggleFavorite } from './favorites'
+import * as profiles from './profiles'
+import { deleteTemplate, parseTemplates, saveTemplate } from './templates'
 import { isTheme, parsePreferences, windowBackground } from './preferences'
 
 export interface DesktopAppOptions {
@@ -37,6 +42,8 @@ export interface DesktopAppOptions {
   createWorker: (options: WorkerOptions) => Worker
   /** Window icon for Windows/Linux (macOS uses the .icns in the app bundle) */
   icon?: string
+  /** A sample file shipped with the app, for "Load sample" on the Upload screen (ADR 0017). Leave out for none. */
+  samplePath?: string
   /**
    * Settings folder name inside the system's app-data folder, when it differs from the product name
    * (e.g. the name before a rename). Leave out to use Electron's default.
@@ -62,6 +69,9 @@ export function startDesktopApp(options: DesktopAppOptions): void {
   const extensions = format.fileTypes.flatMap((t) => t.extensions.map((e) => e.toLowerCase()))
   const configPath = () => join(app.getPath('userData'), 'config.json')
   const activityPath = () => join(app.getPath('userData'), 'activity.json')
+  const favoritesPath = () => join(app.getPath('userData'), 'favorites.json')
+  const profilesPath = () => join(app.getPath('userData'), 'profiles.json')
+  const templatesPath = () => join(app.getPath('userData'), 'templates.json')
   const preferencesPath = () => join(app.getPath('userData'), 'preferences.json')
   const loadPreferences = (): Promise<Preferences> =>
     readFile(preferencesPath(), 'utf8')
@@ -82,6 +92,21 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     activity = next
     return next.then((list) => writeJsonSafely(activityPath(), list))
   }
+  /* Favourites: like the activity, read once and written one at a time (ADR 0017). */
+  let favorites: Promise<FavoriteFile[]> | null = null
+  const loadFavorites = () =>
+    (favorites ??= readFile(favoritesPath(), 'utf8')
+      .then((text) => parseFavorites(JSON.parse(text)))
+      .catch(() => []))
+  function updateFavorites(change: (list: FavoriteFile[]) => FavoriteFile[] | Promise<FavoriteFile[]>) {
+    const next = loadFavorites().then(change)
+    favorites = next
+    return next.then(async (list) => {
+      await writeJsonSafely(favoritesPath(), list)
+      return list
+    })
+  }
+
   const recordActivity = (entry: ActivityEntry) =>
     updateActivity((list) => addActivity(list, entry)).catch((e: Error) =>
       console.warn('Could not record recent activity:', e.message)
@@ -168,12 +193,18 @@ export function startDesktopApp(options: DesktopAppOptions): void {
       title: format.text.openTitle,
       properties: ['openFile'],
       filters: format.fileTypes,
-      defaultPath: knownFolder(await loadActivity(), startIn)
+      // Only a folder from the recent activity or the favourites.
+      defaultPath: knownFolder([...(await loadActivity()), ...(await loadFavorites())], startIn)
     }
     const result = win ? await dialog.showOpenDialog(win, dialogOptions) : await dialog.showOpenDialog(dialogOptions)
     if (result.canceled || result.filePaths.length === 0) return null
     return describe(result.filePaths[0])
   })
+
+  // The sample counts as picked: it is the app's own file, chosen by the user with "Load sample".
+  ipcMain.handle('file:sample', (): Promise<PickedFile> | null =>
+    options.samplePath ? describe(options.samplePath) : null
+  )
 
   ipcMain.handle('file:describe', (_e, path: unknown): Promise<PickedFile> => {
     if (typeof path !== 'string' || !path) throw new Error('No file path was received.')
@@ -257,7 +288,7 @@ export function startDesktopApp(options: DesktopAppOptions): void {
 
   ipcMain.handle(
     'document:export',
-    async (event, path: unknown, sections: unknown, config: unknown): Promise<ExportResult | null> => {
+    async (event, path: unknown, sections: unknown, config: unknown, name: unknown): Promise<ExportResult | null> => {
       const file = typeof path === 'string' ? pickedFiles.get(path) : undefined
       if (!file) throw new Error('Please open the file again.')
       const chosen = sectionList(sections, format.section.plural)
@@ -268,7 +299,7 @@ export function startDesktopApp(options: DesktopAppOptions): void {
         title: 'Save formatted file',
         defaultPath: join(
           dirname(file.path),
-          `${parse(file.name).name}${format.outputSuffix}.${format.outputExtension}`
+          outputFileName(name, `${parse(file.name).name}${format.outputSuffix}`, format.outputExtension)
         ),
         filters: [{ name: format.fileTypes[0]?.name ?? 'File', extensions: [format.outputExtension] }]
       }
@@ -332,10 +363,24 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     if (typeof path === 'string' && savedFiles.has(path)) shell.showItemInFolder(path)
   })
 
+  // Only a file this app saved in this session; the system opens it in its usual program.
+  ipcMain.handle('shell:openSaved', async (_e, path: unknown): Promise<void> => {
+    if (typeof path !== 'string' || !savedFiles.has(path))
+      throw new Error('Only a file saved by this app can be opened.')
+    const problem = await shell.openPath(path)
+    if (problem) throw new Error(problem)
+  })
+
   /* ---------- Recent activity (read and clear only: the main process records it) ---------- */
 
   ipcMain.handle('activity:list', (): Promise<ActivityEntry[]> => loadActivity())
   ipcMain.handle('activity:clear', (): Promise<void> => updateActivity(() => []))
+  ipcMain.handle('favorites:list', (): Promise<FavoriteFile[]> => loadFavorites())
+  ipcMain.handle('favorites:toggle', async (_e, fileName: unknown, folder: unknown): Promise<FavoriteFile[]> =>
+    updateFavorites(async (list) =>
+      toggleFavorite(list, await loadActivity(), fileName, folder, new Date().toISOString())
+    )
+  )
 
   /* ---------- Window preferences (theme) ---------- */
 
@@ -348,17 +393,91 @@ export function startDesktopApp(options: DesktopAppOptions): void {
 
   /* ---------- Tag-style settings ---------- */
 
-  ipcMain.handle('config:load', async (): Promise<AppConfig> => {
+  /** The active profile (config.json): defaults on first run, or when the file is missing or damaged. */
+  async function readActive(): Promise<AppConfig> {
     try {
       return validateConfig(JSON.parse(await readFile(configPath(), 'utf8')))
     } catch {
-      return defaultConfig() // first run, or a missing / damaged file
+      return defaultConfig()
     }
+  }
+  /** All profiles: the active one (config.json) and the others (profiles.json, ADR 0018). */
+  async function readProfiles(): Promise<profiles.Profiles> {
+    const active = await readActive()
+    let stored: unknown = null
+    try {
+      stored = JSON.parse(await readFile(profilesPath(), 'utf8'))
+    } catch {
+      // none yet, or damaged: only the active profile
+    }
+    return { active, others: profiles.parseOtherProfiles(stored, active) }
+  }
+  /**
+   * Writes a change. When the active profile changes, the others are written first with both profiles in them, so
+   * a crash in between loses nothing (the duplicate is dropped when read).
+   */
+  let profileWrites: Promise<unknown> = Promise.resolve()
+  function changeProfiles(change: (p: profiles.Profiles) => profiles.Profiles): Promise<profiles.Profiles> {
+    const run = profileWrites.then(async () => {
+      const before = await readProfiles()
+      const after = change(before)
+      if (after.active !== before.active) {
+        await writeJsonSafely(profilesPath(), { version: 1, profiles: [...after.others, before.active] })
+        await writeJsonSafely(configPath(), after.active)
+      }
+      await writeJsonSafely(profilesPath(), { version: 1, profiles: after.others })
+      return after
+    })
+    profileWrites = run.catch(() => {})
+    return run
+  }
+
+  ipcMain.handle('config:load', (): Promise<AppConfig> => readActive())
+
+  // Saves the active profile's styles; its name stays (renaming is renameProfile, which checks for duplicates).
+  ipcMain.handle('config:save', async (_e, config: unknown): Promise<void> => {
+    const valid = validateConfig(config)
+    await profileWrites
+    await writeJsonSafely(configPath(), { ...valid, profileName: (await readActive()).profileName })
   })
 
-  ipcMain.handle('config:save', async (_e, config: unknown): Promise<void> => {
-    await writeJsonSafely(configPath(), validateConfig(config))
-  })
+  ipcMain.handle('profiles:list', async () => profiles.summarize(await readProfiles()))
+
+  /* Templates (ADR 0018): read, change and write one at a time. */
+  let templateWrites: Promise<unknown> = Promise.resolve()
+  const readTemplates = async (): Promise<WorkflowTemplate[]> => {
+    try {
+      return parseTemplates(JSON.parse(await readFile(templatesPath(), 'utf8')))
+    } catch {
+      return []
+    }
+  }
+  function changeTemplates(change: (list: WorkflowTemplate[]) => WorkflowTemplate[]): Promise<WorkflowTemplate[]> {
+    const run = templateWrites.then(async () => {
+      const list = change(await readTemplates())
+      await writeJsonSafely(templatesPath(), { version: 1, templates: list })
+      return list
+    })
+    templateWrites = run.catch(() => {})
+    return run
+  }
+  ipcMain.handle('templates:list', (): Promise<WorkflowTemplate[]> => readTemplates())
+  ipcMain.handle('templates:save', (_e, template: unknown) => changeTemplates((list) => saveTemplate(list, template)))
+  ipcMain.handle('templates:delete', (_e, name: unknown) => changeTemplates((list) => deleteTemplate(list, name)))
+  ipcMain.handle('profiles:create', async (_e, name: unknown, copyFrom: unknown) =>
+    profiles.summarize(await changeProfiles((p) => profiles.createProfile(p, name, copyFrom)))
+  )
+  ipcMain.handle('profiles:rename', async (_e, from: unknown, to: unknown) =>
+    profiles.summarize(await changeProfiles((p) => profiles.renameProfile(p, from, to)))
+  )
+  ipcMain.handle('profiles:delete', async (_e, name: unknown) =>
+    profiles.summarize(await changeProfiles((p) => profiles.deleteProfile(p, name)))
+  )
+  ipcMain.handle(
+    'profiles:activate',
+    async (_e, name: unknown): Promise<AppConfig> =>
+      (await changeProfiles((p) => profiles.activateProfile(p, name))).active
+  )
 
   ipcMain.handle('config:export', async (event, config: unknown): Promise<string | null> => {
     const valid = validateConfig(config)
@@ -389,7 +508,9 @@ export function startDesktopApp(options: DesktopAppOptions): void {
     } catch {
       throw new Error('That file is not valid JSON.')
     }
-    const config = validateConfig(parsed)
+    // The imported styles replace the active profile's; the profile keeps its name.
+    const config = { ...validateConfig(parsed), profileName: (await readActive()).profileName }
+    await profileWrites
     await writeJsonSafely(configPath(), config)
     return config
   })

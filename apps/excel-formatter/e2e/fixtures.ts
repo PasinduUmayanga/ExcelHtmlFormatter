@@ -47,20 +47,21 @@ export async function answerSaveDialog(app: ElectronApplication, path: string): 
 
 /**
  * Opens a workbook the way users do: on Home, Excel and "Format HTML tags" are chosen, Continue unlocks the
- * workflow, then the Open
- * screen's browse button. Waits for the sheet list.
+ * workflow; on Upload, Choose file, then Continue once the file is read. Waits for Configure (the sheet list).
  */
 export async function openWorkbook({ app, window }: RunningApp, path: string): Promise<void> {
   await answerOpenDialog(app, path)
   await window.getByRole('link', { name: 'Home', exact: true }).click()
   await window.getByRole('button', { name: 'Continue', exact: true }).click()
-  await window.waitForURL(/#\/open$/)
-  await window.getByRole('button', { name: /click to browse/i }).click()
-  await window.waitForURL(/#\/sections$/)
+  await window.waitForURL(/#\/upload$/)
+  await window.getByRole('button', { name: 'Choose file' }).click()
+  await window.getByRole('status', { name: 'Chosen file' }).waitFor()
+  await window.getByRole('button', { name: 'Continue →' }).click()
+  await window.waitForURL(/#\/configure$/)
 }
 
-/** The four workflow steps in the sidebar. */
-export const WORKFLOW_STEPS = ['Open file', 'Select sheets', 'Tag analysis', 'Preview & export']
+/** My Workspace in the sidebar: says "Active" while the workflow is unlocked (FR-29). */
+export const workspaceNav = (window: Page) => window.locator('aside .nav', { hasText: 'My Workspace' })
 
 /** Makes the next Open dialog report the folder it was asked to start in, then cancel. */
 export async function recordOpenDialogFolder(app: ElectronApplication): Promise<() => Promise<string | undefined>> {
@@ -76,3 +77,9 @@ export async function recordOpenDialogFolder(app: ElectronApplication): Promise<
 }
 
 export const screenTitle = (window: Page) => window.locator('main h1')
+
+/** From Preview to Export & complete (step 6), where the file is saved. */
+export async function toExport(window: Page): Promise<void> {
+  await window.getByRole('button', { name: 'Continue →' }).click()
+  await window.waitForURL(/#\/complete$/)
+}

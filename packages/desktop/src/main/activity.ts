@@ -44,9 +44,9 @@ export function addActivity(list: readonly ActivityEntry[], entry: ActivityEntry
 }
 
 /**
- * The folder to start the Open dialog in: only a folder from the activity list, so the window can't point
- * the dialog anywhere else. Anything else gives undefined (the dialog's usual folder).
+ * The folder to start the Open dialog in: only a folder from the activity list (or the favourites), so the window
+ * can't point the dialog anywhere else. Anything else gives undefined (the dialog's usual folder).
  */
-export function knownFolder(list: readonly ActivityEntry[], folder: unknown): string | undefined {
+export function knownFolder(list: readonly { folder: string }[], folder: unknown): string | undefined {
   return typeof folder === 'string' && list.some((e) => e.folder === folder) ? folder : undefined
 }

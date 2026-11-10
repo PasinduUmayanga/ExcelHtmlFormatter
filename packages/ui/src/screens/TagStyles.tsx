@@ -4,7 +4,7 @@ import { BUILTIN_TAGS, builtinStyle, mergeScans } from '@hf/core'
 import { useApp } from '../state/store'
 import { Badge, Button, TagName } from '../design/atoms'
 import { Field } from '../design/molecules'
-import { AddTag, StyleEditor } from '../design/organisms'
+import { AddTag, ProfileManager, StyleEditor } from '../design/organisms'
 import { ScreenTemplate } from '../design/templates'
 
 const route = getRouteApi('/settings')
@@ -32,16 +32,21 @@ export function TagStyles() {
   const tag = tagParam && tagNames.includes(tagParam) ? tagParam : (tagNames[0] ?? null)
   const backLabel = back?.startsWith('/preview')
     ? 'preview'
-    : back?.startsWith('/analysis')
-      ? 'tag analysis'
+    : back?.startsWith('/configure')
+      ? 'Configure'
       : back?.startsWith('/check')
         ? 'the content check'
         : null
 
   return (
     <ScreenTemplate
-      title="Tag styles"
-      intro={<>Choose the formatting for each HTML tag. Changes are saved automatically and used for every file.</>}
+      title="Formatting Profiles"
+      intro={
+        <>
+          Each profile is a set of tag styles. The active profile is used for every file; changes are saved
+          automatically.
+        </>
+      }
       footer={
         <>
           <div className="row">
@@ -68,6 +73,10 @@ export function TagStyles() {
         </>
       }
     >
+      <ProfileManager />
+      <h2 className="profile-editing">
+        Tag styles in <b>{config.profileName}</b>
+      </h2>
       <div className="cfg">
         <div>
           <div className="taglist" role="listbox" aria-label="Tags">

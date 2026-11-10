@@ -1,19 +1,18 @@
-import { useNavigate } from '@tanstack/react-router'
 import { capitalize, count, sortedTags } from '@hf/core'
-import { useApp } from '../state/store'
-import { useFormatterApp } from '../router'
-import { Badge, Button, TagName } from '../design/atoms'
-import { ScreenTemplate } from '../design/templates'
-
-const formatSize = (bytes: number) =>
-  bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
+import { useApp } from '../../state/store'
+import { useFormatterApp } from '../../router'
+import { formatSize } from '../../utils/formatSize'
+import { Badge, TagName } from '../atoms'
 
 const MAX_TAGS_SHOWN = 8
 
-export function SelectSections() {
+/**
+ * Configure › Sheets (prototype "Select Sheets to Process"): every section of the open file with a tick box, Select
+ * all, its size, HTML count and tags. Visible sections with HTML are ticked when the file opens.
+ */
+export function SectionPicker() {
   const { format } = useFormatterApp()
   const { doc, selected, toggleSection, selectAllSections } = useApp()
-  const navigate = useNavigate()
   if (!doc) return null
 
   const { file, sections } = doc
@@ -25,34 +24,16 @@ export function SelectSections() {
   const hiddenWithHtml = withHtml.length - visibleWithHtml
 
   return (
-    <ScreenTemplate
-      title={<>Select {words.plural}</>}
-      intro={
-        <>
-          <b>{count(sections.length, words)}</b> found in {file.name} ({formatSize(file.sizeBytes)}).{' '}
-          {withHtml.length === 0 && `None of them contain HTML tags.`}
-          {visibleWithHtml > 0 &&
-            `${visibleWithHtml} ${visibleWithHtml === 1 ? 'contains' : 'contain'} HTML and ${visibleWithHtml === 1 ? 'is' : 'are'} selected for you.`}
-          {hiddenWithHtml > 0 &&
-            ` ${hiddenWithHtml} hidden ${hiddenWithHtml === 1 ? `${words.singular} also contains` : `${words.plural} also contain`} HTML; tick ${hiddenWithHtml === 1 ? 'it' : 'them'} to include.`}
-        </>
-      }
-      footer={
-        <>
-          <Button onClick={() => navigate({ to: '/open' })}>← Open another file</Button>
-          <div className="row">
-            <span className="muted">{selected.length} selected</span>
-            <Button
-              variant="primary"
-              disabled={selected.length === 0}
-              onClick={() => navigate({ to: '/analysis/$section', params: { section: selected[0] } })}
-            >
-              Analyse tags →
-            </Button>
-          </div>
-        </>
-      }
-    >
+    <div className="config-area">
+      <h2>Select {words.plural} to process</h2>
+      <p className="muted">
+        <b>{count(sections.length, words)}</b> found in {file.name} ({formatSize(file.sizeBytes)}).{' '}
+        {withHtml.length === 0 && `None of them contain HTML tags.`}
+        {visibleWithHtml > 0 &&
+          `${visibleWithHtml} ${visibleWithHtml === 1 ? 'contains' : 'contain'} HTML and ${visibleWithHtml === 1 ? 'is' : 'are'} selected for you.`}
+        {hiddenWithHtml > 0 &&
+          ` ${hiddenWithHtml} hidden ${hiddenWithHtml === 1 ? `${words.singular} also contains` : `${words.plural} also contain`} HTML; tick ${hiddenWithHtml === 1 ? 'it' : 'them'} to include.`}
+      </p>
       {sections.length === 0 ? (
         <div className="placeholder">This file has no {words.plural}.</div>
       ) : (
@@ -121,6 +102,6 @@ export function SelectSections() {
           </table>
         </div>
       )}
-    </ScreenTemplate>
+    </div>
   )
 }

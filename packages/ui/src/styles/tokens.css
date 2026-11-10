@@ -27,6 +27,9 @@
   --accent-fill: #1a6ff0;
   --accent-fill-hover: #1565e0;
   --accent-fill-end: #0b62dc;
+  /* The current page in the sidebar */
+  --nav-active: #1a6ff0;
+  --nav-active-end: #0b62dc;
   --accent-bg: #dfedff;
   --accent-text: #14519f;
   --focus: #1563d6;
@@ -55,8 +58,9 @@
   --space-7: 24px;
   --space-8: 32px;
   /* Type scale (guide §3.2): captions 12–13, body 14–15, card titles 17, page titles 28 */
-  --font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Inter as in the prototype, bundled with the app (@fontsource-variable/inter); Segoe UI if it can't load */
+  --font: 'Inter Variable', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter Variable', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --text-xs: 12px;
   --text-sm: 13px;
   --text-md: 14px;
@@ -65,7 +69,7 @@
   --text-title: 28px;
   --mono: Consolas, 'Cascadia Mono', Menlo, monospace;
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 236px;
   --header-height: 64px;
   --content-pad: 32px;
   color-scheme: light dark;
@@ -87,6 +91,8 @@
     --accent-fill: #1a6ff0;
     --accent-fill-hover: #1565e0;
     --accent-fill-end: #0b62dc;
+    --nav-active: #1d498c;
+    --nav-active-end: #1a4d98;
     --accent-bg: #1a4373;
     --accent-text: #9cc8ff;
     --focus: #80baff;

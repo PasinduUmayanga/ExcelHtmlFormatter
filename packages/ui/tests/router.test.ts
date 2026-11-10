@@ -35,16 +35,16 @@ describe('routes and guards (TanStack Router)', () => {
   })
 
   it('keeps the workflow locked (back to Home) until it is started from Home', async () => {
-    for (const path of ['/open', '/sections', '/analysis/Products', '/preview/Products', '/check/Team']) {
+    for (const path of ['/upload', '/configure', '/configure?tab=tags', '/preview/Products', '/check/Team']) {
       expect((await visit(path)).path).toBe('/')
     }
   })
 
-  it('sends document screens to Open once the workflow is started but no file is open yet', async () => {
+  it('sends document screens to Upload once the workflow is started but no file is open yet', async () => {
     useApp.getState().startWorkflow()
-    expect((await visit('/open')).path).toBe('/open')
-    for (const path of ['/sections', '/analysis/Products', '/preview/Products']) {
-      expect((await visit(path)).path).toBe('/open')
+    expect((await visit('/upload')).path).toBe('/upload')
+    for (const path of ['/configure', '/preview/Products']) {
+      expect((await visit(path)).path).toBe('/upload')
     }
   })
 
@@ -52,25 +52,34 @@ describe('routes and guards (TanStack Router)', () => {
     expect((await visit('/settings')).path).toBe('/settings')
   })
 
-  it('needs at least one selected section for analysis and preview', async () => {
+  it('needs at least one selected section for the preview', async () => {
     useApp.setState({ workflowActive: true, doc, selected: [] })
-    expect((await visit('/sections')).path).toBe('/sections')
-    expect((await visit('/analysis/Products')).path).toBe('/sections')
+    expect((await visit('/configure')).path).toBe('/configure')
+    expect((await visit('/preview/Products')).path).toBe('/configure')
+  })
+
+  it('keeps only a valid Configure tab and section', async () => {
+    useApp.setState({ workflowActive: true, doc, selected: ['Team'] })
+    expect(await visit('/configure?tab=tags&section=Team')).toEqual({
+      path: '/configure',
+      search: { tab: 'tags', section: 'Team' }
+    })
+    expect((await visit('/configure?tab=weird')).search).toEqual({})
+    expect((await visit(`/configure?section=${'x'.repeat(201)}`)).search).toEqual({})
   })
 
   it('switches to the first selected section when the address names another one', async () => {
     useApp.setState({ workflowActive: true, doc, selected: ['Team', 'Summary'] })
-    expect((await visit('/analysis/Team')).path).toBe('/analysis/Team')
-    expect((await visit('/analysis/Products')).path).toBe('/analysis/Team')
+    expect((await visit('/preview/Team')).path).toBe('/preview/Team')
     expect((await visit('/preview/Nope')).path).toBe('/preview/Team')
   })
 
   it('keeps section names with spaces and symbols intact', async () => {
     const odd = { ...doc, sections: [{ ...doc.sections[0], name: 'Q1 & Q2 (draft)' }] }
     useApp.setState({ workflowActive: true, doc: odd, selected: ['Q1 & Q2 (draft)'] })
-    const router = createFormatterRouter({ history: createMemoryHistory({ initialEntries: ['/sections'] }) })
+    const router = createFormatterRouter({ history: createMemoryHistory({ initialEntries: ['/configure'] }) })
     await router.load()
-    await router.navigate({ to: '/analysis/$section', params: { section: 'Q1 & Q2 (draft)' } })
+    await router.navigate({ to: '/preview/$section', params: { section: 'Q1 & Q2 (draft)' }, search: {} })
     expect(router.state.matches.at(-1)?.params).toEqual({ section: 'Q1 & Q2 (draft)' })
   })
 
@@ -87,9 +96,9 @@ describe('routes and guards (TanStack Router)', () => {
     useApp.setState({ workflowActive: true, doc, selected: ['Team'] })
     expect((await visit('/preview/Team?view=original')).search).toEqual({ view: 'original' })
     expect((await visit('/preview/Team?view=weird')).search).toEqual({})
-    expect((await visit('/settings?tag=mark&back=%2Fanalysis%2FTeam')).search).toEqual({
+    expect((await visit('/settings?tag=mark&back=%2Fconfigure%3Ftab%3Dtags')).search).toEqual({
       tag: 'mark',
-      back: '/analysis/Team'
+      back: '/configure?tab=tags'
     })
     // "back" must stay inside the app
     expect((await visit('/settings?back=https%3A%2F%2Fexample.com')).search).toEqual({})
@@ -103,7 +112,7 @@ describe('canVisit', () => {
     expect(canVisit({ workflowActive: true, doc: null, loading: false, selected: [] }, 'sections')).toBe(false)
     // A file still open after the workflow ended (it never is, but the rule doesn't depend on that)
     expect(canVisit({ workflowActive: false, doc, loading: false, selected: ['Team'] }, 'preview')).toBe(false)
-    expect(canVisit({ workflowActive: true, doc, loading: true, selected: ['Team'] }, 'analysis')).toBe(false)
+    expect(canVisit({ workflowActive: true, doc, loading: true, selected: ['Team'] }, 'preview')).toBe(false)
     expect(canVisit({ workflowActive: true, doc, loading: false, selected: [] }, 'sections')).toBe(true)
     expect(canVisit({ workflowActive: true, doc, loading: false, selected: [] }, 'preview')).toBe(false)
     expect(canVisit({ workflowActive: true, doc, loading: false, selected: ['Team'] }, 'preview')).toBe(true)

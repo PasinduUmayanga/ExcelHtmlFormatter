@@ -30,6 +30,8 @@ An ADR records one important decision: the context, what was decided, and what f
 | [0014](0014-theme-preference.md)                    | Theme chosen in the app, applied by the main process (nativeTheme) | Accepted |
 | [0015](0015-help-center-markdown.md)                | Help Center from Markdown in the app, rendered without HTML        | Accepted |
 | [0016](0016-ui-logic-outside-atomic-levels.md)      | Logic, state and shared styles outside the Atomic Design levels    | Accepted |
+| [0018](0018-profiles-and-templates.md)              | Formatting profiles and templates                                  | Accepted |
+| [0017](0017-workflow-redesign-ipc.md)               | Window calls added by the workflow redesign                        | Accepted |
 
 0009 and 0010 are reserved for the content-model and link-policy decisions of the F2 formatting work (to be written).
 

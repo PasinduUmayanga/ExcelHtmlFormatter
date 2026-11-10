@@ -82,13 +82,28 @@ file plan in the [redesign audit](design/formaflow-audit.md). One approval per p
 | RD-0  | Audit, baseline screenshots, plan                    | ✅     |
 | RD-1  | Theme tokens and app shell (sidebar, header, icons)  | ✅     |
 | RD-2  | Home: file type → action → Continue, recent activity | ✅     |
-| RD-3  | Workflow layout and Upload                           | 📝     |
-| RD-4  | Configure: Sheets and Tag styles                     | 📝     |
-| RD-5  | Process with real progress                           | 📝     |
-| RD-6  | Compare & Verify                                     | 📝     |
-| RD-7  | Export & Complete                                    | 📝     |
-| RD-8  | Recent Files, Formatting Profiles, Settings, Help    | 📝     |
-| RD-9  | Polish, accessibility, docs                          | 📝     |
+
+From RD-3 on, the plan follows the "Reference-Matched (Horizontal Steps)" HTML prototype (approved 2026-11-10: keep the
+logo, bundle Inter, the prototype's Home subtitle, P1 → P7 first, one review per phase). Features the prototype only
+simulates are built for real or shown as "Soon" / "Coming soon".
+
+| Phase | Work                                                                                 | Status |
+| ----- | ------------------------------------------------------------------------------------ | ------ |
+| P1    | App shell: grouped sidebar, profile card, Inter font, tagline and Home subtitle      | ✅     |
+| P2    | Workflow frame: six-step stepper, summary panel, Back/Continue, new routes           | ✅     |
+| P3    | Upload: drop zone, chosen file card, Load sample (real sample, IPC + ADR)            | ✅     |
+| P4    | Configure: Sheets / Tag Styles switcher, sheet table, tags found                     | ✅     |
+| P5    | Processing: progress ring with the real stages                                       | ✅     |
+| P6    | Preview: side by side / changed only, content verification from the real check       | ✅     |
+| P7    | Export & Complete: output name, summary, Open file (R9, ADR), New task (R3)          | ✅     |
+| P8    | My Workspace page                                                                    | ✅     |
+| P9    | Recent Files and Favorites (stored by the main process, ADR)                         | ✅     |
+| P10   | Formatting Profiles: several named profiles (settings format change, migration, ADR) | ✅     |
+| P11   | Templates: saved setups (ADR)                                                        | ✅     |
+| P12   | Settings page                                                                        | ✅     |
+| P13   | Search (Ctrl+K)                                                                      | ✅     |
+| P14   | Automation (Beta): "planned" notice only, as in the prototype                        | ✅     |
+| P15   | Final pass: light theme, help, manual, FDS, SRS, TDS, contracts, e2e                 | ✅     |
 
 ## Decisions pending approval
 

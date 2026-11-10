@@ -3,14 +3,15 @@ import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { capitalize, defaultConfig, isConfigured, mergeScans } from '@hf/core'
 import { useApp } from '../state/store'
 import { useFormatterApp } from '../router'
-import { Button, Icon } from '../design/atoms'
+import { Button } from '../design/atoms'
 import { SegmentedControl, Stat } from '../design/molecules'
-import { CheckChip, JobProgressPanel, MissingStylesBanner, SaveSummary, SectionTabs } from '../design/organisms'
-import { ScreenTemplate } from '../design/templates'
+import { MissingStylesBanner, ProcessingPanel, SectionTabs, VerificationPanel } from '../design/organisms'
+import { WorkflowTemplate } from '../design/templates'
 
 const fallbackConfig = defaultConfig()
 const route = getRouteApi('/preview/$section')
 const VIEWS = [
+  ['side', 'Side by side'],
   ['formatted', 'Formatted'],
   ['original', 'Original HTML']
 ] as const
@@ -20,20 +21,7 @@ export function PreviewExport() {
   const { section } = route.useParams()
   const { view } = route.useSearch()
   const navigate = useNavigate()
-  const {
-    doc,
-    selected: selectedNames,
-    config,
-    previews,
-    loadPreview,
-    exporting,
-    exportResult,
-    exportDocument,
-    showInFolder,
-    dismissExportResult,
-    check,
-    runCheck
-  } = useApp()
+  const { doc, selected: selectedNames, config, previews, loadPreview, runCheck } = useApp()
 
   useEffect(() => {
     loadPreview(section)
@@ -46,20 +34,6 @@ export function PreviewExport() {
     }, 300)
     return () => clearTimeout(timer)
   }, [doc, selectedNames, config, runCheck])
-
-  const save = async () => {
-    const outcome = await exportDocument()
-    // A clean save ends the workflow: Home shows what was saved.
-    if (outcome === 'completed') navigate({ to: '/' })
-    if (outcome === 'review') {
-      const first = useApp.getState().check.report?.items.find((i) => i.severity === 'issue')
-      navigate({
-        to: '/check/$section',
-        params: { section: first?.section ?? section },
-        search: { cell: first?.location, saved: undefined }
-      })
-    }
-  }
 
   const selected = useMemo(
     () => (doc ? doc.sections.filter((s) => selectedNames.includes(s.name)) : []),
@@ -74,33 +48,29 @@ export function PreviewExport() {
     .filter((t) => !isConfigured(t, options.rules))
     .sort()
   const preview = previews[section]
-  const setView = (next?: 'original') =>
+  const setView = (next?: 'original' | 'formatted') =>
     navigate({ to: '/preview/$section', params: { section }, search: next ? { view: next } : {}, replace: true })
 
   return (
-    <ScreenTemplate
-      title={'Preview & export'}
+    <WorkflowTemplate
+      step="preview"
+      title="Processing & preview"
       intro={
         <>
-          How the {unit.plural} will look after formatting. Each HTML {unit.singular} keeps its text and gets real
-          formatting.
+          Compare the original {unit.plural} with the result and check the content before you save. Each HTML{' '}
+          {unit.singular} keeps its text and gets real formatting.
         </>
       }
       footer={
         <>
-          <Button onClick={() => navigate({ to: '/analysis/$section', params: { section } })}>← Back</Button>
-          <div className="row">
-            <span className="faint text-sm save-note">{format.text.saveNote}</span>
-            <Button variant="primary" onClick={save} disabled={exporting || selected.length === 0}>
-              {exporting ? check.status === 'running' ? 'Checking…' : 'Saving…' : <SaveLabel />}
-            </Button>
-          </div>
+          <Button onClick={() => navigate({ to: '/configure', search: { tab: 'tags', section } })}>← Back</Button>
+          <Button variant="primary" disabled={selected.length === 0} onClick={() => navigate({ to: '/complete' })}>
+            Continue →
+          </Button>
         </>
       }
     >
-      <JobProgressPanel title="Saving the formatted file" items={unit.plural} />
-
-      {exportResult && <SaveSummary result={exportResult} onShow={showInFolder} onDismiss={dismissExportResult} />}
+      <ProcessingPanel items={unit.plural} />
 
       <div className="stats">
         <Stat
@@ -111,7 +81,7 @@ export function PreviewExport() {
         <Stat value={missing.length} label="Tags with no style" tone={missing.length ? 'warn' : 'ok'} />
       </div>
 
-      <CheckChip section={section} onRetry={runCheck} />
+      <VerificationPanel section={section} onRetry={runCheck} />
 
       {missing.length > 0 && (
         <MissingStylesBanner firstTag={missing[0]}>
@@ -127,26 +97,28 @@ export function PreviewExport() {
         <SegmentedControl
           label="Preview mode"
           className="mb-5"
-          value={view ?? 'formatted'}
+          value={view ?? 'side'}
           options={VIEWS}
-          onChange={(next) => setView(next === 'original' ? next : undefined)}
+          onChange={(next) => setView(next === 'side' ? undefined : next)}
         />
       </div>
 
-      {preview ? (
-        <Preview preview={preview} view={view ?? 'formatted'} options={options} />
-      ) : (
+      {!preview ? (
         <div className="placeholder">Loading {section}…</div>
+      ) : view ? (
+        <Preview preview={preview} view={view} options={options} />
+      ) : (
+        <div className="compare">
+          <section aria-label="Original">
+            <h3 className="compare-head">Original (HTML in {unit.plural})</h3>
+            <Preview preview={preview} view="original" options={options} />
+          </section>
+          <section aria-label="Formatted">
+            <h3 className="compare-head">Formatted (preview)</h3>
+            <Preview preview={preview} view="formatted" options={options} />
+          </section>
+        </div>
       )}
-    </ScreenTemplate>
-  )
-}
-
-/** The main button's label when idle: the save icon and the action (as before, one text line). */
-function SaveLabel() {
-  return (
-    <>
-      <Icon name="save" /> Save formatted file…
-    </>
+    </WorkflowTemplate>
   )
 }

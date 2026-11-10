@@ -62,13 +62,9 @@ describe('QuickActions', () => {
     navigate.mockReset()
   })
 
-  it('opens Tag styles and Help, and moves to the recent files on Home', () => {
-    const heading = document.createElement('h2')
-    heading.id = 'recent-title'
-    heading.tabIndex = -1
-    heading.scrollIntoView = vi.fn()
+  it('opens Recent Files, Formatting Profiles and Templates', () => {
     const host = document.createElement('div')
-    document.body.append(host, heading)
+    document.body.append(host)
     root = createRoot(host)
     act(() => root!.render(<QuickActions />))
 
@@ -76,14 +72,15 @@ describe('QuickActions', () => {
     expect(buttons.map((b) => b.querySelector('b')!.textContent)).toEqual([
       'Open recent',
       'Formatting Profiles',
-      'Help & guides'
+      'Use a Template'
     ])
-    act(() => buttons[1].click())
-    expect(navigate).toHaveBeenLastCalledWith({ to: '/settings' })
-    act(() => buttons[2].click())
-    expect(navigate).toHaveBeenLastCalledWith({ to: '/help' })
-    act(() => buttons[0].click())
-    expect(heading.scrollIntoView).toHaveBeenCalled()
-    expect(document.activeElement).toBe(heading)
+    for (const [i, to] of [
+      [0, '/recent'],
+      [1, '/settings'],
+      [2, '/templates']
+    ] as const) {
+      act(() => buttons[i].click())
+      expect(navigate).toHaveBeenLastCalledWith({ to })
+    }
   })
 })

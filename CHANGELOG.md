@@ -36,6 +36,29 @@ and versions follow [Semantic Versioning](https://semver.org/).
   larger type, line icons (`lucide-react`), a new sidebar (Home, My Workspace, Formatting Profiles, Help & Support,
   with the profile and version at the bottom; subtitle "Document Processing Workspace") and a header with breadcrumbs,
   Help and an icon theme switch. The current page is marked for screen readers with `aria-current`.
+- **Redesign P2–P15** (the "Reference-Matched (Horizontal Steps)" prototype, with everything it only simulates
+  built for real):
+  - **Six-step workflow**: File type, Action, Upload, Configure, Preview, Export across the top of every workflow
+    screen, a Workflow summary beside it, Back / Continue below. Routes `#/upload`, `#/configure`, `#/complete` replace
+    `#/open`, `#/sections` and `#/analysis/…`.
+  - **Upload**: drop zone, chosen file with Remove, **Load sample** (the sample workbook now ships with the app).
+  - **Configure**: Sheets and Tag Styles in one screen, with an Active profile picker.
+  - **Preview**: a progress ring with the real stages, original and result side by side, Content verification.
+  - **Export & complete**: an output name for the Save dialog; after a clean save the summary with **Open file**,
+    Show in folder and New task (it no longer returns to Home).
+  - **My Workspace**, **Recent Files** and **Favorites** pages; Clear asks first; favourites are kept on this computer.
+  - **Formatting profiles**: several named sets of tag styles (create, duplicate, rename, delete, use). Your current
+    styles are the Default profile; nothing to migrate (ADR 0018).
+  - **Templates**: saved setups to start a task in one click.
+  - **Search** (Ctrl+K) in the header, replacing the breadcrumbs; a **Settings** page; **Automation (Beta)** says it is
+    planned.
+  - New window calls: `openSample`, `openSavedFile`, favourites, profiles and templates (ADR 0017, 0018).
+- **Redesign P1, app shell** (from the "Reference-Matched" prototype): the sidebar is grouped into Home, My
+  Workspace, Recent Files, Favorites; Tools (Formatting Profiles, Automation (Beta), Templates); Settings (Settings,
+  Help & Support), with the active profile, rule count and version in a card at the bottom. Pages that aren't built
+  yet are listed with "Soon" and can't be used. The interface uses the Inter font (SIL Open Font License, bundled
+  with `@fontsource-variable/inter` 5.3.0). Tagline "Document Processing Suite"; Home subtitle "Format, convert and
+  prepare your documents with confidence."
 - **Redesign phase 2, Home** (layout, colours and pictures from the "Blue Shiny Wave" prototype): "Welcome to
   FormaFlow" over a glossy blue wave, a three-part "How it works" bar, then **Step 1: Select file type** (Excel, Word,
   PDF, Text) with Quick actions (Open recent, Formatting Profiles, Help & guides) and **Step 2: Choose an action**

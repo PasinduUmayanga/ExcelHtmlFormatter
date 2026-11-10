@@ -8,6 +8,8 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { createFormatterRouter, FormatterAppProvider, type FormatterAppConfig } from './router'
+// Inter (SIL Open Font License), bundled so the app looks the same on every computer; see styles/tokens.css.
+import '@fontsource-variable/inter'
 import './styles/styles.css'
 
 export function FormatterApp({ config }: { config: FormatterAppConfig }) {

@@ -1,18 +1,34 @@
-import type { MouseEvent, ReactNode } from 'react'
-import { Link, useParams, useRouter, useRouterState } from '@tanstack/react-router'
-import { canVisit, useApp } from '../../state/store'
+import { Link, useRouterState } from '@tanstack/react-router'
+import { useApp } from '../../state/store'
 import { useFormatterApp } from '../../router'
 import { cx } from '../../utils/cx'
 import { Icon, Logo, type IconName } from '../atoms'
 
-type Step = 'open' | 'sections' | 'analysis' | 'preview'
-const ORDER: Step[] = ['open', 'sections', 'analysis', 'preview']
-type Place = Step | 'home' | 'profiles' | 'help' | null
+type Step = 'upload' | 'configure' | 'preview' | 'complete'
+const ORDER: Step[] = ['upload', 'configure', 'preview', 'complete']
+type Place =
+  | Step
+  | 'home'
+  | 'workspace'
+  | 'recent'
+  | 'favorites'
+  | 'templates'
+  | 'automation'
+  | 'settings'
+  | 'profiles'
+  | 'help'
+  | null
 
 /** Where the address is: a workflow step or one of the global pages. */
 function placeOf(pathname: string): Place {
   if (pathname === '/') return 'home'
   if (pathname.startsWith('/settings')) return 'profiles'
+  if (pathname === '/workspace') return 'workspace'
+  if (pathname === '/recent') return 'recent'
+  if (pathname === '/favorites') return 'favorites'
+  if (pathname === '/templates') return 'templates'
+  if (pathname === '/automation') return 'automation'
+  if (pathname === '/preferences') return 'settings'
   if (pathname.startsWith('/help')) return 'help'
   // The content check (/check) belongs to the Preview & export step.
   if (pathname.startsWith('/check')) return 'preview'
@@ -20,62 +36,30 @@ function placeOf(pathname: string): Place {
 }
 
 /**
- * The global navigation (redesign §4): Home, My Workspace (the active workflow), Formatting Profiles, Help & Support,
- * and, while the workflow is still shown here, its steps. Recent Files and Settings join when their pages exist.
+ * The global navigation, grouped as in the "Reference-Matched" prototype: Home, My Workspace, Recent Files,
+ * Favorites; Tools; Settings; and the active profile at the bottom. The workflow's steps are in its own stepper (WorkflowStepper).
  */
 export function Sidebar() {
   const { format } = useFormatterApp()
   const state = useApp()
-  const { config, appInfo, doc, selected, workflowActive, lastStep } = state
-  const router = useRouter()
+  const { config, appInfo, doc, workflowActive } = state
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const params = useParams({ strict: false }) as { section?: string }
   const place = placeOf(pathname)
   const inWorkflow = place !== null && (ORDER as string[]).includes(place)
-  const currentIndex = inWorkflow ? ORDER.indexOf(place as Step) : -1
-  // Keep the section the user is looking at; otherwise start at the first selected one.
-  const section = params.section && selected.includes(params.section) ? params.section : selected[0]
 
   const item = (icon: IconName, label: string) => (
     <>
-      <Icon name={icon} size={20} />
+      <Icon name={icon} size={18} />
       <span>{label}</span>
     </>
   )
   // The current page is announced by aria-current, so link names stay "Home", "Help & Support"…
   const current = (on: boolean) => (on ? ('page' as const) : undefined)
 
-  // My Workspace returns to the active workflow: the last screen of the open file, or the Open screen.
-  const workspace = lastStep ?? '/open'
-  const openWorkspace = (e: MouseEvent) => {
-    e.preventDefault()
-    router.history.push(workspace)
-  }
-
-  const step = (id: Step, i: number, label: string, link: (children: ReactNode, className: string) => ReactNode) => {
-    const done = currentIndex > i
-    // Locked until the workflow is started from Home (and again after a clean save).
-    const enabled = id === 'open' ? workflowActive : canVisit(state, id)
-    const className = cx('nav', 'step', place === id && 'active', done && 'done')
-    const children = (
-      <>
-        <span className="num">{done ? <Icon name="check" size={14} /> : i + 1}</span>
-        {label}
-      </>
-    )
-    return enabled ? (
-      link(children, className)
-    ) : (
-      <span key={id} className={className} aria-disabled="true">
-        {children}
-      </span>
-    )
-  }
-
   return (
     <aside>
       <div className="brand">
-        <Logo size={36} />
+        <Logo size={35} />
         <div>
           <div className="brand-name">{format.appName}</div>
           {format.tagline && <div className="brand-tagline">{format.tagline}</div>}
@@ -86,20 +70,35 @@ export function Sidebar() {
         <Link to="/" className={cx('nav', place === 'home' && 'active')} aria-current={current(place === 'home')}>
           {item('home', 'Home')}
         </Link>
-        {workflowActive ? (
-          <a
-            href={`#${workspace}`}
-            onClick={openWorkspace}
-            className={cx('nav', inWorkflow && 'active')}
-            aria-current={current(inWorkflow)}
-          >
-            {item('workspace', 'My Workspace')}
-          </a>
-        ) : (
-          <span className="nav" aria-disabled="true" title="Start from Home to open a workspace">
-            {item('workspace', 'My Workspace')}
-          </span>
-        )}
+        <Link
+          to="/workspace"
+          className={cx('nav', (place === 'workspace' || inWorkflow) && 'active')}
+          aria-current={current(place === 'workspace' || inWorkflow)}
+        >
+          {item('workspace', 'My Workspace')}
+          {workflowActive && <span className="nav-soon live">Active</span>}
+        </Link>
+        <Link
+          to="/recent"
+          className={cx('nav', place === 'recent' && 'active')}
+          aria-current={current(place === 'recent')}
+        >
+          {item('recent', 'Recent Files')}
+        </Link>
+        <Link
+          to="/favorites"
+          className={cx('nav', place === 'favorites' && 'active')}
+          aria-current={current(place === 'favorites')}
+        >
+          {item('favorites', 'Favorites')}
+        </Link>
+      </nav>
+
+      <hr className="nav-rule" />
+      <div className="navlabel" id="nav-tools">
+        Tools
+      </div>
+      <nav className="nav-group" aria-labelledby="nav-tools">
         <Link
           to="/settings"
           search={{ tag: undefined, back: undefined }}
@@ -108,34 +107,35 @@ export function Sidebar() {
         >
           {item('profiles', 'Formatting Profiles')}
         </Link>
-      </nav>
-
-      <div className="navlabel">Workflow</div>
-      <nav className="nav-group" aria-label="Workflow steps">
-        {step('open', 0, 'Open file', (c, cls) => (
-          <Link key="open" to="/open" className={cls}>
-            {c}
-          </Link>
-        ))}
-        {step('sections', 1, `Select ${format.section.plural}`, (c, cls) => (
-          <Link key="sections" to="/sections" className={cls}>
-            {c}
-          </Link>
-        ))}
-        {step('analysis', 2, 'Tag analysis', (c, cls) => (
-          <Link key="analysis" to="/analysis/$section" params={{ section: section ?? '' }} className={cls}>
-            {c}
-          </Link>
-        ))}
-        {step('preview', 3, 'Preview & export', (c, cls) => (
-          <Link key="preview" to="/preview/$section" params={{ section: section ?? '' }} className={cls}>
-            {c}
-          </Link>
-        ))}
+        <Link
+          to="/automation"
+          className={cx('nav', place === 'automation' && 'active')}
+          aria-current={current(place === 'automation')}
+        >
+          {item('automation', 'Automation')}
+          <span className="nav-soon">Beta</span>
+        </Link>
+        <Link
+          to="/templates"
+          className={cx('nav', place === 'templates' && 'active')}
+          aria-current={current(place === 'templates')}
+        >
+          {item('templates', 'Templates')}
+        </Link>
       </nav>
 
       <hr className="nav-rule" />
-      <nav className="nav-group" aria-label="Support">
+      <div className="navlabel" id="nav-settings">
+        Settings
+      </div>
+      <nav className="nav-group" aria-labelledby="nav-settings">
+        <Link
+          to="/preferences"
+          className={cx('nav', place === 'settings' && 'active')}
+          aria-current={current(place === 'settings')}
+        >
+          {item('settings', 'Settings')}
+        </Link>
         <Link
           to="/help"
           search={{ q: undefined }}
@@ -146,19 +146,18 @@ export function Sidebar() {
         </Link>
       </nav>
 
-      <div className="side-foot">
-        {doc && (
-          <div title={doc.file.path} className="truncate side-file">
-            <Icon name="file" /> <b>{doc.file.name}</b>
-          </div>
-        )}
-        <div>
-          Profile: <b>{config?.profileName ?? '…'}</b>
+      <div className="profile-card" role="status" aria-label="Active formatting profile">
+        <div className="profile-head">
+          <span className="profile-dot" aria-hidden="true" />
+          <b>{config?.profileName ?? '…'} Profile</b>
         </div>
-        <div>{config ? Object.keys(config.rules).length : 0} tag rules</div>
-        {appInfo && (
-          <div className="side-version">
-            <Icon name="info" size={14} /> {format.appName} v{appInfo.version}
+        <div className="profile-detail">
+          {config ? Object.keys(config.rules).length : 0} tag rules
+          {appInfo && ` · v${appInfo.version}`}
+        </div>
+        {doc && (
+          <div className="profile-detail truncate" title={doc.file.path}>
+            <Icon name="file" size={12} /> {doc.file.name}
           </div>
         )}
       </div>

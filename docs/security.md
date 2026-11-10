@@ -32,7 +32,11 @@ that folder is in the activity list, and the user still picks the file
 ([ADR 0013](architecture/adr/0013-recent-activity.md)). `setTheme` accepts only `system`, `light` or `dark`.
 Help text is Markdown parsed into data and rendered as React elements: never as HTML, and only links between Help
 topics are followed ([ADR 0015](architecture/adr/0015-help-center-markdown.md)). `activity.json` stores file names and folders (no file
-content) on the user's computer until they clear it. See the table in
+content) on the user's computer until they clear it. Since the redesign (ADR 0017, 0018): **Load sample** opens only
+the app's own sample (its path comes from the app, never the window); **Open file** opens only a file this app saved
+(the same list as Show in folder); a favourite can only be a file from the recent activity (`favorites.json`, names
+and folders only); profiles and templates (`profiles.json`, `templates.json`) are checked like the settings, with
+limits on names and counts; the Save dialog's suggested name is reduced to a plain file name. See the table in
 [contracts](api/contracts.md#electronapi-window--main).
 
 ## Development practices

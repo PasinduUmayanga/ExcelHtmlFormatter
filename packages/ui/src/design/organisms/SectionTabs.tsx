@@ -13,9 +13,9 @@ export function SectionTabs({
   current,
   view
 }: {
-  screen: 'analysis' | 'preview'
+  screen: 'configure' | 'preview'
   current: string
-  view?: 'original'
+  view?: 'original' | 'formatted'
 }) {
   const { doc, selected, config } = useApp()
   if (!doc) return null
@@ -37,14 +37,14 @@ export function SectionTabs({
             )}
           </>
         )
-        return screen === 'analysis' ? (
+        return screen === 'configure' ? (
           <Link
             key={name}
             role="tab"
             aria-selected={current === name}
             className={className}
-            to="/analysis/$section"
-            params={{ section: name }}
+            to="/configure"
+            search={{ tab: 'tags', section: name }}
           >
             {content}
           </Link>

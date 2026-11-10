@@ -91,14 +91,17 @@ sequenceDiagram
 
 ## 4. Window: routes, state, composition
 
-| Address                            | Screen                   | Guard                                               |
-| ---------------------------------- | ------------------------ | --------------------------------------------------- |
-| `#/`                               | Home (start screen)      | —                                                   |
-| `#/open`                           | Open a file              | —                                                   |
-| `#/sections`                       | Select sections (sheets) | needs an open document                              |
-| `#/analysis/$section`              | Tag analysis             | needs a selection; unknown section → first selected |
-| `#/preview/$section?view=original` | Preview & export         | same as analysis                                    |
-| `#/settings?tag=&back=`            | Tag styles               | — (`back` must be an in-app path)                   |
+| Address                                                                                  | Screen                                    | Guard                                                         |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------- |
+| `#/`                                                                                     | Home (file type, action, Continue)        | —                                                             |
+| `#/upload`                                                                               | Step 3: Upload                            | the workflow is started (from Home, a template or Open again) |
+| `#/configure?tab=tags&section=`                                                          | Step 4: Configure (Sheets / Tag Styles)   | needs an open document                                        |
+| `#/preview/$section?view=formatted\|original`                                            | Step 5: Preview (side by side by default) | needs a selection; unknown section → first selected           |
+| `#/check/$section?cell=&saved=`                                                          | Step 5: the compare screen                | same as preview                                               |
+| `#/complete`                                                                             | Step 6: Export & complete                 | needs a selection, or a clean save just made                  |
+| `#/workspace`, `#/recent`, `#/favorites`, `#/templates`, `#/preferences`, `#/automation` | Sidebar pages                             | —                                                             |
+| `#/settings?tag=&back=`                                                                  | Formatting Profiles (tag styles)          | — (`back` must be an in-app path)                             |
+| `#/help`, `#/help/$topic?section=`                                                       | Help Center                               | —                                                             |
 
 - The router owns **where the user is**; the zustand store (`packages/ui/src/state/store.ts`) owns **data**: open document
   summary, selection, settings, running job, previews, export result.

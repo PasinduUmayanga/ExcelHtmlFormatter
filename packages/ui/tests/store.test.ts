@@ -45,6 +45,7 @@ beforeEach(() => {
     checkDocument: vi.fn(async () => clean),
     exportDocument: vi.fn(async () => saved),
     exportReport: vi.fn(async () => 'report.csv'),
+    openSavedFile: vi.fn(async () => {}),
     onJobProgress: vi.fn(() => () => {}),
     loadConfig: vi.fn(async () => defaultConfig()),
     getAppInfo: vi.fn(async () => ({ version: '1', platform: 'win32', configPath: 'c' })),
@@ -129,6 +130,25 @@ describe('saving (store)', () => {
     useApp.setState({ lastSaved: saved })
     useApp.getState().dismissLastSaved()
     expect(useApp.getState().lastSaved).toBeNull()
+  })
+
+  it('sends the typed output name to the Save dialog, and opens the saved file', async () => {
+    useApp.setState({ outputName: '  Report final  ' })
+    expect(await useApp.getState().exportDocument()).toBe('completed')
+    expect(api.exportDocument.mock.calls[0][3]).toBe('Report final')
+    // A new file starts with the usual name again; the summary remembers where the save came from
+    expect(useApp.getState().outputName).toBe('')
+    expect(useApp.getState().lastSavedSource).toBeTruthy()
+    await useApp.getState().openSavedFile()
+    expect(api.openSavedFile).toHaveBeenCalledWith('C:/y.xlsx')
+    api.openSavedFile.mockRejectedValueOnce(new Error('No program for .xlsx'))
+    await useApp.getState().openSavedFile()
+    expect(useApp.getState().error).toMatch(/^Could not open .*No program for \.xlsx$/)
+  })
+
+  it('leaves the name to the Save dialog when none was typed', async () => {
+    expect(await useApp.getState().exportDocument()).toBe('completed')
+    expect(api.exportDocument.mock.calls[0][3]).toBeUndefined()
   })
 
   it('reuses a current check', async () => {

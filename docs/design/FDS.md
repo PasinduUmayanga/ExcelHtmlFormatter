@@ -123,13 +123,51 @@ file. Web addresses are shown, not opened ([ADR 0015](../architecture/adr/0015-h
 - Success box: "N cells formatted in M sheets, K set to wrap text", tags removed/kept, "Your original file was not
   changed", **Show in folder**.
 - **Clean save** (no known issues, and the saved file matches or its check was stopped): the file is closed, the
-  workflow ends and the app returns to Home, which shows the success box (FR-29). **Save with problems** (saved with
-  known issues, or the saved file has differences): stays on Preview with the file open so the review can be opened.
+  workflow ends and Export & complete shows the success box (FR-29, F8). **Save with problems** (saved with known
+  issues, or the saved file has differences): the file stays open so the review can be opened.
 - A note next to Save says charts, pivot tables and macros aren't copied.
 
 **Business rules:** see TDS §2 (conversion rules). **Acceptance:** e2e full flow checks the saved file's rich text and
 wrap text, and that the original is unchanged; e2e overwrite refusal; e2e Cancel leaves no file; unit
 `convert.test.ts`.
+
+## F8. Redesigned workflow and pages (FR-31 – FR-37)
+
+From the "Reference-Matched (Horizontal Steps)" prototype (roadmap P1–P15). F1–F5 above describe what each step
+does; this is where it now lives.
+
+- **Six steps** (`WorkflowTemplate`): a full-width stepper (`WorkflowStepper`: done steps green with a tick and a link
+  back, the current one blue with `aria-current="step"`), the screen, the **Workflow summary** (`WorkflowSummary`:
+  file type, action, extensions, file, selected sheets, profile, and the guarantees that are really kept), and Back /
+  Continue with "Your original file is never changed".
+- **Upload** (`#/upload`, F1): drop zone with the file type's picture, **Choose file**, supported formats; the chosen
+  file with its size and sheet count, **Remove**; **Load sample** (ADR 0017). The file stays here until Continue.
+- **Configure** (`#/configure`, F2 + F3): a Sheets / Tag Styles switcher (`?tab=tags&section=X`). Sheets: the sheet
+  table with Select all. Tag Styles: **Active profile** picker, per-sheet tabs, the tag table with Set style / Edit.
+  Continue opens the preview of the sheet shown.
+- **Preview** (`#/preview/X`, F5): `ProcessingPanel` (ring and the six real stages; a percentage only when the stage
+  reports counts), **Content verification** (`VerificationPanel`: Passed / Needs review / Checking… / Not checked, from
+  the real check), **Side by side** (default) / Formatted / Original HTML. The compare screen (`#/check/X`) belongs
+  to this step.
+- **Export & complete** (`#/complete`): **Output name** (the Save dialog's starting name), what will be saved, **Save
+  formatted file…** with the processing panel and Cancel. After a clean save: **Processing completed!**, the
+  summary (file, action, sheets processed, cells formatted, saved as, saved-file check), **Open file** (ADR 0017),
+  **Show in folder**, **New task**.
+- **My Workspace** (`#/workspace`): New workflow, Recent files, Profiles; the active task ("Step x of 6") with
+  **Resume workflow**; the latest 5 files. The sidebar marks My Workspace **Active** while a task is open.
+- **Recent Files** (`#/recent`) and **Favorites** (`#/favorites`): rows with file, folder, status, time, **Open**
+  (dialog in that folder) and a star; **Clear** asks first and keeps Favorites.
+- **Formatting Profiles** (`#/settings`): `ProfileManager` (Use, Rename, Duplicate, Delete, Create) above the tag
+  editor for the active profile (ADR 0018).
+- **Templates** (`#/templates`): list with Use / Delete and a form (name, action, profile, sheets to tick).
+- **Settings** (`#/preferences`), **Automation (Beta)** (`#/automation`, a "planned" notice), **Search** in the
+  header (combobox, Ctrl+K).
+
+**Acceptance:** e2e "starts on Home" (sidebar pages, search, Upload with Load sample and Remove), "open → analyse →
+… export" (Configure, Preview, Export with output name, Complete), "Home: Continue mid-workflow…" (Workspace,
+Favorites, Clear asks first), "Formatting Profiles" (profiles, Configure's picker, a template), "Help" (search finds
+a help topic); unit tests in `ui/tests` (steps, processing, search, store) and `desktop/tests` (favorites, profiles,
+templates, ipcChecks).
 
 ## F6. Navigation (FR-11)
 

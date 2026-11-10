@@ -14,6 +14,9 @@ import {
   type ContentReport,
   type DocumentSummary,
   type ExportResult,
+  type FavoriteFile,
+  type ProfileSummary,
+  type WorkflowTemplate,
   type JobKind,
   type JobProgress,
   type PickedFile,
@@ -67,8 +70,17 @@ export interface AppState {
   loadActivity(): Promise<void>
   /** Empties the recent actions list. */
   clearActivity(): Promise<void>
+  /** Starred files (Favorites), newest first, stored by the main process. */
+  favorites: FavoriteFile[]
+  loadFavorites(): Promise<void>
+  /** Stars or unstars a recent file. */
+  toggleFavorite(fileName: string, folder: string): Promise<void>
   /** Opens a file dropped on the window. False when busy or it failed. */
   openDroppedFile(file: File): Promise<boolean>
+  /** Opens the sample file that ships with the app ("Load sample", ADR 0017). False when there is none or it failed. */
+  openSample(): Promise<boolean>
+  /** Closes the open file (Upload's Remove). The workflow stays unlocked. */
+  closeFile(): void
   toggleSection(name: string): void
   selectAllSections(selected: boolean): void
   setError(message: string | null): void
@@ -83,6 +95,29 @@ export interface AppState {
   /** A short success message shown as a toast. */
   notice: string | null
   notify(message: string): void
+
+  /* Formatting profiles (ADR 0018): the active one's styles are `config`. */
+  profiles: ProfileSummary[]
+  loadProfiles(): Promise<void>
+  /** Resolves to false (with the reason shown) when it can't be done, e.g. a name already used. */
+  createProfile(name: string, copyFrom: string | null): Promise<boolean>
+  renameProfile(from: string, to: string): Promise<boolean>
+  deleteProfile(name: string): Promise<boolean>
+  /** Makes a profile active: its styles become `config` (the content check runs again). */
+  activateProfile(name: string): Promise<boolean>
+
+  /* Templates (ADR 0018): saved setups to start a task with */
+  templates: WorkflowTemplate[]
+  loadTemplates(): Promise<void>
+  saveTemplate(template: WorkflowTemplate): Promise<boolean>
+  deleteTemplate(name: string): Promise<boolean>
+  /**
+   * Starts a task with a template: its file type and action (only if this app can run it), its profile, and which
+   * sections to tick when the file opens. False, with the reason shown, when it can't.
+   */
+  startTemplate(template: WorkflowTemplate, appFormatId: string): Promise<boolean>
+  /** Which sections are ticked when a file opens: visible ones with HTML (usual) or all (a template's choice). */
+  sheetRule: 'html' | 'all'
 
   /* Tag styles: every change is saved to disk automatically. */
   updateRule(tag: string, patch: Partial<TagStyle>): void
@@ -110,6 +145,13 @@ export interface AppState {
   exportDocument(acceptIssues?: boolean): Promise<'completed' | 'saved' | 'review' | 'cancelled' | 'failed'>
   /** Shows the last saved file in its folder (the open document's save, or the one Home reports). */
   showInFolder(): void
+  /** Opens the last saved file in its usual program (Export & complete). */
+  openSavedFile(): Promise<void>
+  /** The file name typed on the Export screen for the Save dialog; empty for the usual name. */
+  outputName: string
+  setOutputName(name: string): void
+  /** The name of the file the last clean save was made from (Export & complete's summary). */
+  lastSavedSource: string | null
   dismissExportResult(): void
 
   /*
@@ -193,7 +235,15 @@ let noticeTimer: ReturnType<typeof setTimeout> | undefined
 /** Main-process errors arrive as "Error invoking remote method 'x': Error: <message>". */
 export const cleanError = (e: unknown) => String((e as Error)?.message ?? e).replace(/^.*Error: /, '')
 
-const closedDocument = { doc: null, lastStep: null, selected: [], previews: {}, exportResult: null, check: idleCheck }
+const closedDocument = {
+  doc: null,
+  lastStep: null,
+  selected: [],
+  previews: {},
+  exportResult: null,
+  check: idleCheck,
+  outputName: ''
+}
 
 /** True once the job-progress listener is registered (it must be registered only once). */
 let listening = false
@@ -205,6 +255,17 @@ export const useApp = create<AppState>((set, get) => {
       set({ theme: (await window.api.getPreferences()).theme })
     } catch {
       // The theme is applied by the main process either way; only the header's choice would be out of date.
+    }
+  }
+  /** Runs a profile change: shows why it failed, or a short notice when it worked. */
+  const profileChange = async (run: () => Promise<void>, done?: string): Promise<boolean> => {
+    try {
+      await run()
+      if (done) get().notify(done)
+      return true
+    } catch (e) {
+      set({ error: cleanError(e) })
+      return false
     }
   }
   return {
@@ -247,7 +308,13 @@ export const useApp = create<AppState>((set, get) => {
         return
       }
       // Conveniences: the window works without them, so they don't hold up start-up or fail it.
-      await Promise.all([get().loadActivity(), loadTheme()])
+      await Promise.all([
+        get().loadActivity(),
+        get().loadFavorites(),
+        get().loadProfiles(),
+        get().loadTemplates(),
+        loadTheme()
+      ])
     },
 
     theme: 'system',
@@ -279,12 +346,30 @@ export const useApp = create<AppState>((set, get) => {
       }
     },
 
+    favorites: [],
+    async loadFavorites() {
+      try {
+        set({ favorites: await window.api.getFavorites() })
+      } catch {
+        // Favorites are a convenience: keep what is shown.
+      }
+    },
+    async toggleFavorite(fileName, folder) {
+      try {
+        set({ favorites: await window.api.toggleFavorite(fileName, folder) })
+      } catch (e) {
+        set({ error: 'Could not change Favorites. ' + cleanError(e) })
+      }
+    },
+
     async openFile(file) {
       set({ pendingFile: file, loading: true, error: null, job: { kind: 'load', progress: { stage: 'reading' } } })
       try {
         const doc = await window.api.openDocument(file.path)
-        // Pre-select visible sections that contain HTML.
-        const selected = doc.sections.filter((s) => s.scan.htmlCells > 0 && s.state === 'visible').map((s) => s.name)
+        // Pre-select visible sections that contain HTML (or every section, if a template says so).
+        const selected = doc.sections
+          .filter((s) => get().sheetRule === 'all' || (s.scan.htmlCells > 0 && s.state === 'visible'))
+          .map((s) => s.name)
         set({ ...closedDocument, doc, selected })
         void get().loadActivity()
         return true
@@ -323,6 +408,25 @@ export const useApp = create<AppState>((set, get) => {
       }
     },
 
+    async openSample() {
+      if (get().loading) return false
+      try {
+        const file = await window.api.openSample()
+        if (!file) {
+          set({ error: 'This app has no sample file.' })
+          return false
+        }
+        return await get().openFile(file)
+      } catch (e) {
+        set({ error: 'Could not open the sample. ' + cleanError(e) })
+        return false
+      }
+    },
+
+    closeFile() {
+      if (!get().loading) set(closedDocument)
+    },
+
     job: null,
     cancelJob() {
       const job = get().job
@@ -353,6 +457,68 @@ export const useApp = create<AppState>((set, get) => {
       set({ notice: message })
       noticeTimer = setTimeout(() => set({ notice: null }), 3000)
     },
+
+    profiles: [],
+    async loadProfiles() {
+      try {
+        set({ profiles: await window.api.getProfiles() })
+      } catch {
+        // The list is only shown on Formatting Profiles; the active styles are already loaded.
+      }
+    },
+    async createProfile(name, copyFrom) {
+      return profileChange(
+        async () => set({ profiles: await window.api.createProfile(name, copyFrom) }),
+        `Created ${name.trim()}`
+      )
+    },
+    async renameProfile(from, to) {
+      return profileChange(async () => {
+        set({ profiles: await window.api.renameProfile(from, to) })
+        const config = get().config
+        if (config && config.profileName === from) set({ config: { ...config, profileName: to.trim() } })
+      })
+    },
+    async deleteProfile(name) {
+      return profileChange(async () => set({ profiles: await window.api.deleteProfile(name) }), `Deleted ${name}`)
+    },
+    async activateProfile(name) {
+      return profileChange(async () => {
+        set({ config: await window.api.activateProfile(name) })
+        await get().loadProfiles()
+      }, `Using ${name}`)
+    },
+
+    templates: [],
+    async loadTemplates() {
+      try {
+        set({ templates: await window.api.getTemplates() })
+      } catch {
+        // A convenience: keep what is shown.
+      }
+    },
+    async saveTemplate(template) {
+      return profileChange(
+        async () => set({ templates: await window.api.saveTemplate(template) }),
+        `Saved ${template.name}`
+      )
+    },
+    async deleteTemplate(name) {
+      return profileChange(async () => set({ templates: await window.api.deleteTemplate(name) }), `Deleted ${name}`)
+    },
+    async startTemplate(template, appFormatId) {
+      const action = actionOf(template.action)
+      if (!action || availabilityOf(action, appFormatId) !== 'ready') {
+        set({ error: `"${template.name}" uses an action this app can't run yet.` })
+        return false
+      }
+      if (get().config?.profileName !== template.profile && !(await get().activateProfile(template.profile)))
+        return false
+      get().startWorkflow()
+      set({ homeType: action.sourceType, homeAction: action.id, sheetRule: template.sheets })
+      return true
+    },
+    sheetRule: 'html',
 
     updateRule(tag, patch) {
       const config = get().config
@@ -433,13 +599,14 @@ export const useApp = create<AppState>((set, get) => {
         if (report.issues > 0 && !acceptIssues) return 'review'
         // The job starts once the Save dialog closes; its first progress update shows the bar.
         set({ job: { kind: 'export', progress: null } })
-        const result = await window.api.exportDocument(doc.file.path, selected, config)
+        const outputName = get().outputName.trim()
+        const result = await window.api.exportDocument(doc.file.path, selected, config, outputName || undefined)
         if (!result) return 'cancelled'
         void get().loadActivity()
         const clean =
           result.stats.check.issues === 0 && (result.verification === null || result.verification.differences === 0)
         if (clean) {
-          set({ ...closedDocument, workflowActive: false, lastSaved: result })
+          set({ ...closedDocument, workflowActive: false, lastSaved: result, lastSavedSource: doc.file.name })
           return 'completed'
         }
         set({ exportResult: result })
@@ -461,6 +628,22 @@ export const useApp = create<AppState>((set, get) => {
       if (result) window.api.showInFolder(result.path)
     },
 
+    async openSavedFile() {
+      const result = get().exportResult ?? get().lastSaved
+      if (!result) return
+      try {
+        await window.api.openSavedFile(result.path)
+      } catch (e) {
+        set({ error: `Could not open ${result.fileName}. ${cleanError(e)}` })
+      }
+    },
+
+    outputName: '',
+    setOutputName(outputName) {
+      set({ outputName })
+    },
+    lastSavedSource: null,
+
     dismissExportResult() {
       set({ exportResult: null })
     },
@@ -477,7 +660,7 @@ export const useApp = create<AppState>((set, get) => {
     },
     workflowActive: false,
     startWorkflow() {
-      set({ workflowActive: true, lastSaved: null })
+      set({ workflowActive: true, lastSaved: null, sheetRule: 'html' })
     },
     lastSaved: null,
     dismissLastSaved() {

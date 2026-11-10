@@ -1,5 +1,6 @@
 // Checks for values the window sends over IPC, and results the main process builds itself.
 // No Electron imports, so they can be unit-tested.
+import { basename } from 'node:path'
 import type { SaveVerification } from '@hf/core'
 
 /** The largest CSV report the window may ask to save (far above any real report). */
@@ -37,4 +38,18 @@ export function unreadableSave(message: string): SaveVerification {
       }
     ]
   }
+}
+
+/**
+ * The Save dialog's starting file name: the name the user typed on the Export screen, or `fallback`. Only a name is
+ * kept (no folders), characters Windows and macOS refuse are removed, and the format's extension is added (ADR 0017).
+ */
+export function outputFileName(name: unknown, fallback: string, extension: string): string {
+  const typed = typeof name === 'string' ? basename(name.replace(/\\/g, '/')) : ''
+  // Control characters are exactly what must go, so this pattern needs them.
+  // eslint-disable-next-line no-control-regex
+  const unsafe = /[<>:"/\\|?*\u0000-\u001f]/g
+  let clean = typed.replace(unsafe, '').trim().slice(0, 200)
+  if (clean.toLowerCase().endsWith(`.${extension}`)) clean = clean.slice(0, -extension.length - 1).trim()
+  return `${clean.replace(/[. ]+$/, '') || fallback}.${extension}`
 }

@@ -6,7 +6,7 @@ import { useFormatterApp } from '../router'
 import { Button, Icon } from '../design/atoms'
 import { Banner, ConfirmBox, Stat, Tab, Tabs } from '../design/molecules'
 import { CheckDetail, CheckList } from '../design/organisms'
-import { ScreenTemplate } from '../design/templates'
+import { WorkflowTemplate } from '../design/templates'
 
 const fallbackConfig = defaultConfig()
 const route = getRouteApi('/check/$section')
@@ -86,12 +86,13 @@ export function CheckReview() {
   const saveAnyway = async () => {
     setConfirming(false)
     const outcome = await exportDocument(true)
-    if (outcome === 'saved') navigate({ to: '/preview/$section', params: { section } })
-    if (outcome === 'completed') navigate({ to: '/' })
+    // Export & complete shows the result either way.
+    if (outcome === 'saved' || outcome === 'completed') navigate({ to: '/complete' })
   }
 
   return (
-    <ScreenTemplate
+    <WorkflowTemplate
+      step="preview"
       title={saved ? 'Saved file check' : 'Content check'}
       intro={
         <>
@@ -234,6 +235,6 @@ export function CheckReview() {
           Your original file is not changed.
         </ConfirmBox>
       )}
-    </ScreenTemplate>
+    </WorkflowTemplate>
   )
 }

@@ -30,7 +30,7 @@ work — move the code to the right layer instead.
 ```bash
 pnpm install          # after cloning or pulling
 pnpm check            # lint + format check + type-check + unit tests (must pass before you finish)
-pnpm test:e2e         # builds the app, then 5 Playwright tests against the real Electron app
+pnpm test:e2e         # builds the app, then 12 Playwright tests against the real Electron app
 pnpm test:coverage    # coverage with per-package floors
 pnpm test:ci          # coverage + JUnit reports (what CI runs)
 pnpm format           # apply Prettier
